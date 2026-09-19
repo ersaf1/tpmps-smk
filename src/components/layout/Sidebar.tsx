@@ -95,7 +95,7 @@ export default function Sidebar({
         {/* Sidebar Header Brand */}
         <div className={`h-20 px-5 flex items-center ${isCollapsed ? 'lg:justify-center' : 'justify-between'} border-b border-slate-200 bg-white`}>
           <Link href="/dashboard" className="flex items-center gap-3 group">
-            <Image src="/logo.png" alt="Logo SMK" width={44} height={44} className="w-11 h-11 object-contain shrink-0 group-hover:scale-105 transition-transform" priority />
+            <Image src="/logo.png" alt="Logo SMK" width={44} height={44} className="w-11 h-11 object-contain shrink-0 group-hover:scale-105 transition-transform" priority unoptimized />
             <div className={isCollapsed ? 'lg:hidden' : ''}>
               <div className="flex items-center gap-1.5">
                 <span className="text-base font-black text-slate-900 tracking-tight">SIGMA</span>

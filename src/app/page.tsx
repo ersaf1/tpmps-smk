@@ -57,6 +57,7 @@ export default function LandingPage() {
               height={48}
               className="w-12 h-12 object-contain shrink-0 group-hover:scale-105 transition-transform"
               priority
+              unoptimized
             />
             <div>
               <div className="flex items-center gap-1.5">
@@ -405,6 +406,7 @@ export default function LandingPage() {
               height={80}
               className="w-20 h-20 object-contain mx-auto"
               priority
+              unoptimized
             />
 
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
@@ -435,7 +437,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
-              <Image src="/logo.png" alt="Logo" width={32} height={32} className="object-contain" />
+              <Image src="/logo.png" alt="Logo" width={32} height={32} className="object-contain" unoptimized />
               <span className="text-sm font-black text-[#0077B6]">SIGMA TPMPS</span>
             </div>
             <p className="text-slate-500 leading-relaxed">
