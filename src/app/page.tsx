@@ -50,16 +50,14 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           {/* Logo & School Name */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-[#0077B6] to-[#0284C7] p-1.5 shadow-sm flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <Image
-                src="/logo.png"
-                alt="Logo SMK Negeri 2 Magelang"
-                width={38}
-                height={38}
-                className="object-contain"
-                priority
-              />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="Logo SMK Negeri 2 Magelang"
+              width={48}
+              height={48}
+              className="w-12 h-12 object-contain shrink-0 group-hover:scale-105 transition-transform"
+              priority
+            />
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-xl font-black tracking-tight text-slate-900">SIGMA</span>
@@ -400,16 +398,14 @@ export default function LandingPage() {
       <section className="py-16 bg-gradient-to-b from-[#F8FAFC] to-blue-50/50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-3xl p-8 sm:p-12 border border-blue-200 shadow-lg text-center space-y-6">
-            <div className="w-20 h-20 rounded-2xl bg-white border border-slate-200 p-2.5 flex items-center justify-center mx-auto shadow-sm">
-              <Image
-                src="/logo.png"
-                alt="Logo SMK Negeri 2 Magelang"
-                width={60}
-                height={60}
-                className="object-contain"
-                priority
-              />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="Logo SMK Negeri 2 Magelang"
+              width={80}
+              height={80}
+              className="w-20 h-20 object-contain mx-auto"
+              priority
+            />
 
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
               SMK Negeri 2 Magelang
