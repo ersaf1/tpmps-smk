@@ -11,7 +11,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   FileCheck2,
-  ChevronDown
+  ChevronDown,
+  Check,
+  KeyRound
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -19,16 +21,19 @@ interface HeaderProps {
   selectedPeriode: string;
   onPeriodeChange: (p: string) => void;
   onToggleSidebar: () => void;
+  onOpenLoginModal?: () => void;
 }
 
 export default function Header({
   currentUser,
   selectedPeriode,
   onPeriodeChange,
-  onToggleSidebar
+  onToggleSidebar,
+  onOpenLoginModal
 }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showPeriodeMenu, setShowPeriodeMenu] = useState(false);
 
   const notifications = [
     {
@@ -101,19 +106,65 @@ export default function Header({
             />
           </div>
 
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
-            <Calendar className="w-3.5 h-3.5 text-blue-600" />
-            <span className="text-xs text-slate-500 font-medium hidden lg:inline">Periode:</span>
-            <select
-              value={selectedPeriode}
-              onChange={(e) => onPeriodeChange(e.target.value)}
-              aria-label="Pilih Periode Akademik"
-              className="text-xs font-semibold text-slate-800 bg-transparent border-none focus:outline-none cursor-pointer"
+          {/* Custom Periode Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowPeriodeMenu(!showPeriodeMenu)}
+              className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl px-3 py-1.5 transition-all text-left cursor-pointer shadow-2xs group"
             >
-              <option value="Semester Ganjil 2025/2026">Ganjil 2025/2026</option>
-              <option value="Semester Genap 2025/2026">Genap 2025/2026</option>
-              <option value="Tahun Ajaran 2024/2025">TA 2024/2025 (Arsip)</option>
-            </select>
+              <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <div className="flex flex-col">
+                <span className="text-[10px] text-slate-400 font-semibold leading-tight">Periode Siklus</span>
+                <span className="text-xs font-bold text-slate-800 leading-tight">
+                  {selectedPeriode.replace('Semester ', '')}
+                </span>
+              </div>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 ml-1 ${
+                  showPeriodeMenu ? 'rotate-180 text-blue-600' : ''
+                }`}
+              />
+            </button>
+
+            {showPeriodeMenu && (
+              <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                  Pilih Periode Penjaminan Mutu
+                </div>
+                {[
+                  { value: 'Semester Ganjil 2026/2027', label: 'Semester Ganjil 2026/2027', tag: 'Mendatang' },
+                  { value: 'Semester Genap 2026/2027', label: 'Semester Genap 2026/2027', tag: 'Mendatang' },
+                  { value: 'Semester Ganjil 2025/2026', label: 'Semester Ganjil 2025/2026', tag: 'Aktif' },
+                  { value: 'Semester Genap 2025/2026', label: 'Semester Genap 2025/2026', tag: 'Aktif' },
+                  { value: 'Tahun Ajaran 2024/2025', label: 'Tahun Ajaran 2024/2025', tag: 'Arsip' },
+                  { value: 'Tahun Ajaran 2023/2024', label: 'Tahun Ajaran 2023/2024', tag: 'Arsip' }
+                ].map((item) => {
+                  const isSelected = selectedPeriode === item.value;
+                  return (
+                    <button
+                      key={item.value}
+                      onClick={() => {
+                        onPeriodeChange(item.value);
+                        setShowPeriodeMenu(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                        isSelected
+                          ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200/70'
+                          : 'text-slate-700 hover:bg-slate-50 font-medium'
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span>{item.label}</span>
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          {item.tag === 'Aktif' ? 'Siklus I Sedang Berjalan' : item.tag}
+                        </span>
+                      </div>
+                      {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -173,6 +224,19 @@ export default function Header({
             )}
           </div>
 
+          {/* Tombol Login / Ganti Akun */}
+          {onOpenLoginModal && (
+            <button
+              onClick={onOpenLoginModal}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-xs hover:shadow transition cursor-pointer"
+              title="Masuk atau ganti akun unit / Super Admin"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Ganti Akun / Login</span>
+              <span className="sm:hidden">Login</span>
+            </button>
+          )}
+
           {/* User Profile Pill */}
           <div className="relative">
             <button
@@ -212,7 +276,21 @@ export default function Header({
                     </span>
                   )}
                 </div>
-                <div className="py-1">
+                <div className="py-1 space-y-0.5">
+                  {onOpenLoginModal && (
+                    <button
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        onOpenLoginModal();
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs text-blue-700 hover:bg-blue-50 rounded-lg font-bold flex items-center justify-between transition cursor-pointer"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <KeyRound className="w-3.5 h-3.5" /> Ganti Akun / Login
+                      </span>
+                      <span className="text-[10px] bg-blue-100 px-1.5 py-0.5 rounded font-bold">18 Unit</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowProfileMenu(false)}
                     className="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 rounded-lg font-medium"

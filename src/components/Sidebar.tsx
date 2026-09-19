@@ -13,11 +13,13 @@ import {
   Users2,
   X,
   Sparkles,
-  Network
+  Network,
+  Archive
 } from 'lucide-react';
 
 export type TabType =
   | 'dashboard'
+  | 'lemari'
   | 'indikator'
   | 'evaluasi'
   | 'dokumen'
@@ -37,6 +39,7 @@ interface SidebarProps {
     evaluasiReview: number;
     dokumenPending: number;
     rtlAktif: number;
+    laciPending?: number;
   };
 }
 
@@ -61,6 +64,13 @@ export default function Sidebar({
       label: 'Dashboard Mutu',
       icon: LayoutDashboard,
       allowedRoles: ['kepala_sekolah', 'ketua_tpmps', 'anggota_tpmps', 'unit_kerja', 'admin']
+    },
+    {
+      id: 'lemari',
+      label: 'Lemari & Laci 18 Unit',
+      icon: Archive,
+      badge: counts.laciPending && counts.laciPending > 0 ? counts.laciPending : undefined,
+      badgeColor: 'bg-indigo-600 text-white'
     },
     {
       id: 'indikator',

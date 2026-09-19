@@ -24,42 +24,42 @@ export const ROLE_DETAILS: Record<
     badge: 'Executive',
     color: 'bg-purple-100 text-purple-800 border-purple-200',
     description: 'Akses eksekutif read-only seluruh 18 unit kerja, memantau capaian 8 SNP, KPI sekolah, dan review persetujuan laporan akhir.',
-    permissions: ['Dashboard Mutu Agregat', 'Review Capaian 18 Unit', 'Download Laporan EDS', 'Audit Log Mutu']
+    permissions: ['Master Key 18 Lemari Unit', 'Dashboard Mutu Agregat', 'Review Capaian 18 Unit', 'Download Laporan EDS', 'Audit Log Mutu']
   },
   ketua_tpmps: {
     title: 'Ketua TPMPS',
     badge: 'Quality Lead',
     color: 'bg-blue-100 text-blue-800 border-blue-200',
     description: 'Akses penuh siklus PPEPP, validasi & verifikasi evaluasi unit, persetujuan bukti dokumen, dan manajemen RTL program mutu.',
-    permissions: ['Validasi & Approval Mutu', 'Konfigurasi 8 SNP', 'Kelola Program Mutu (RTL)', 'Rapat Tinjauan Manajemen']
+    permissions: ['Master Key & Verifikasi Laci', 'Validasi & Approval Mutu', 'Konfigurasi 8 SNP', 'Kelola Program Mutu (RTL)', 'Rapat Tinjauan Manajemen']
   },
   anggota_tpmps: {
     title: 'Anggota TPMPS / Auditor',
     badge: 'Auditor Internal',
     color: 'bg-cyan-100 text-cyan-800 border-cyan-200',
     description: 'Mengumpulkan & menganalisis data 18 unit, verifikasi berkas bukti fisik, dan menyusun draft rekomendasi perbaikan mutu.',
-    permissions: ['Verifikasi Berkas Dokumen', 'Draft Rekomendasi Audit', 'Monitoring RTL', 'Analisis Data SNP']
+    permissions: ['Master Key Inspeksi Laci', 'Verifikasi Berkas Dokumen', 'Draft Rekomendasi Audit', 'Monitoring RTL', 'Analisis Data SNP']
   },
   unit_kerja: {
     title: 'WKS / Unit Kerja (Kurikulum)',
     badge: 'Unit Kerja',
     color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     description: 'Menginput data evaluasi mandiri scoped ke unit sendiri, mengunggah dokumen bukti pendukung, dan menindaklanjuti RTL.',
-    permissions: ['Input Penilaian Mandiri', 'Unggah Bukti Dokumen', 'Lihat Status Approval', 'Progres RTL Unit']
+    permissions: ['Lemari Unit Sendiri (Anti-Nyontek)', 'Isi Laci Tugas & Berkas', 'Input Penilaian Mandiri', 'Lihat Status Approval', 'Progres RTL Unit']
   },
   guru: {
     title: 'Guru & Tenaga Pendidik',
     badge: 'Tenaga Pendidik',
     color: 'bg-amber-100 text-amber-800 border-amber-200',
     description: 'Mengunggah bukti pendukung pembelajaran (Modul ajar, bukti asesmen, portofolio siswa) tanpa akses dashboard manajerial.',
-    permissions: ['Unggah Bukti Dokumen', 'Lihat Panduan Mutu', 'Riwayat Berkas']
+    permissions: ['Laci Modul & Asesmen Unit', 'Unggah Bukti Dokumen', 'Lihat Panduan Mutu', 'Riwayat Berkas']
   },
   admin: {
-    title: 'Admin Sistem',
-    badge: 'Super Admin',
+    title: 'Super Admin (Otoritas Penuh / Full Control)',
+    badge: 'Super Admin • Hak Akses Penuh',
     color: 'bg-rose-100 text-rose-800 border-rose-200',
-    description: 'Manajemen pengguna, pengaturan hak akses, penyesuaian bobot indikator mutu, dan pemeliharaan jejak audit.',
-    permissions: ['Manajemen 18 Unit & Akun', 'Pengaturan Bobot 8 SNP', 'Audit Trail Lengkap', 'Konfigurasi Sistem']
+    description: 'Otoritas tertinggi tanpa batas: Master Key membuka semua lemari, Acc massal seluruh laci, edit/hapus berkas & laci, ubah status seketika, tambah unit baru, serta mode penyamaran (impersonasi) ke unit mana saja.',
+    permissions: ['Master Key & Bypass Privasi', 'Acc Massal (Bulk Approval)', 'Hapus Berkas & Edit Laci', 'Tambah & Hapus Unit Kerja', 'Mode Penyamaran (Impersonate)']
   }
 };
 
@@ -119,7 +119,13 @@ export default function RoleBanner({ currentRole, onRoleChange }: RoleBannerProp
                   title={info.description}
                 >
                   {isActive && <CheckCircle2 className="w-3 h-3 text-white" />}
-                  {info.title.split(' ')[0]} {roleKey === 'ketua_tpmps' ? 'TPMPS' : roleKey === 'unit_kerja' ? '(WKS)' : ''}
+                  {roleKey === 'admin'
+                    ? 'Super Admin'
+                    : roleKey === 'ketua_tpmps'
+                    ? 'Ketua TPMPS'
+                    : roleKey === 'unit_kerja'
+                    ? 'WKS (Kurikulum)'
+                    : info.title.split(' ')[0]}
                 </button>
               );
             })}

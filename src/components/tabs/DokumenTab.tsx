@@ -28,7 +28,8 @@ import {
   FileCheck,
   ShieldCheck,
   AlertTriangle,
-  Link as LinkIcon
+  Link as LinkIcon,
+  ChevronDown
 } from 'lucide-react';
 
 interface DokumenTabProps {
@@ -176,11 +177,11 @@ export default function DokumenTab({
         </div>
 
         {/* Unit Filter */}
-        <div>
+        <div className="relative">
           <select
             value={selectedUnit}
             onChange={(e) => setSelectedUnit(e.target.value)}
-            className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+            className="w-full appearance-none text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl pl-3 pr-8 py-2.5 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none cursor-pointer shadow-2xs transition-all"
           >
             <option value="all">Semua Unit Kerja ({unitKerjaList.length})</option>
             {unitKerjaList.map((u) => (
@@ -189,16 +190,17 @@ export default function DokumenTab({
               </option>
             ))}
           </select>
+          <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
 
         {/* Standard SNP Filter */}
-        <div>
+        <div className="relative">
           <select
             value={selectedStandard}
             onChange={(e) =>
               setSelectedStandard(e.target.value === 'all' ? 'all' : Number(e.target.value))
             }
-            className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+            className="w-full appearance-none text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl pl-3 pr-8 py-2.5 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none cursor-pointer shadow-2xs transition-all"
           >
             <option value="all">Semua Standar SNP (8)</option>
             {standarSnpList.map((s) => (
@@ -207,20 +209,22 @@ export default function DokumenTab({
               </option>
             ))}
           </select>
+          <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
 
         {/* Verification Status Filter */}
-        <div>
+        <div className="relative">
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+            className="w-full appearance-none text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl pl-3 pr-8 py-2.5 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none cursor-pointer shadow-2xs transition-all"
           >
             <option value="all">Semua Status Verifikasi</option>
             <option value="Terverifikasi">Terverifikasi (Valid)</option>
             <option value="Menunggu Verifikasi">Menunggu Verifikasi</option>
             <option value="Ditolak">Ditolak / Revisi</option>
           </select>
+          <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
       </div>
 

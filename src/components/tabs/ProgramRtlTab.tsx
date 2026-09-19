@@ -29,7 +29,8 @@ import {
   Building,
   Sparkles,
   Link as LinkIcon,
-  FileCheck
+  FileCheck,
+  ChevronDown
 } from 'lucide-react';
 
 interface ProgramRtlTabProps {
@@ -269,18 +270,21 @@ export default function ProgramRtlTab({
           </div>
 
           {/* Unit Filter */}
-          <select
-            value={selectedUnit}
-            onChange={(e) => setSelectedUnit(e.target.value)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-700 focus:outline-none"
-          >
-            <option value="all">Semua Unit Kerja</option>
-            {unitKerjaList.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={selectedUnit}
+              onChange={(e) => setSelectedUnit(e.target.value)}
+              className="appearance-none text-xs bg-slate-50 hover:bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3 pr-8 py-2 text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs transition-all cursor-pointer"
+            >
+              <option value="all">Semua Unit Kerja (18)</option>
+              {unitKerjaList.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
         </div>
 
         {/* Search */}

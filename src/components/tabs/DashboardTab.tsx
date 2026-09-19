@@ -128,24 +128,29 @@ export default function DashboardTab({
         </div>
 
         {/* Card 2: 18 Unit Kerja Terintegrasi */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow">
+        <div
+          onClick={() => onNavigateTab('lemari')}
+          className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer hover:border-indigo-400 group"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Keterlibatan Unit Kerja
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-indigo-600 transition-colors">
+              Lemari Arsip 18 Unit
             </span>
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
               <Building2 className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-extrabold text-slate-900">18 / 18</span>
             <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-              100% Aktif
+              Laci Aktif
             </span>
           </div>
           <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-            <span>Manajemen & Kejuruan</span>
-            <span className="font-semibold text-slate-700">Onboard Lengkap</span>
+            <span>Isolasi Privasi Aktif</span>
+            <span className="font-bold text-indigo-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
+              Buka Lemari →
+            </span>
           </div>
           <div className="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden">
             <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: '100%' }} />

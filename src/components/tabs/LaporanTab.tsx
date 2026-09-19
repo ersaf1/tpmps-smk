@@ -21,7 +21,8 @@ import {
   ChevronRight,
   Eye,
   ShieldCheck,
-  X
+  X,
+  ChevronDown
 } from 'lucide-react';
 
 interface LaporanTabProps {
@@ -221,18 +222,21 @@ export default function LaporanTab({
         <div className="flex flex-wrap items-center gap-3 text-xs">
           <div>
             <label className="text-slate-500 font-semibold block mb-1">Cakupan Unit Kerja:</label>
-            <select
-              value={selectedUnitScope}
-              onChange={(e) => setSelectedUnitScope(e.target.value)}
-              className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none"
-            >
-              <option value="all">Semua Unit Kerja Sekolah (Gabungan)</option>
-              {unitKerjaList.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedUnitScope}
+                onChange={(e) => setSelectedUnitScope(e.target.value)}
+                className="appearance-none text-xs bg-slate-50 hover:bg-white border border-slate-200 hover:border-slate-300 rounded-xl pl-3 pr-8 py-2 text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs transition-all cursor-pointer"
+              >
+                <option value="all">Semua Unit Kerja Sekolah (Gabungan)</option>
+                {unitKerjaList.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
 
           <div>

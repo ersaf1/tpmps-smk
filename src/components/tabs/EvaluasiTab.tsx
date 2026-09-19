@@ -32,7 +32,8 @@ import {
   Target,
   Plus,
   FileText,
-  Download
+  Download,
+  ChevronDown
 } from 'lucide-react';
 
 interface EvaluasiTabProps {
@@ -208,18 +209,21 @@ export default function EvaluasiTab({
 
         {/* Unit Filter & Search */}
         <div className="flex items-center gap-2">
-          <select
-            value={selectedUnitFilter}
-            onChange={(e) => setSelectedUnitFilter(e.target.value)}
-            className="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-xs cursor-pointer"
-          >
-            <option value="all">Semua Unit Kerja (18)</option>
-            {unitKerjaList.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={selectedUnitFilter}
+              onChange={(e) => setSelectedUnitFilter(e.target.value)}
+              className="appearance-none text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl pl-3 pr-8 py-2 text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none shadow-2xs transition-all cursor-pointer"
+            >
+              <option value="all">Semua Unit Kerja (18)</option>
+              {unitKerjaList.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
 
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
