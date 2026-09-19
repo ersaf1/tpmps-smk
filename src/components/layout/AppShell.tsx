@@ -17,6 +17,7 @@ export default function AppShell({ children, title, subtitle }: AppShellProps) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,11 +33,11 @@ export default function AppShell({ children, title, subtitle }: AppShellProps) {
 
   if (isLoading || !currentUser) {
     return (
-      <div className="min-h-screen w-full bg-[#050816] flex items-center justify-center">
+      <div className="min-h-screen w-full bg-[#F8FAFC] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl border-2 border-[#22D3EE] border-t-transparent animate-spin" />
-          <span className="text-xs font-bold text-[#94A3B8] tracking-widest uppercase">
-            Memuat Sistem SIGMA TPMPS...
+          <div className="w-10 h-10 rounded-full border-3 border-[#0077B6] border-t-transparent animate-spin" />
+          <span className="text-xs font-bold text-slate-500 tracking-wider uppercase">
+            Memuat Sistem Mutu...
           </span>
         </div>
       </div>
@@ -53,27 +54,30 @@ export default function AppShell({ children, title, subtitle }: AppShellProps) {
   const rtlActiveCount = rtlList.filter((r) => r.status === 'Sedang Berjalan').length;
 
   return (
-    <div className="min-h-screen bg-[#050816] text-[#F8FAFC] flex flex-col">
-      {/* Persistent Left Sidebar */}
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col">
+      {/* Persistent Left Sidebar (Clean White & Blue) */}
       <Sidebar
         user={currentUser}
         isOpenMobile={isMobileSidebarOpen}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
         reviewCount={reviewCount}
         validatingDocCount={validatingDocCount}
         rtlActiveCount={rtlActiveCount}
       />
 
-      {/* Main Content Area (offset by sidebar width on lg screens) */}
-      <div className="lg:pl-72 flex-1 flex flex-col min-h-screen">
+      {/* Main Content Area */}
+      <div className={`${isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'} flex-1 flex flex-col min-h-screen transition-[padding] duration-300`}>
         <Header
           user={currentUser}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+          onToggleSidebar={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
           title={title}
           subtitle={subtitle}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto animate-in fade-in duration-200">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {children}
         </main>
       </div>
