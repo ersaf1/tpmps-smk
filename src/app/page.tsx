@@ -21,7 +21,7 @@ import {
   LogIn,
   ChevronRight
 } from 'lucide-react';
-import { INITIAL_STANDARDS } from '@/lib/services/sigmaDataService';
+import { INITIAL_STANDARDS } from '@/lib/services/sintesaDataService';
 
 export default function LandingPage() {
   const SNP_LIST = INITIAL_STANDARDS;
@@ -61,7 +61,7 @@ export default function LandingPage() {
             />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xl font-black tracking-tight text-slate-900">SIGMA</span>
+                <span className="text-xl font-black tracking-tight text-slate-900">SINTESA</span>
                 <span className="text-xl font-black tracking-tight text-[#0077B6]">TPMPS</span>
               </div>
               <p className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">
@@ -438,7 +438,7 @@ export default function LandingPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
               <Image src="/logo.png" alt="Logo" width={32} height={32} className="object-contain" unoptimized />
-              <span className="text-sm font-black text-[#0077B6]">SIGMA TPMPS</span>
+              <span className="text-sm font-black text-[#0077B6]">SINTESA TPMPS</span>
             </div>
             <p className="text-slate-500 leading-relaxed">
               Sistem Informasi Manajemen Penjaminan Mutu Pendidikan Sekolah SMK Negeri 2 Magelang.

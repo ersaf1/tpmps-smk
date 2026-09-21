@@ -21,46 +21,42 @@ export default function MetricCardsGrid({
     {
       title: 'Total Standar SNP',
       value: totalStandards.toString(),
-      subtext: '8 Standar Nasional Pendidikan',
+      subtext: '8 Standar Pendidikan Vokasi',
       delta: '100% Terpetakan',
-      deltaColor: 'text-[#22D3EE]',
+      deltaColor: 'text-[#0077B6]',
       icon: Award,
       href: '/mutu/1',
-      glow: 'hover:border-[#22D3EE]/40',
-      accent: 'bg-[#22D3EE]/10 text-[#22D3EE] border-[#22D3EE]/30'
+      accent: 'bg-blue-50 text-[#0077B6] border-blue-200'
     },
     {
-      title: 'Dokumen Valid',
+      title: 'Dokumen Terverifikasi',
       value: validDocsCount.toString(),
-      subtext: 'Berkas bukti terverifikasi TPMPS',
+      subtext: 'Berkas bukti fisik sahih',
       delta: 'Terarsip Digital',
-      deltaColor: 'text-emerald-400',
+      deltaColor: 'text-emerald-600',
       icon: FolderCheck,
       href: '/dokumen',
-      glow: 'hover:border-emerald-500/40',
-      accent: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+      accent: 'bg-emerald-50 text-emerald-600 border-emerald-200'
     },
     {
       title: 'Evaluasi Mutu',
       value: activeEvalsCount.toString(),
-      subtext: 'Instrumen evaluasi berjalan',
+      subtext: 'Instrumen penilaian unit',
       delta: 'Semester Ganjil',
-      deltaColor: 'text-[#0077B6]',
+      deltaColor: 'text-[#0284C7]',
       icon: FileText,
       href: '/evaluasi',
-      glow: 'hover:border-[#0077B6]/40',
-      accent: 'bg-[#0077B6]/10 text-[#0077B6] border-[#0077B6]/30'
+      accent: 'bg-sky-50 text-[#0284C7] border-sky-200'
     },
     {
       title: 'RTL Aktif',
       value: activeRtlCount.toString(),
-      subtext: 'Program perbaikan mutu',
+      subtext: 'Program tindak lanjut berjalan',
       delta: 'Prioritas Tinggi & Sedang',
       deltaColor: 'text-[#F28C28]',
       icon: Target,
       href: '/rtl',
-      glow: 'hover:border-[#F28C28]/40',
-      accent: 'bg-[#F28C28]/10 text-[#F28C28] border-[#F28C28]/30'
+      accent: 'bg-orange-50 text-[#F28C28] border-orange-200'
     }
   ];
 
@@ -72,27 +68,27 @@ export default function MetricCardsGrid({
           <Link
             key={m.title}
             href={m.href}
-            className={`glass-panel rounded-3xl p-6 border border-white/10 ${m.glow} transition-all duration-200 group flex flex-col justify-between cursor-pointer relative overflow-hidden`}
+            className="bg-white rounded-3xl p-6 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer"
           >
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#94A3B8]">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 {m.title}
               </span>
-              <div className={`p-2.5 rounded-2xl border ${m.accent} transition-transform group-hover:scale-110`}>
+              <div className={`p-2.5 rounded-2xl border ${m.accent} transition-transform group-hover:scale-105`}>
                 <Icon className="w-5 h-5" />
               </div>
             </div>
 
             <div>
-              <div className="text-3xl sm:text-4xl font-black text-[#F8FAFC] tracking-tight">
+              <div className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
                 {m.value}
               </div>
-              <p className="text-xs text-[#94A3B8] mt-1 font-medium">{m.subtext}</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium">{m.subtext}</p>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
               <span className={`font-semibold ${m.deltaColor}`}>{m.delta}</span>
-              <ArrowUpRight className="w-4 h-4 text-[#94A3B8] group-hover:text-white transition-colors" />
+              <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-[#0077B6] transition-colors" />
             </div>
           </Link>
         );

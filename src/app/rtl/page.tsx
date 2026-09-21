@@ -6,8 +6,8 @@ import AppShell from '@/components/layout/AppShell';
 import CustomDropdown from '@/components/ui/CustomDropdown';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/ToastFeedback';
-import { sigmaService } from '@/lib/services/sigmaDataService';
-import { ProgramMutuRTL, StatusRTL, PrioritasRTL } from '@/types/sigma';
+import { sintesaService } from '@/lib/services/sintesaDataService';
+import { ProgramMutuRTL, StatusRTL, PrioritasRTL } from '@/types/sintesa';
 import {
   Search,
   Plus,
@@ -38,7 +38,7 @@ export default function RtlListPage() {
   }, []);
 
   const loadData = () => {
-    setRtlList(sigmaService.getRtlList());
+    setRtlList(sintesaService.getRtlList());
   };
 
   const filteredRtl = useMemo(() => {
@@ -60,7 +60,7 @@ export default function RtlListPage() {
     if (!targetDelete) return;
     setIsDeleting(true);
     setTimeout(() => {
-      sigmaService.deleteRtl(targetDelete.id);
+      sintesaService.deleteRtl(targetDelete.id);
       showToast(`Program RTL "${targetDelete.programName}" berhasil dihapus.`, 'success');
       setTargetDelete(null);
       setIsDeleting(false);
@@ -71,24 +71,24 @@ export default function RtlListPage() {
   const getPriorityBadge = (p: PrioritasRTL) => {
     switch (p) {
       case 'Tinggi':
-        return 'bg-rose-500/15 border-rose-500/40 text-rose-400';
+        return 'bg-rose-50 border-rose-200 text-rose-700';
       case 'Sedang':
-        return 'bg-[#F6B73C]/15 border-[#F6B73C]/40 text-[#F6B73C]';
+        return 'bg-amber-50 border-amber-200 text-amber-700';
       case 'Rendah':
-        return 'bg-blue-500/15 border-blue-500/40 text-blue-400';
+        return 'bg-sky-50 border-sky-200 text-[#0077B6]';
     }
   };
 
   const getStatusBadge = (s: StatusRTL) => {
     switch (s) {
       case 'Sedang Berjalan':
-        return 'bg-[#22D3EE]/15 border-[#22D3EE]/40 text-[#22D3EE]';
+        return 'bg-sky-50 border-sky-200 text-[#0077B6]';
       case 'Selesai':
-        return 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400';
+        return 'bg-emerald-50 border-emerald-200 text-emerald-700';
       case 'Direncanakan':
-        return 'bg-white/10 border-white/20 text-[#94A3B8]';
+        return 'bg-slate-100 border-slate-200 text-slate-600';
       default:
-        return 'bg-[#F28C28]/15 border-[#F28C28]/40 text-[#F28C28]';
+        return 'bg-orange-50 border-orange-200 text-orange-700';
     }
   };
 
@@ -100,17 +100,17 @@ export default function RtlListPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-[#F8FAFC] tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
             Program Tindak Lanjut Mutu
           </h2>
-          <p className="text-xs sm:text-sm text-[#94A3B8] mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Total {filteredRtl.length} program tindak lanjut perbaikan mutu terdata
           </p>
         </div>
 
         <Link
           href="/rtl/create"
-          className="btn-enterprise px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] via-[#0096c7] to-[#22D3EE] hover:brightness-110 text-white text-xs sm:text-sm font-bold shadow-[0_0_20px_rgba(34,211,238,0.35)] flex items-center gap-2 cursor-pointer"
+          className="btn-enterprise px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center gap-2 cursor-pointer transition-all"
         >
           <Plus className="w-4 h-4" />
           <span>Buat Program RTL Baru</span>
@@ -118,14 +118,14 @@ export default function RtlListPage() {
       </div>
 
       {/* Filter and Search */}
-      <div className="glass-panel rounded-3xl p-5 mb-6 border border-white/10">
+      <div className="bg-white rounded-3xl p-5 mb-6 border border-slate-200 shadow-xs">
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
           <div className="sm:col-span-6 relative">
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
               Pencarian Program RTL
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <Search className="w-4 h-4" />
               </div>
               <input
@@ -133,7 +133,7 @@ export default function RtlListPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari nama program, kode RTL, atau unit kerja..."
-                className="w-full min-h-[44px] pl-10 pr-4 py-2 rounded-xl bg-[#0E1726]/90 border border-white/10 hover:border-cyan-500/30 focus:border-[#22D3EE] text-xs sm:text-sm text-[#F8FAFC] placeholder-[#94A3B8]/60 outline-hidden transition-all"
+                className="w-full min-h-[44px] pl-10 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-xs sm:text-sm text-slate-900 placeholder-slate-400 outline-hidden transition-all shadow-2xs"
               />
             </div>
           </div>
@@ -173,19 +173,19 @@ export default function RtlListPage() {
       {/* RTL Program Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRtl.length === 0 ? (
-          <div className="col-span-full glass-panel rounded-3xl p-12 text-center text-[#94A3B8]">
+          <div className="col-span-full bg-white rounded-3xl p-12 text-center text-slate-400 border border-slate-200 shadow-xs">
             Tidak ada program RTL yang cocok dengan filter.
           </div>
         ) : (
           filteredRtl.map((rtl) => (
             <div
               key={rtl.id}
-              className="glass-panel rounded-3xl p-6 border border-white/10 hover:border-cyan-500/30 transition-all flex flex-col justify-between group"
+              className="bg-white rounded-3xl p-6 border border-slate-200 hover:border-sky-300 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-[#22D3EE]">
+                    <span className="font-mono text-xs font-bold text-[#0077B6]">
                       {rtl.code}
                     </span>
                     <span
@@ -205,61 +205,61 @@ export default function RtlListPage() {
                   </span>
                 </div>
 
-                <h3 className="text-base font-bold text-[#F8FAFC] tracking-tight line-clamp-2 leading-snug">
+                <h3 className="text-base font-bold text-slate-900 tracking-tight line-clamp-2 leading-snug">
                   {rtl.programName}
                 </h3>
 
-                <p className="text-xs text-[#94A3B8] mt-2 line-clamp-2 leading-relaxed">
+                <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
                   {rtl.targetKinerja}
                 </p>
 
                 {/* Progress Bar */}
-                <div className="mt-4 pt-3 border-t border-white/5 space-y-1.5">
+                <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5">
                   <div className="flex justify-between text-xs font-mono">
-                    <span className="text-[#94A3B8]">Progres Realisasi</span>
-                    <span className="text-[#22D3EE] font-bold">{rtl.progress}%</span>
+                    <span className="text-slate-500">Progres Realisasi</span>
+                    <span className="text-[#0077B6] font-bold">{rtl.progress}%</span>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#0077B6] to-[#22D3EE] transition-all duration-500"
+                      className="h-full rounded-full bg-gradient-to-r from-[#0077B6] to-[#0284C7] transition-all duration-500"
                       style={{ width: `${rtl.progress}%` }}
                     />
                   </div>
                 </div>
 
                 {/* Metadata */}
-                <div className="mt-4 space-y-1 text-xs text-[#94A3B8]">
+                <div className="mt-4 space-y-1 text-xs text-slate-500">
                   <div className="flex justify-between">
                     <span>Unit Pelaksana:</span>
-                    <span className="font-semibold text-[#F8FAFC] truncate max-w-[170px]">
+                    <span className="font-semibold text-slate-900 truncate max-w-[170px]">
                       {rtl.unitName}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Anggaran (RKAS):</span>
-                    <span className="font-mono text-[#F6B73C] font-semibold">
+                    <span className="font-mono text-amber-700 font-semibold">
                       Rp {rtl.anggaran.toLocaleString('id-ID')}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Tenggat Waktu:</span>
-                    <span className="font-mono text-[#F8FAFC]">{rtl.deadline}</span>
+                    <span className="font-mono text-slate-900">{rtl.deadline}</span>
                   </div>
                 </div>
               </div>
 
               {/* Card Actions */}
-              <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+              <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                 <Link
                   href={`/rtl/${rtl.id}`}
-                  className="btn-enterprise flex-1 py-2 rounded-xl bg-white/5 hover:bg-[#0077B6]/30 text-xs font-semibold text-[#F8FAFC] hover:text-[#22D3EE] text-center"
+                  className="btn-enterprise flex-1 py-2 rounded-xl bg-slate-50 hover:bg-sky-50 border border-slate-200 text-xs font-semibold text-slate-700 hover:text-[#0077B6] text-center shadow-2xs transition-colors"
                 >
                   Detail RTL
                 </Link>
 
                 <Link
                   href={`/rtl/${rtl.id}/edit`}
-                  className="btn-enterprise p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-[#94A3B8] hover:text-amber-400"
+                  className="btn-enterprise p-2.5 rounded-xl bg-slate-50 hover:bg-amber-50 border border-slate-200 text-slate-600 hover:text-amber-600 shadow-2xs transition-colors"
                 >
                   <Edit className="w-4 h-4" />
                 </Link>
@@ -268,7 +268,7 @@ export default function RtlListPage() {
                   type="button"
                   title="Hapus"
                   onClick={() => setTargetDelete(rtl)}
-                  className="p-2.5 rounded-xl text-[#94A3B8] hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer"
+                  className="p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

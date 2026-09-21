@@ -13,8 +13,8 @@ interface Segment {
 }
 
 const SEGMENTS: Segment[] = [
-  { label: 'Unggul (A)', range: '90 - 100%', count: 8, percentage: 44, color: '#22D3EE', glow: 'shadow-[0_0_12px_#22D3EE]' },
-  { label: 'Baik (B)', range: '80 - 89%', count: 7, percentage: 39, color: '#0077B6', glow: 'shadow-[0_0_12px_#0077B6]' },
+  { label: 'Unggul (A)', range: '90 - 100%', count: 8, percentage: 44, color: '#0077B6', glow: 'shadow-[0_0_12px_#0077B6]' },
+  { label: 'Baik (B)', range: '80 - 89%', count: 7, percentage: 39, color: '#0284C7', glow: 'shadow-[0_0_12px_#0284C7]' },
   { label: 'Cukup (C)', range: '70 - 79%', count: 2, percentage: 11, color: '#F6B73C', glow: 'shadow-[0_0_12px_#F6B73C]' },
   { label: 'Perlu Perhatian', range: '< 70%', count: 1, percentage: 6, color: '#F28C28', glow: 'shadow-[0_0_12px_#F28C28]' }
 ];
@@ -29,13 +29,13 @@ export default function DonutDistributionChart() {
   let cumulativeOffset = 0;
 
   return (
-    <div className="glass-panel rounded-3xl p-6 sm:p-7 border border-white/10 flex flex-col justify-between">
+    <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xs flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm sm:text-base font-bold text-[#F8FAFC] tracking-tight">
+          <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
             DISTRIBUSI PREDIKAT MUTU
           </h3>
-          <p className="text-xs text-[#94A3B8] mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             Analisis sebaran mutu 18 unit kerja SMK Negeri 2 Magelang
           </p>
         </div>
@@ -70,8 +70,8 @@ export default function DonutDistributionChart() {
 
           {/* Center Donut Label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-            <span className="text-2xl font-black text-[#F8FAFC]">18</span>
-            <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wider">
+            <span className="text-2xl font-black text-slate-900">18</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
               Unit Kerja
             </span>
           </div>
@@ -82,7 +82,7 @@ export default function DonutDistributionChart() {
           {SEGMENTS.map((seg) => (
             <div
               key={seg.label}
-              className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 text-xs hover:border-cyan-500/30 transition-all"
+              className="flex items-center justify-between p-2 rounded-xl bg-slate-50 hover:bg-sky-50/50 border border-slate-200/80 text-xs transition-all"
             >
               <div className="flex items-center gap-2">
                 <span
@@ -90,14 +90,14 @@ export default function DonutDistributionChart() {
                   style={{ backgroundColor: seg.color }}
                 />
                 <div>
-                  <span className="font-bold text-[#F8FAFC]">{seg.label}</span>
-                  <span className="text-[10px] text-[#94A3B8] block">{seg.range}</span>
+                  <span className="font-bold text-slate-800">{seg.label}</span>
+                  <span className="text-[10px] text-slate-500 block">{seg.range}</span>
                 </div>
               </div>
 
               <div className="text-right">
-                <span className="font-bold text-[#F8FAFC]">{seg.count} Unit</span>
-                <span className="text-[10px] text-[#22D3EE] font-mono block">
+                <span className="font-bold text-slate-800">{seg.count} Unit</span>
+                <span className="text-[10px] text-[#0077B6] font-mono font-semibold block">
                   {seg.percentage}%
                 </span>
               </div>
@@ -106,8 +106,8 @@ export default function DonutDistributionChart() {
         </div>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/10 text-center text-xs text-[#94A3B8]">
-        Mayoritas unit kerja (83%) telah mencapai predikat <span className="text-[#22D3EE] font-semibold">Unggul & Baik</span>.
+      <div className="mt-4 pt-3 border-t border-slate-100 text-center text-xs text-slate-500">
+        Mayoritas unit kerja (83%) telah mencapai predikat <span className="text-[#0077B6] font-semibold">Unggul & Baik</span>.
       </div>
     </div>
   );

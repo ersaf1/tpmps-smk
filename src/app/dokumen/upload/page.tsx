@@ -6,7 +6,7 @@ import Link from 'next/link';
 import AppShell from '@/components/layout/AppShell';
 import CustomDropdown from '@/components/ui/CustomDropdown';
 import { useToast } from '@/components/ui/ToastFeedback';
-import { sigmaService, INITIAL_UNITS, INITIAL_STANDARDS } from '@/lib/services/sigmaDataService';
+import { sintesaService, INITIAL_UNITS, INITIAL_STANDARDS } from '@/lib/services/sintesaDataService';
 import { ArrowLeft, UploadCloud, FileText, CheckCircle2, Shield } from 'lucide-react';
 
 function UploadDokumenForm() {
@@ -74,14 +74,14 @@ function UploadDokumenForm() {
     }
 
     setIsUploading(true);
-    const currentUser = sigmaService.getActiveUser();
+    const currentUser = sintesaService.getActiveUser();
     const selectedUnit = INITIAL_UNITS.find((u) => u.id === unitId);
     const selectedStandard = INITIAL_STANDARDS.find((s) => s.id.toString() === standardId);
 
     const code = `DOC-${selectedStandard?.code.replace('SNP-', '') || 'MUT'}-${Math.floor(100 + Math.random() * 900)}`;
 
     setTimeout(() => {
-      sigmaService.createDocument({
+      sintesaService.createDocument({
         code,
         title: title.trim() || fileName,
         fileName: fileName || `${title.replace(/\s+/g, '_')}.${fileType === 'excel' ? 'xlsx' : fileType === 'word' ? 'docx' : 'pdf'}`,
@@ -105,17 +105,17 @@ function UploadDokumenForm() {
   };
 
   return (
-    <div className="glass-panel-glow rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl">
-      <div className="flex items-center justify-between pb-6 mb-8 border-b border-white/10">
+    <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl">
+      <div className="flex items-center justify-between pb-6 mb-8 border-b border-slate-100">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-[#F8FAFC] tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
             Upload Dokumen Bukti Fisik
           </h2>
-          <p className="text-xs sm:text-sm text-[#94A3B8] mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Berkas akan dienkripsi dan diarsipkan dalam Supabase Storage dengan akses terproteksi.
           </p>
         </div>
-        <div className="p-3 rounded-2xl bg-[#0077B6]/20 border border-[#22D3EE]/30 text-[#22D3EE]">
+        <div className="p-3 rounded-2xl bg-sky-50 border border-sky-200 text-[#0077B6]">
           <UploadCloud className="w-6 h-6" />
         </div>
       </div>
@@ -125,7 +125,7 @@ function UploadDokumenForm() {
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleFileDrop}
-          className="p-8 rounded-3xl border-2 border-dashed border-[#22D3EE]/30 hover:border-[#22D3EE] bg-[#0E1726]/60 hover:bg-[#0E1726] transition-all text-center flex flex-col items-center justify-center cursor-pointer relative group"
+          className="p-8 rounded-3xl border-2 border-dashed border-sky-200 hover:border-[#0077B6] bg-slate-50 hover:bg-sky-50/40 transition-all text-center flex flex-col items-center justify-center cursor-pointer relative group"
         >
           <input
             type="file"
@@ -133,17 +133,17 @@ function UploadDokumenForm() {
             className="absolute inset-0 opacity-0 cursor-pointer"
             accept=".pdf,.xlsx,.xls,.docx,.doc,.png,.jpg,.jpeg"
           />
-          <div className="w-16 h-16 rounded-2xl bg-[#0077B6]/20 border border-[#22D3EE]/30 text-[#22D3EE] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+          <div className="w-16 h-16 rounded-2xl bg-sky-50 border border-sky-200 text-[#0077B6] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
             <UploadCloud className="w-8 h-8" />
           </div>
-          <h4 className="text-sm font-bold text-[#F8FAFC]">
+          <h4 className="text-sm font-bold text-slate-900">
             {fileName ? fileName : 'Tarik & Letakkan Berkas di Sini'}
           </h4>
-          <p className="text-xs text-[#94A3B8] mt-1 max-w-sm">
+          <p className="text-xs text-slate-500 mt-1 max-w-sm">
             Mendukung PDF, Excel (.xlsx), Word (.docx), dan Foto Bukti (.png, .jpg) hingga 50 MB
           </p>
           {fileName && (
-            <div className="mt-3 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-semibold">
+            <div className="mt-3 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
               ✓ Berkas terpilih: {fileName} ({fileSize})
             </div>
           )}
@@ -151,7 +151,7 @@ function UploadDokumenForm() {
 
         {/* Judul Dokumen */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
             Judul Resmi Dokumen
           </label>
           <input
@@ -160,7 +160,7 @@ function UploadDokumenForm() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Contoh: SK Penetapan Kurikulum Operasional Sekolah 2025/2026"
-            className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-[#0E1726]/90 border border-white/10 focus:border-[#22D3EE] text-sm text-[#F8FAFC] outline-hidden"
+            className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-sm text-slate-900 outline-hidden transition-all shadow-2xs"
           />
         </div>
 
@@ -188,7 +188,7 @@ function UploadDokumenForm() {
         {/* Versi & Format */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
               Versi Dokumen
             </label>
             <input
@@ -197,7 +197,7 @@ function UploadDokumenForm() {
               value={version}
               onChange={(e) => setVersion(e.target.value)}
               placeholder="v1.0"
-              className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-[#0E1726]/90 border border-white/10 focus:border-[#22D3EE] font-mono text-sm text-[#F8FAFC] outline-hidden"
+              className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] font-mono text-sm text-slate-900 outline-hidden transition-all shadow-2xs"
             />
           </div>
 
@@ -218,7 +218,7 @@ function UploadDokumenForm() {
 
         {/* Catatan Tambahan */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
             Keterangan & Catatan Berkas
           </label>
           <textarea
@@ -226,15 +226,15 @@ function UploadDokumenForm() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Rincian nomor surat, tanggal pengesahan, atau konteks instrumen..."
-            className="w-full p-3.5 rounded-xl bg-[#0E1726]/90 border border-white/10 focus:border-[#22D3EE] text-sm text-[#F8FAFC] outline-hidden leading-relaxed"
+            className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-sm text-slate-900 outline-hidden leading-relaxed transition-all shadow-2xs"
           />
         </div>
 
         {/* Action buttons */}
-        <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-end gap-3">
+        <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end gap-3">
           <Link
             href="/dokumen"
-            className="w-full sm:w-auto btn-enterprise px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/5 cursor-pointer text-center"
+            className="w-full sm:w-auto btn-enterprise px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer text-center transition-colors"
           >
             Batal
           </Link>
@@ -242,7 +242,7 @@ function UploadDokumenForm() {
           <button
             type="submit"
             disabled={isUploading}
-            className="w-full sm:w-auto btn-enterprise px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] via-[#0096c7] to-[#22D3EE] hover:brightness-110 text-white text-xs sm:text-sm font-bold shadow-[0_0_20px_rgba(34,211,238,0.35)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+            className="w-full sm:w-auto btn-enterprise px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 transition-all"
           >
             <UploadCloud className="w-4 h-4" />
             <span>{isUploading ? 'Mengunggah ke Storage...' : 'Simpan & Unggah Dokumen'}</span>
@@ -262,7 +262,7 @@ export default function UploadDokumenPage() {
       <div className="max-w-4xl mx-auto">
         <Link
           href="/dokumen"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-[#94A3B8] hover:text-[#22D3EE] mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-[#0077B6] mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Kembali ke Bank Bukti</span>
@@ -270,9 +270,9 @@ export default function UploadDokumenPage() {
 
         <Suspense
           fallback={
-            <div className="glass-panel p-12 text-center rounded-3xl">
-              <div className="w-8 h-8 border-2 border-[#22D3EE] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <span className="text-xs text-[#94A3B8]">Memuat formulir unggah...</span>
+            <div className="bg-white p-12 text-center rounded-3xl border border-slate-200">
+              <div className="w-8 h-8 border-2 border-[#0077B6] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <span className="text-xs text-slate-400">Memuat formulir unggah...</span>
             </div>
           }
         >

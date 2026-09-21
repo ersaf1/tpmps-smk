@@ -114,7 +114,7 @@ export default function FuturisticCalendar({
   return (
     <div className={`relative w-full ${className}`}>
       {label && (
-        <label className="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
           {label}
         </label>
       )}
@@ -123,19 +123,19 @@ export default function FuturisticCalendar({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl text-left flex items-center justify-between gap-2 bg-[#0E1726]/80 hover:bg-[#131F37] border border-white/10 hover:border-cyan-500/30 text-[#F8FAFC] transition-all cursor-pointer"
+        className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl text-left flex items-center justify-between gap-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-900 shadow-2xs transition-all cursor-pointer"
       >
         <div className="flex items-center gap-2.5 truncate">
-          <CalendarIcon className="w-4 h-4 text-[#22D3EE] shrink-0" />
+          <CalendarIcon className="w-4 h-4 text-[#0077B6] shrink-0" />
           <span className="text-sm font-medium">
             {!isRange ? (
-              value ? value : <span className="text-[#94A3B8]">Pilih tanggal...</span>
+              value ? value : <span className="text-slate-400">Pilih tanggal...</span>
             ) : tempStart && tempEnd ? (
               `${tempStart} s/d ${tempEnd}`
             ) : tempStart ? (
               `${tempStart} s/d ...`
             ) : (
-              <span className="text-[#94A3B8]">Pilih rentang tanggal...</span>
+              <span className="text-slate-400">Pilih rentang tanggal...</span>
             )}
           </span>
         </div>
@@ -149,34 +149,34 @@ export default function FuturisticCalendar({
               setTempEnd(undefined);
               if (onRangeChange) onRangeChange('', '');
             }}
-            className="p-1 hover:text-rose-400 text-[#94A3B8] rounded-md"
+            className="p-1 hover:text-rose-600 text-slate-400 rounded-md"
           >
             <X className="w-3.5 h-3.5" />
           </span>
         )}
       </button>
 
-      {/* Futuristic Calendar Dropdown Popup */}
+      {/* Calendar Dropdown Popup */}
       {isOpen && (
-        <div className="absolute left-0 right-0 sm:right-auto sm:w-80 top-full mt-2 z-50 p-4 rounded-2xl glass-dropdown border border-[#22D3EE]/25 shadow-2xl animate-in fade-in zoom-in-95">
+        <div className="absolute left-0 right-0 sm:right-auto sm:w-80 top-full mt-2 z-50 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xl animate-in fade-in zoom-in-95">
           {/* Header Month / Year */}
-          <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/10">
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-[#0077B6]/30 text-[#F8FAFC] hover:text-[#22D3EE] transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg bg-slate-50 hover:bg-sky-50 text-slate-700 hover:text-[#0077B6] transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
 
-            <div className="text-sm font-bold text-[#F8FAFC] tracking-wide">
+            <div className="text-sm font-bold text-slate-900 tracking-wide">
               {MONTH_NAMES[currentMonth]} {currentYear}
             </div>
 
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-[#0077B6]/30 text-[#F8FAFC] hover:text-[#22D3EE] transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg bg-slate-50 hover:bg-sky-50 text-slate-700 hover:text-[#0077B6] transition-colors cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -185,7 +185,7 @@ export default function FuturisticCalendar({
           {/* Days Name Header */}
           <div className="grid grid-cols-7 gap-1 text-center mb-1">
             {DAY_NAMES.map((d, i) => (
-              <span key={i} className="text-[11px] font-semibold text-[#94A3B8] py-1">
+              <span key={i} className="text-[11px] font-semibold text-slate-400 py-1">
                 {d}
               </span>
             ))}
@@ -212,17 +212,17 @@ export default function FuturisticCalendar({
                   onClick={() => handleSelectDay(day)}
                   className={`h-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-all cursor-pointer relative ${
                     selected
-                      ? 'bg-gradient-to-r from-[#0077B6] to-[#22D3EE] text-white shadow-[0_0_12px_rgba(34,211,238,0.5)] z-10'
+                      ? 'bg-gradient-to-r from-[#0077B6] to-[#0284C7] text-white shadow-md shadow-sky-500/20 z-10'
                       : inRange
-                      ? 'bg-[#22D3EE]/20 text-[#22D3EE] rounded-none'
+                      ? 'bg-sky-100 text-[#0077B6] rounded-none'
                       : today
-                      ? 'border border-[#22D3EE] text-[#22D3EE] bg-white/5'
-                      : 'text-[#F8FAFC] hover:bg-white/10 hover:text-[#22D3EE]'
+                      ? 'border border-[#0077B6] text-[#0077B6] bg-sky-50'
+                      : 'text-slate-700 hover:bg-slate-100 hover:text-[#0077B6]'
                   }`}
                 >
                   {day}
                   {today && !selected && (
-                    <span className="absolute bottom-1 w-1 h-1 rounded-full bg-[#22D3EE]" />
+                    <span className="absolute bottom-1 w-1 h-1 rounded-full bg-[#0077B6]" />
                   )}
                 </button>
               );
@@ -230,7 +230,7 @@ export default function FuturisticCalendar({
           </div>
 
           {/* Footer close / quick select */}
-          <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-xs">
+          <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
             <button
               type="button"
               onClick={() => {
@@ -241,14 +241,14 @@ export default function FuturisticCalendar({
                   setIsOpen(false);
                 }
               }}
-              className="text-[#22D3EE] hover:underline cursor-pointer font-medium"
+              className="text-[#0077B6] hover:underline cursor-pointer font-medium"
             >
               Hari Ini
             </button>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="text-[#94A3B8] hover:text-[#F8FAFC] cursor-pointer"
+              className="text-slate-400 hover:text-slate-700 cursor-pointer"
             >
               Tutup
             </button>

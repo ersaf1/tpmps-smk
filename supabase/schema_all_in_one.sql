@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SIGMA TPMPS: Sistem Informasi Manajemen Penjaminan Mutu Pendidikan Sekolah
+-- SINTESA TPMPS: Sistem Informasi Manajemen Penjaminan Mutu Pendidikan Sekolah
 -- ALL-IN-ONE PRODUCTION DATABASE SCHEMA & INITIALIZATION SCRIPT
 -- Institusi: SMK Negeri 2 Magelang ("Swadaya Bhina Raharja")
 -- Database: Supabase PostgreSQL
@@ -392,8 +392,8 @@ CREATE POLICY "Auth users can insert audit logs" ON public.activity_logs FOR INS
 -- ------------------------------------------------------------------------------
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types) 
 VALUES (
-    'sigma-evidence', 
-    'sigma-evidence', 
+    'sintesa-evidence',
+    'sintesa-evidence',
     false, 
     52428800, -- 50 MB
     ARRAY['application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/png', 'image/jpeg', 'image/webp']
@@ -401,10 +401,10 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 DROP POLICY IF EXISTS "Auth users can view evidence bucket" ON storage.objects;
-CREATE POLICY "Auth users can view evidence bucket" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'sigma-evidence');
+CREATE POLICY "Auth users can view evidence bucket" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'sintesa-evidence');
 
 DROP POLICY IF EXISTS "Auth users can upload to evidence bucket" ON storage.objects;
-CREATE POLICY "Auth users can upload to evidence bucket" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'sigma-evidence');
+CREATE POLICY "Auth users can upload to evidence bucket" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'sintesa-evidence');
 
 -- ------------------------------------------------------------------------------
 -- 18. SEED DATA RESMI: 4 ROLES SISTEM
@@ -571,5 +571,5 @@ INSERT INTO public.activity_logs (user_name, role_name, action, entity, entity_i
 ('Rian Prasetyo, S.Kom.', 'ADMIN SISTEM', 'SETUP_DATABASE', 'Sistem', 'SCHEMA-ALL-IN-ONE', 'Inisialisasi skema lengkap 11 tabel PostgreSQL Supabase dengan konfigurasi RLS dan trigger otomatis', '192.168.10.2');
 
 -- ==============================================================================
--- SELESAI: DATABASE SIGMA TPMPS SIAP DIGUNAKAN DALAM MODE PRODUCTION!
+-- SELESAI: DATABASE SINTESA TPMPS SIAP DIGUNAKAN DALAM MODE PRODUCTION!
 -- ==============================================================================

@@ -8,13 +8,15 @@ import MetricCardsGrid from '@/components/dashboard/MetricCardsGrid';
 import SplineChart from '@/components/dashboard/SplineChart';
 import DonutDistributionChart from '@/components/dashboard/DonutDistributionChart';
 import ActivityTimeline from '@/components/dashboard/ActivityTimeline';
-import { sigmaService } from '@/lib/services/sigmaDataService';
-import { UserProfile, StandardSNP, ActivityLogItem } from '@/types/sigma';
+import UnitKerjaTable from '@/components/dashboard/UnitKerjaTable';
+import { sintesaService } from '@/lib/services/sintesaDataService';
+import { UserProfile, StandardSNP, ActivityLogItem, UnitKerja } from '@/types/sintesa';
 import { ArrowRight, ChevronRight, Award, CheckCircle2 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<UserProfile>(sigmaService.getActiveUser());
+  const [user, setUser] = useState<UserProfile>(sintesaService.getActiveUser());
   const [standards, setStandards] = useState<StandardSNP[]>([]);
+  const [units, setUnits] = useState<UnitKerja[]>([]);
   const [logs, setLogs] = useState<ActivityLogItem[]>([]);
   const [pendingDocsCount, setPendingDocsCount] = useState(0);
   const [validDocsCount, setValidDocsCount] = useState(0);
@@ -22,23 +24,26 @@ export default function DashboardPage() {
   const [activeRtlCount, setActiveRtlCount] = useState(0);
 
   useEffect(() => {
-    const activeUser = sigmaService.getActiveUser();
+    const activeUser = sintesaService.getActiveUser();
     setUser(activeUser);
 
-    const stdList = sigmaService.getStandards();
+    const stdList = sintesaService.getStandards();
     setStandards(stdList);
 
-    const docList = sigmaService.getDocuments();
+    const unitList = sintesaService.getUnits();
+    setUnits(unitList);
+
+    const docList = sintesaService.getDocuments();
     setValidDocsCount(docList.filter((d) => d.status === 'Terverifikasi').length);
     setPendingDocsCount(docList.filter((d) => d.status === 'Menunggu Review').length);
 
-    const evalList = sigmaService.getEvaluations();
+    const evalList = sintesaService.getEvaluations();
     setActiveEvalsCount(evalList.length);
 
-    const rtlList = sigmaService.getRtlList();
+    const rtlList = sintesaService.getRtlList();
     setActiveRtlCount(rtlList.filter((r) => r.status === 'Sedang Berjalan').length);
 
-    setLogs(sigmaService.getLogs());
+    setLogs(sintesaService.getLogs());
   }, []);
 
   return (
@@ -75,20 +80,20 @@ export default function DashboardPage() {
       {/* 8 SNP Progress Overview & Live Audit Trail Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: 8 Standar Mutu Progress Bars */}
-        <div className="lg:col-span-7 glass-panel rounded-3xl p-6 sm:p-7 border border-white/10 flex flex-col justify-between">
+        <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xl flex flex-col justify-between">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-[#F8FAFC] tracking-tight">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
                 CAPAIAN 8 STANDAR NASIONAL PENDIDIKAN (SNP)
               </h3>
-              <p className="text-xs text-[#94A3B8] mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Monitoring skor realisasi berbobot vs target mutu 95.0%
               </p>
             </div>
 
             <Link
               href="/mutu/1"
-              className="text-xs font-semibold text-[#22D3EE] hover:underline flex items-center gap-1 shrink-0"
+              className="text-xs font-semibold text-[#0077B6] hover:underline flex items-center gap-1 shrink-0"
             >
               <span>Detail Mutu</span>
               <ChevronRight className="w-4 h-4" />
@@ -101,32 +106,32 @@ export default function DashboardPage() {
                 <Link
                   key={snp.id}
                   href={`/mutu/${snp.id}`}
-                  className="block p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-cyan-500/30 transition-all group"
+                  className="block p-3.5 rounded-2xl bg-slate-50 hover:bg-sky-50/50 border border-slate-200/80 hover:border-sky-200 transition-all group"
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2.5 truncate">
-                      <span className="text-xs font-bold text-[#22D3EE] font-mono shrink-0">
+                      <span className="text-xs font-bold text-[#0077B6] font-mono shrink-0">
                         {snp.code}
                       </span>
-                      <span className="text-xs font-semibold text-[#F8FAFC] truncate group-hover:text-[#22D3EE] transition-colors">
+                      <span className="text-xs font-semibold text-slate-900 truncate group-hover:text-[#0077B6] transition-colors">
                         {snp.name}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs font-mono font-bold text-[#F8FAFC]">
+                      <span className="text-xs font-mono font-bold text-slate-900">
                         {snp.currentScore.toFixed(1)}%
                       </span>
-                      <span className="text-[10px] text-[#94A3B8] font-mono">
+                      <span className="text-[10px] text-slate-500 font-mono">
                         / {snp.targetScore}%
                       </span>
                     </div>
                   </div>
 
-                  {/* High tech progress indicator bar */}
-                  <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden relative">
+                  {/* Progress indicator bar */}
+                  <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden relative">
                     <div
-                      className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[#0077B6] to-[#22D3EE]"
+                      className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[#0077B6] to-[#0284C7]"
                       style={{ width: `${Math.min(100, snp.currentScore)}%` }}
                     />
                   </div>
@@ -135,12 +140,12 @@ export default function DashboardPage() {
             })}
           </div>
 
-          <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-[#94A3B8]">
+          <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
             <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>Sesuai instrumen akreditasi vokasi BAP-S/M</span>
             </div>
-            <span className="font-semibold text-[#22D3EE]">SMK PK / Rujukan</span>
+            <span className="font-semibold text-[#0077B6]">SMK PK / Rujukan</span>
           </div>
         </div>
 
@@ -148,6 +153,11 @@ export default function DashboardPage() {
         <div className="lg:col-span-5">
           <ActivityTimeline logs={logs} />
         </div>
+      </div>
+
+      {/* Borderless Table 18 Unit Kerja SMK Negeri 2 Magelang */}
+      <div className="mt-8">
+        <UnitKerjaTable units={units} />
       </div>
     </AppShell>
   );

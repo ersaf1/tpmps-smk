@@ -9,7 +9,7 @@ import {
   ProgramMutuRTL,
   ActivityLogItem,
   UserRole
-} from '@/types/sigma';
+} from '@/types/sintesa';
 
 // 18 UNIT KERJA SMK NEGERI 2 MAGELANG
 export const INITIAL_UNITS: UnitKerja[] = [
@@ -51,7 +51,7 @@ export const INITIAL_USERS: Record<UserRole, UserProfile> = {
     id: 'usr-admin-01',
     nip: '198204152008011005',
     fullName: 'Rian Prasetyo, S.Kom. (Admin)',
-    email: 'admin.sigma@smkn2magelang.sch.id',
+    email: 'admin.sintesa@smkn2magelang.sch.id',
     role: 'admin',
     unitId: 'u-18',
     unitName: 'Satuan Pengawas Internal (SPI)',
@@ -397,7 +397,7 @@ export const INITIAL_LOGS: ActivityLogItem[] = [
 ];
 
 // DATA STORE SINGLETON WITH LOCALSTORAGE PERSISTENCE
-class SigmaDataEngine {
+class SintesaDataEngine {
   private evaluations: EvaluasiMutu[] = [];
   private documents: BuktiDokumen[] = [];
   private rtlList: ProgramMutuRTL[] = [];
@@ -418,19 +418,19 @@ class SigmaDataEngine {
     }
 
     try {
-      const savedEvals = localStorage.getItem('sigma_evaluations');
+      const savedEvals = localStorage.getItem('sintesa_evaluations');
       this.evaluations = savedEvals ? JSON.parse(savedEvals) : [...INITIAL_EVALUATIONS];
 
-      const savedDocs = localStorage.getItem('sigma_documents');
+      const savedDocs = localStorage.getItem('sintesa_documents');
       this.documents = savedDocs ? JSON.parse(savedDocs) : [...INITIAL_DOCUMENTS];
 
-      const savedRtl = localStorage.getItem('sigma_rtl');
+      const savedRtl = localStorage.getItem('sintesa_rtl');
       this.rtlList = savedRtl ? JSON.parse(savedRtl) : [...INITIAL_RTL];
 
-      const savedLogs = localStorage.getItem('sigma_logs');
+      const savedLogs = localStorage.getItem('sintesa_logs');
       this.logs = savedLogs ? JSON.parse(savedLogs) : [...INITIAL_LOGS];
 
-      const savedUser = localStorage.getItem('sigma_auth_user');
+      const savedUser = localStorage.getItem('sintesa_auth_user');
       if (savedUser) {
         this.activeUser = JSON.parse(savedUser);
       }
@@ -459,14 +459,14 @@ class SigmaDataEngine {
 
   public setActiveUser(user: UserProfile) {
     this.activeUser = user;
-    this.persist('sigma_auth_user', user);
+    this.persist('sintesa_auth_user', user);
   }
 
   public logout() {
     this.activeUser = INITIAL_USERS.tpmps;
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('sigma_auth_user');
-      document.cookie = 'sigma_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      localStorage.removeItem('sintesa_auth_user');
+      document.cookie = 'sintesa_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     }
   }
 
@@ -505,7 +505,7 @@ class SigmaDataEngine {
       updatedAt: new Date().toISOString()
     };
     this.evaluations = [newEval, ...this.evaluations];
-    this.persist('sigma_evaluations', this.evaluations);
+    this.persist('sintesa_evaluations', this.evaluations);
 
     this.addLog('CREATE_EVALUASI', 'Evaluasi Mutu', newEval.code, `Membuat evaluasi indikator: ${newEval.indikatorCode} (${newEval.unitName})`);
     return newEval;
@@ -521,7 +521,7 @@ class SigmaDataEngine {
       updatedAt: new Date().toISOString()
     };
     this.evaluations[idx] = updated;
-    this.persist('sigma_evaluations', this.evaluations);
+    this.persist('sintesa_evaluations', this.evaluations);
 
     this.addLog('UPDATE_EVALUASI', 'Evaluasi Mutu', updated.code, `Memperbarui data evaluasi ${updated.code} status: ${updated.status}`);
     return updated;
@@ -532,7 +532,7 @@ class SigmaDataEngine {
     if (!target) return false;
 
     this.evaluations = this.evaluations.filter((e) => e.id !== id);
-    this.persist('sigma_evaluations', this.evaluations);
+    this.persist('sintesa_evaluations', this.evaluations);
 
     this.addLog('DELETE_EVALUASI', 'Evaluasi Mutu', target.code, `Menghapus evaluasi ${target.code}`);
     return true;
@@ -556,7 +556,7 @@ class SigmaDataEngine {
       updatedAt: new Date().toISOString()
     };
     this.documents = [newDoc, ...this.documents];
-    this.persist('sigma_documents', this.documents);
+    this.persist('sintesa_documents', this.documents);
 
     this.addLog('UPLOAD_DOKUMEN', 'Bukti Dokumen', newDoc.code, `Mengunggah berkas bukti baru: "${newDoc.title}"`);
     return newDoc;
@@ -572,7 +572,7 @@ class SigmaDataEngine {
       updatedAt: new Date().toISOString()
     };
     this.documents[idx] = updated;
-    this.persist('sigma_documents', this.documents);
+    this.persist('sintesa_documents', this.documents);
 
     this.addLog('UPDATE_DOKUMEN', 'Bukti Dokumen', updated.code, `Status dokumen "${updated.title}" diubah menjadi: ${updated.status}`);
     return updated;
@@ -583,7 +583,7 @@ class SigmaDataEngine {
     if (!target) return false;
 
     this.documents = this.documents.filter((d) => d.id !== id);
-    this.persist('sigma_documents', this.documents);
+    this.persist('sintesa_documents', this.documents);
 
     this.addLog('DELETE_DOKUMEN', 'Bukti Dokumen', target.code, `Menghapus dokumen "${target.title}"`);
     return true;
@@ -607,7 +607,7 @@ class SigmaDataEngine {
       updatedAt: new Date().toISOString()
     };
     this.rtlList = [newRtl, ...this.rtlList];
-    this.persist('sigma_rtl', this.rtlList);
+    this.persist('sintesa_rtl', this.rtlList);
 
     this.addLog('CREATE_RTL', 'Program RTL', newRtl.code, `Menyusun program RTL: "${newRtl.programName}" (Unit: ${newRtl.unitName})`);
     return newRtl;
@@ -623,7 +623,7 @@ class SigmaDataEngine {
       updatedAt: new Date().toISOString()
     };
     this.rtlList[idx] = updated;
-    this.persist('sigma_rtl', this.rtlList);
+    this.persist('sintesa_rtl', this.rtlList);
 
     this.addLog('UPDATE_RTL', 'Program RTL', updated.code, `Memperbarui progres RTL "${updated.programName}" (${updated.progress}%)`);
     return updated;
@@ -634,7 +634,7 @@ class SigmaDataEngine {
     if (!target) return false;
 
     this.rtlList = this.rtlList.filter((r) => r.id !== id);
-    this.persist('sigma_rtl', this.rtlList);
+    this.persist('sintesa_rtl', this.rtlList);
 
     this.addLog('DELETE_RTL', 'Program RTL', target.code, `Menghapus program RTL "${target.programName}"`);
     return true;
@@ -659,8 +659,8 @@ class SigmaDataEngine {
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 19)
     };
     this.logs = [newLog, ...this.logs];
-    this.persist('sigma_logs', this.logs);
+    this.persist('sintesa_logs', this.logs);
   }
 }
 
-export const sigmaService = new SigmaDataEngine();
+export const sintesaService = new SintesaDataEngine();

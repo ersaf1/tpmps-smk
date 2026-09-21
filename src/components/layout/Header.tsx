@@ -13,8 +13,8 @@ import {
   ExternalLink,
   Shield
 } from 'lucide-react';
-import { UserProfile, ROLE_DEFINITIONS } from '@/types/sigma';
-import { sigmaService } from '@/lib/services/sigmaDataService';
+import { UserProfile, ROLE_DEFINITIONS } from '@/types/sintesa';
+import { sintesaService } from '@/lib/services/sintesaDataService';
 
 interface HeaderProps {
   user: UserProfile;

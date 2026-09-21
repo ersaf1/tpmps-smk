@@ -6,8 +6,8 @@ import Link from 'next/link';
 import AppShell from '@/components/layout/AppShell';
 import CustomDropdown from '@/components/ui/CustomDropdown';
 import { useToast } from '@/components/ui/ToastFeedback';
-import { sigmaService, INITIAL_UNITS, INITIAL_STANDARDS } from '@/lib/services/sigmaDataService';
-import { PrioritasRTL } from '@/types/sigma';
+import { sintesaService, INITIAL_UNITS, INITIAL_STANDARDS } from '@/lib/services/sintesaDataService';
+import { PrioritasRTL } from '@/types/sintesa';
 import { ArrowLeft, Save, Target } from 'lucide-react';
 
 export default function CreateRtlPage() {
@@ -48,7 +48,7 @@ export default function CreateRtlPage() {
     const code = `RTL-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
 
     setTimeout(() => {
-      sigmaService.createRtl({
+      sintesaService.createRtl({
         code,
         standardId: Number(standardId),
         standardName: selectedStandard?.name || 'Standar Mutu',
@@ -78,23 +78,23 @@ export default function CreateRtlPage() {
       <div className="max-w-4xl mx-auto">
         <Link
           href="/rtl"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-[#94A3B8] hover:text-[#22D3EE] mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-[#0077B6] mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Kembali ke Daftar RTL</span>
         </Link>
 
-        <div className="glass-panel-glow rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl">
-          <div className="flex items-center justify-between pb-6 mb-8 border-b border-white/10">
+        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl">
+          <div className="flex items-center justify-between pb-6 mb-8 border-b border-slate-100">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#F8FAFC] tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                 Rencana Tindak Lanjut (RTL) Mutu
               </h2>
-              <p className="text-xs sm:text-sm text-[#94A3B8] mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 Formulir penyusunan program perbaikan indikator SNP yang belum mencapai target mutu.
               </p>
             </div>
-            <div className="p-3 rounded-2xl bg-[#0077B6]/20 border border-[#22D3EE]/30 text-[#22D3EE]">
+            <div className="p-3 rounded-2xl bg-sky-50 border border-sky-200 text-[#0077B6]">
               <Target className="w-6 h-6" />
             </div>
           </div>
@@ -102,7 +102,7 @@ export default function CreateRtlPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Nama Program */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                 Nama Program Tindak Lanjut
               </label>
               <input
@@ -111,7 +111,7 @@ export default function CreateRtlPage() {
                 value={programName}
                 onChange={(e) => setProgramName(e.target.value)}
                 placeholder="Contoh: Pengadaan & Peremajaan Hardware Lab Komputer PPLG"
-                className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-[#0E1726]/90 border border-white/10 focus:border-[#22D3EE] text-sm text-[#F8FAFC] outline-hidden"
+                className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-sm text-slate-900 outline-hidden transition-all shadow-2xs"
               />
             </div>
 
@@ -138,7 +138,7 @@ export default function CreateRtlPage() {
 
             {/* Target Kinerja & Latar Belakang */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                 Target Kinerja & Output Terukur
               </label>
               <textarea
@@ -147,12 +147,12 @@ export default function CreateRtlPage() {
                 value={targetKinerja}
                 onChange={(e) => setTargetKinerja(e.target.value)}
                 placeholder="Contoh: 100% workstation memenuhi spesifikasi RAM 16GB dan SSD NVMe..."
-                className="w-full p-3.5 rounded-xl bg-[#0E1726]/90 border border-white/10 focus:border-[#22D3EE] text-sm text-[#F8FAFC] outline-hidden leading-relaxed"
+                className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-sm text-slate-900 outline-hidden leading-relaxed transition-all shadow-2xs"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                 Latar Belakang & Identifikasi Akar Masalah
               </label>
               <textarea
@@ -160,14 +160,14 @@ export default function CreateRtlPage() {
                 value={latarBelakang}
                 onChange={(e) => setLatarBelakang(e.target.value)}
                 placeholder="Jelaskan temuan audit, alasan perlunya perbaikan..."
-                className="w-full p-3.5 rounded-xl bg-[#0E1726]/90 border border-white/10 focus:border-[#22D3EE] text-sm text-[#F8FAFC] outline-hidden leading-relaxed"
+                className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-sm text-slate-900 outline-hidden leading-relaxed transition-all shadow-2xs"
               />
             </div>
 
             {/* Anggaran, Deadline & Prioritas */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                   Estimasi Anggaran (Rp)
                 </label>
                 <input
@@ -175,12 +175,12 @@ export default function CreateRtlPage() {
                   required
                   value={anggaran}
                   onChange={(e) => setAnggaran(e.target.value)}
-                  className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-[#0E1726]/90 border border-white/10 focus:border-[#22D3EE] font-mono text-sm text-[#F8FAFC] outline-hidden"
+                  className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] font-mono text-sm text-slate-900 outline-hidden transition-all shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                   Tenggat Waktu Selesai
                 </label>
                 <input
@@ -188,7 +188,7 @@ export default function CreateRtlPage() {
                   required
                   value={deadline}
                   onChange={(e) => setDeadline(e.target.value)}
-                  className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-[#0E1726]/90 border border-white/10 focus:border-[#22D3EE] text-sm text-[#F8FAFC] outline-hidden"
+                  className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-sm text-slate-900 outline-hidden transition-all shadow-2xs"
                 />
               </div>
 
@@ -207,10 +207,10 @@ export default function CreateRtlPage() {
             </div>
 
             {/* Actions */}
-            <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-end gap-3">
+            <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end gap-3">
               <Link
                 href="/rtl"
-                className="w-full sm:w-auto btn-enterprise px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/5 cursor-pointer text-center"
+                className="w-full sm:w-auto btn-enterprise px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer text-center transition-colors"
               >
                 Batal
               </Link>
@@ -218,7 +218,7 @@ export default function CreateRtlPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full sm:w-auto btn-enterprise px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] via-[#0096c7] to-[#22D3EE] hover:brightness-110 text-white text-xs sm:text-sm font-bold shadow-[0_0_20px_rgba(34,211,238,0.35)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                className="w-full sm:w-auto btn-enterprise px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 transition-all"
               >
                 <Save className="w-4 h-4" />
                 <span>{isSubmitting ? 'Menyimpan...' : 'Simpan Program RTL'}</span>

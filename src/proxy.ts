@@ -3,14 +3,23 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
+
+  // Security Response Headers
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';"
+  );
   response.headers.set('Cache-Control', 'private, no-store');
 
   const pathname = request.nextUrl.pathname;
   const isLoginPage = pathname === '/login';
   const isLandingPage = pathname === '/';
 
-  // Check custom session cookie first (for resilience & offline/local demo mode)
-  const localSession = request.cookies.get('sigma_session')?.value;
+  // Check custom session cookie first
+  const localSession = request.cookies.get('sintesa_session')?.value;
 
   // Check Supabase Auth if credentials exist
   let hasSupabaseUser = false;

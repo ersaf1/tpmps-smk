@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
-import { sigmaService } from '@/lib/services/sigmaDataService';
-import { UserProfile } from '@/types/sigma';
+import { sintesaService } from '@/lib/services/sintesaDataService';
+import { UserProfile } from '@/types/sintesa';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -22,7 +22,7 @@ export default function AppShell({ children, title, subtitle }: AppShellProps) {
 
   useEffect(() => {
     // Check session
-    const user = sigmaService.getActiveUser();
+    const user = sintesaService.getActiveUser();
     if (!user) {
       router.push('/login');
       return;
@@ -45,9 +45,9 @@ export default function AppShell({ children, title, subtitle }: AppShellProps) {
   }
 
   // Get real review and pending document count
-  const evals = sigmaService.getEvaluations();
-  const docs = sigmaService.getDocuments();
-  const rtlList = sigmaService.getRtlList();
+  const evals = sintesaService.getEvaluations();
+  const docs = sintesaService.getDocuments();
+  const rtlList = sintesaService.getRtlList();
 
   const reviewCount = evals.filter((e) => e.status === 'Diajukan' || e.status === 'Direview').length;
   const validatingDocCount = docs.filter((d) => d.status === 'Menunggu Review').length;

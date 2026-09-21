@@ -25,8 +25,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen
 } from 'lucide-react';
-import { UserProfile, ROLE_DEFINITIONS } from '@/types/sigma';
-import { sigmaService } from '@/lib/services/sigmaDataService';
+import { UserProfile, ROLE_DEFINITIONS } from '@/types/sintesa';
+import { sintesaService } from '@/lib/services/sintesaDataService';
 
 interface SidebarProps {
   user: UserProfile;
@@ -54,7 +54,7 @@ export default function Sidebar({
   const roleConfig = ROLE_DEFINITIONS[user.role];
 
   const handleLogout = () => {
-    sigmaService.logout();
+    sintesaService.logout();
     router.push('/login');
     router.refresh();
   };
@@ -98,7 +98,7 @@ export default function Sidebar({
             <Image src="/logo.png" alt="Logo SMK" width={44} height={44} className="w-11 h-11 object-contain shrink-0 group-hover:scale-105 transition-transform" priority unoptimized />
             <div className={isCollapsed ? 'lg:hidden' : ''}>
               <div className="flex items-center gap-1.5">
-                <span className="text-base font-black text-slate-900 tracking-tight">SIGMA</span>
+                <span className="text-base font-black text-slate-900 tracking-tight">SINTESA</span>
                 <span className="text-base font-black text-[#0077B6] tracking-tight">TPMPS</span>
               </div>
               <div className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">

@@ -6,8 +6,8 @@ import Link from 'next/link';
 import AppShell from '@/components/layout/AppShell';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/ToastFeedback';
-import { sigmaService } from '@/lib/services/sigmaDataService';
-import { EvaluasiMutu, BuktiDokumen } from '@/types/sigma';
+import { sintesaService } from '@/lib/services/sintesaDataService';
+import { EvaluasiMutu, BuktiDokumen } from '@/types/sintesa';
 import {
   ArrowLeft,
   Edit,
@@ -36,11 +36,11 @@ export default function EvaluasiDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    const ev = sigmaService.getEvaluationById(id);
+    const ev = sintesaService.getEvaluationById(id);
     if (ev) {
       setEvaluation(ev);
       // Fetch associated documents
-      const allDocs = sigmaService.getDocuments();
+      const allDocs = sintesaService.getDocuments();
       const matched = allDocs.filter(
         (d) => d.standardId === ev.standardId || ev.documentIds?.includes(d.id)
       );
@@ -52,7 +52,7 @@ export default function EvaluasiDetailPage() {
     if (!evaluation) return;
     setIsDeleting(true);
     setTimeout(() => {
-      sigmaService.deleteEvaluation(evaluation.id);
+      sintesaService.deleteEvaluation(evaluation.id);
       showToast(`Evaluasi ${evaluation.code} telah dihapus.`, 'success');
       router.push('/evaluasi');
     }, 400);
@@ -61,11 +61,11 @@ export default function EvaluasiDetailPage() {
   if (!evaluation) {
     return (
       <AppShell title="Detail Evaluasi Mutu">
-        <div className="glass-panel rounded-3xl p-12 text-center max-w-lg mx-auto">
-          <p className="text-sm text-[#94A3B8]">Data evaluasi tidak ditemukan atau telah dihapus.</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-3xl p-12 text-center max-w-lg mx-auto">
+          <p className="text-sm text-slate-500 font-medium">Data evaluasi tidak ditemukan atau telah dihapus.</p>
           <Link
             href="/evaluasi"
-            className="mt-4 inline-flex items-center gap-2 text-xs text-[#22D3EE] font-bold hover:underline"
+            className="mt-4 inline-flex items-center gap-2 text-xs text-[#0077B6] font-bold hover:underline"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Kembali ke Daftar</span>
@@ -87,7 +87,7 @@ export default function EvaluasiDetailPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <Link
             href="/evaluasi"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-[#94A3B8] hover:text-[#22D3EE] transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-[#0077B6] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Kembali ke Daftar Evaluasi</span>
@@ -96,7 +96,7 @@ export default function EvaluasiDetailPage() {
           <div className="flex items-center gap-2">
             <Link
               href={`/dokumen/upload?evalId=${evaluation.id}`}
-              className="btn-enterprise px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-[#22D3EE] flex items-center gap-1.5 cursor-pointer"
+              className="btn-enterprise px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-[#0077B6] flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >
               <UploadCloud className="w-4 h-4" />
               <span>Unggah Bukti</span>
@@ -104,16 +104,16 @@ export default function EvaluasiDetailPage() {
 
             <Link
               href={`/evaluasi/${evaluation.id}/edit`}
-              className="btn-enterprise px-4 py-2 rounded-xl bg-[#0077B6]/30 hover:bg-[#0077B6]/50 border border-[#22D3EE]/30 text-xs font-semibold text-[#F8FAFC] flex items-center gap-1.5 cursor-pointer"
+              className="btn-enterprise px-4 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 text-xs font-semibold text-[#0077B6] flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >
-              <Edit className="w-4 h-4 text-[#22D3EE]" />
+              <Edit className="w-4 h-4" />
               <span>Edit / Verifikasi</span>
             </Link>
 
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="btn-enterprise p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-xs font-semibold text-rose-400 cursor-pointer"
+              className="btn-enterprise p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs font-semibold text-rose-600 cursor-pointer shadow-2xs"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -121,35 +121,35 @@ export default function EvaluasiDetailPage() {
         </div>
 
         {/* Master Specs Card */}
-        <div className="glass-panel-glow rounded-3xl p-6 sm:p-8 border border-white/10 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="text-xs font-mono font-bold text-[#22D3EE] px-2.5 py-1 rounded-lg bg-[#0077B6]/30 border border-[#22D3EE]/30">
+                <span className="text-xs font-mono font-bold text-[#0077B6] px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-200">
                   {evaluation.code}
                 </span>
-                <span className="text-xs font-mono text-[#F6B73C] font-bold">
+                <span className="text-xs font-mono text-amber-700 font-bold">
                   {evaluation.indikatorCode}
                 </span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-[#22D3EE]/15 border border-[#22D3EE]/40 text-[#22D3EE]">
+                <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-sky-50 border border-sky-200 text-[#0077B6]">
                   {evaluation.status}
                 </span>
               </div>
 
-              <h2 className="text-xl sm:text-2xl font-black text-[#F8FAFC] tracking-tight mt-3">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-3">
                 {evaluation.indikatorName}
               </h2>
             </div>
 
             {/* Score Showcase */}
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-right shrink-0">
-              <span className="text-[10px] uppercase font-bold text-[#94A3B8] block">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-right shrink-0">
+              <span className="text-[10px] uppercase font-bold text-slate-500 block">
                 Skor Efektif Mutu
               </span>
-              <div className="text-3xl sm:text-4xl font-black text-[#22D3EE] font-mono mt-0.5">
+              <div className="text-3xl sm:text-4xl font-black text-[#0077B6] font-mono mt-0.5">
                 {score.toFixed(1)}%
               </div>
-              <span className="text-[11px] text-emerald-400 font-semibold block">
+              <span className="text-[11px] text-emerald-600 font-semibold block">
                 {score >= 90 ? 'Predikat: Unggul' : score >= 80 ? 'Predikat: Baik' : 'Predikat: Cukup'}
               </span>
             </div>
@@ -157,49 +157,49 @@ export default function EvaluasiDetailPage() {
 
           {/* Details Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5">
-              <span className="text-[#94A3B8] block mb-1">Unit Kerja:</span>
-              <span className="font-bold text-[#F8FAFC] block">{evaluation.unitName}</span>
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 block mb-1">Unit Kerja:</span>
+              <span className="font-bold text-slate-900 block">{evaluation.unitName}</span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5">
-              <span className="text-[#94A3B8] block mb-1">Standar Nasional:</span>
-              <span className="font-bold text-[#F8FAFC] block">{evaluation.standardName}</span>
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 block mb-1">Standar Nasional:</span>
+              <span className="font-bold text-slate-900 block">{evaluation.standardName}</span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5">
-              <span className="text-[#94A3B8] block mb-1">Periode Penilaian:</span>
-              <span className="font-bold text-[#F8FAFC] block">{evaluation.periode}</span>
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 block mb-1">Periode Penilaian:</span>
+              <span className="font-bold text-slate-900 block">{evaluation.periode}</span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5">
-              <span className="text-[#94A3B8] block mb-1">Auditor / Reviewer:</span>
-              <span className="font-bold text-[#F8FAFC] block">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 block mb-1">Auditor / Reviewer:</span>
+              <span className="font-bold text-slate-900 block">
                 {evaluation.reviewerName || 'Menunggu verifikasi'}
               </span>
             </div>
           </div>
 
           {/* Narratives Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
             {/* Unit Notes */}
-            <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#22D3EE] mb-2 flex items-center gap-1.5">
+            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#0077B6] mb-2 flex items-center gap-1.5">
                 <FileText className="w-4 h-4" />
                 <span>Catatan Faktual Unit Kerja</span>
               </h4>
-              <p className="text-sm text-[#F8FAFC] leading-relaxed font-medium">
+              <p className="text-sm text-slate-800 leading-relaxed font-medium">
                 {evaluation.catatanUnit || 'Tidak ada catatan khusus dari unit kerja.'}
               </p>
             </div>
 
             {/* TPMPS Reviewer Notes */}
-            <div className="p-5 rounded-2xl bg-[#0077B6]/10 border border-[#22D3EE]/25">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#F6B73C] mb-2 flex items-center gap-1.5">
+            <div className="p-5 rounded-2xl bg-sky-50/50 border border-sky-200">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#0077B6] mb-2 flex items-center gap-1.5">
                 <Shield className="w-4 h-4" />
                 <span>Catatan & Rekomendasi Auditor TPMPS</span>
               </h4>
-              <p className="text-sm text-[#F8FAFC] leading-relaxed font-medium">
+              <p className="text-sm text-slate-800 leading-relaxed font-medium">
                 {evaluation.catatanReviewer || 'Instrumen belum diverifikasi oleh auditor TPMPS.'}
               </p>
             </div>
@@ -207,20 +207,20 @@ export default function EvaluasiDetailPage() {
         </div>
 
         {/* Evidence Documents Section */}
-        <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-base font-bold text-[#F8FAFC] tracking-tight">
+              <h3 className="text-base font-bold text-slate-900 tracking-tight">
                 Berkas Bukti Fisik Terkait
               </h3>
-              <p className="text-xs text-[#94A3B8] mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Dokumen pendukung validitas penilaian standar mutu ini
               </p>
             </div>
 
             <Link
               href={`/dokumen/upload?evalId=${evaluation.id}`}
-              className="text-xs font-semibold text-[#22D3EE] hover:underline flex items-center gap-1"
+              className="text-xs font-semibold text-[#0077B6] hover:underline flex items-center gap-1"
             >
               <UploadCloud className="w-4 h-4" />
               <span>Unggah Dokumen Baru</span>
@@ -228,7 +228,7 @@ export default function EvaluasiDetailPage() {
           </div>
 
           {documents.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-white/5 border border-white/5 text-center text-xs text-[#94A3B8]">
+            <div className="p-8 rounded-2xl bg-slate-50 border border-slate-200/80 text-center text-xs text-slate-400">
               Belum ada berkas bukti fisik yang dilampirkan pada instrumen ini.
             </div>
           ) : (
@@ -236,18 +236,18 @@ export default function EvaluasiDetailPage() {
               {documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-cyan-500/30 transition-all flex items-center justify-between gap-4"
+                  className="p-4 rounded-2xl bg-slate-50 hover:bg-sky-50/50 border border-slate-200/80 transition-all flex items-center justify-between gap-4"
                 >
                   <div className="flex items-center gap-3.5 truncate">
-                    <div className="p-2.5 rounded-xl bg-[#0077B6]/20 border border-[#22D3EE]/30 text-[#22D3EE] shrink-0">
+                    <div className="p-2.5 rounded-xl bg-sky-50 border border-sky-200 text-[#0077B6] shrink-0">
                       <FileCheck2 className="w-5 h-5" />
                     </div>
                     <div className="truncate">
-                      <h5 className="text-sm font-bold text-[#F8FAFC] truncate">
+                      <h5 className="text-sm font-bold text-slate-900 truncate">
                         {doc.title}
                       </h5>
-                      <div className="flex items-center gap-2 text-xs text-[#94A3B8] mt-0.5">
-                        <span className="font-mono text-[#22D3EE]">{doc.code}</span>
+                      <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
+                        <span className="font-mono text-[#0077B6] font-semibold">{doc.code}</span>
                         <span>•</span>
                         <span>{doc.fileSize}</span>
                         <span>•</span>
@@ -257,12 +257,12 @@ export default function EvaluasiDetailPage() {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700">
                       {doc.status}
                     </span>
                     <Link
                       href={`/dokumen/${doc.id}`}
-                      className="btn-enterprise px-3 py-1.5 rounded-xl bg-white/10 hover:bg-[#0077B6]/40 text-xs font-semibold text-white"
+                      className="btn-enterprise px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs"
                     >
                       Buka
                     </Link>

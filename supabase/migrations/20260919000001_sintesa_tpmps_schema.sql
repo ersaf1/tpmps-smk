@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SIGMA TPMPS: Sistem Informasi Manajemen Penjaminan Mutu Pendidikan Sekolah
+-- SINTESA TPMPS: Sistem Informasi Manajemen Penjaminan Mutu Pendidikan Sekolah
 -- Database Schema & Row Level Security (RLS) Policies
 -- SMK Negeri 2 Magelang - "Swadaya Bhina Raharja"
 -- ==============================================================================
@@ -284,5 +284,5 @@ ON CONFLICT (id) DO NOTHING;
 
 -- 17. SUPABASE STORAGE BUCKET CONFIGURATION (JIKA DIDUKUNG)
 INSERT INTO storage.buckets (id, name, public) 
-VALUES ('sigma-evidence', 'sigma-evidence', false)
+VALUES ('sintesa-evidence', 'sintesa-evidence', false)
 ON CONFLICT (id) DO NOTHING;
