@@ -29,10 +29,15 @@ export default function EvaluasiDetailPage() {
   const { showToast } = useToast();
   const id = params.id as string;
 
+  const [currentUser, setCurrentUser] = useState(() => sintesaService.getActiveUser());
   const [evaluation, setEvaluation] = useState<EvaluasiMutu | null>(null);
   const [documents, setDocuments] = useState<BuktiDokumen[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  useEffect(() => {
+    setCurrentUser(sintesaService.getActiveUser());
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -112,13 +117,16 @@ export default function EvaluasiDetailPage() {
               <span>Edit / Verifikasi</span>
             </Link>
 
-            <button
-              type="button"
-              onClick={() => setShowDeleteConfirm(true)}
-              className="btn-enterprise p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs font-semibold text-rose-600 cursor-pointer shadow-2xs"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            {(currentUser.role === 'admin' || currentUser.role === 'tpmps') && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="btn-enterprise p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs font-semibold text-rose-600 cursor-pointer shadow-2xs"
+                title="Hapus Evaluasi"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 

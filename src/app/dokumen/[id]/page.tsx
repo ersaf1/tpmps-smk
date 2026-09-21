@@ -28,9 +28,14 @@ export default function DokumenDetailPage() {
   const { showToast } = useToast();
   const id = params.id as string;
 
+  const [currentUser, setCurrentUser] = useState(() => sintesaService.getActiveUser());
   const [document, setDocument] = useState<BuktiDokumen | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    setCurrentUser(sintesaService.getActiveUser());
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -43,7 +48,7 @@ export default function DokumenDetailPage() {
 
   const handleStatusChange = (newStatus: StatusDokumen) => {
     if (!document) return;
-    const currentUser = sintesaService.getActiveUser();
+    const user = sintesaService.getActiveUser();
     sintesaService.updateDocument(document.id, {
       status: newStatus,
       verifiedBy: currentUser.id,
@@ -118,13 +123,16 @@ export default function DokumenDetailPage() {
               <span>Unduh Berkas</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setShowDeleteConfirm(true)}
-              className="btn-enterprise p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs font-semibold text-rose-600 cursor-pointer shadow-2xs transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            {(currentUser.role === 'admin' || currentUser.role === 'tpmps' || currentUser.id === document.uploadedBy) && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="btn-enterprise p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs font-semibold text-rose-600 cursor-pointer shadow-2xs transition-colors"
+                title="Hapus Dokumen"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -187,43 +195,54 @@ export default function DokumenDetailPage() {
             </p>
           </div>
 
-          {/* Quick Status Validation Buttons (TPMPS Role Actions) */}
-          <div className="p-5 rounded-2xl bg-sky-50/60 border border-sky-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#0077B6]">
-                Validasi Auditor TPMPS
-              </h4>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Perbarui status verifikasi keabsahan dokumen bukti fisik ini
-              </p>
+          {/* Validation Section (Role Based) */}
+          {currentUser.role === 'guru' ? (
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <span className="text-slate-600">
+                Status Verifikasi: <strong className="text-slate-900">{document.status}</strong>
+              </span>
+              <span className="text-[11px] text-slate-500 italic">
+                Pemeriksaan keabsahan dokumen dilakukan oleh Tim Auditor TPMPS / Kepala Sekolah.
+              </span>
             </div>
+          ) : (
+            <div className="p-5 rounded-2xl bg-sky-50/60 border border-sky-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#0077B6]">
+                  Validasi {currentUser.role === 'kepala_sekolah' ? 'Kepala Sekolah' : 'Auditor TPMPS'}
+                </h4>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Perbarui status verifikasi keabsahan dokumen bukti fisik ini
+                </p>
+              </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleStatusChange('Terverifikasi')}
-                className="btn-enterprise px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shadow-xs cursor-pointer transition-colors"
-              >
-                Verifikasi (Sah)
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleStatusChange('Terverifikasi')}
+                  className="btn-enterprise px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shadow-xs cursor-pointer transition-colors"
+                >
+                  Verifikasi (Sah)
+                </button>
 
-              <button
-                type="button"
-                onClick={() => handleStatusChange('Perlu Revisi')}
-                className="btn-enterprise px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-xs font-bold text-white shadow-xs cursor-pointer transition-colors"
-              >
-                Minta Revisi
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handleStatusChange('Perlu Revisi')}
+                  className="btn-enterprise px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-xs font-bold text-white shadow-xs cursor-pointer transition-colors"
+                >
+                  Minta Revisi
+                </button>
 
-              <button
-                type="button"
-                onClick={() => handleStatusChange('Ditolak')}
-                className="btn-enterprise px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white shadow-xs cursor-pointer transition-colors"
-              >
-                Tolak
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handleStatusChange('Ditolak')}
+                  className="btn-enterprise px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white shadow-xs cursor-pointer transition-colors"
+                >
+                  Tolak
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* File Preview Frame */}

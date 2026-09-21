@@ -49,6 +49,33 @@ export default function DokumenValidasiPage() {
 
   const verifiedCount = totalDocsCount - pendingDocs.length;
   const auditProgress = totalDocsCount > 0 ? Math.round((verifiedCount / totalDocsCount) * 100) : 100;
+  const user = sintesaService.getActiveUser();
+
+  if (user.role === 'guru') {
+    return (
+      <AppShell
+        title="Akses Terbatas"
+        subtitle="Halaman Khusus Tim Penjamin Mutu (TPMPS) & Pimpinan"
+      >
+        <div className="max-w-xl mx-auto bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-sm text-center">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-7 h-7" />
+          </div>
+          <h3 className="text-lg font-black text-slate-900 mb-2">Hak Akses Terbatas</h3>
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
+            Halaman validasi dan verifikasi dokumen bukti fisik ini diperuntukkan khusus bagi Tim Penjamin Mutu (TPMPS), Kepala Sekolah, dan Administrator.
+          </p>
+          <Link
+            href="/dokumen"
+            className="btn-enterprise inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#0077B6] hover:bg-[#005f92] text-white text-xs font-bold transition-all shadow-md shadow-sky-500/20"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Kembali ke Bank Dokumen</span>
+          </Link>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell

@@ -14,7 +14,7 @@ import { UserProfile, StandardSNP, ActivityLogItem, UnitKerja } from '@/types/si
 import { ArrowRight, ChevronRight, Award, CheckCircle2 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const [user] = useState<UserProfile>(() => sintesaService.getActiveUser());
+  const [user, setUser] = useState<UserProfile>(() => sintesaService.getActiveUser());
   const [standards] = useState<StandardSNP[]>(() => sintesaService.getStandards());
   const [units] = useState<UnitKerja[]>(() => sintesaService.getUnits());
   const [logs] = useState<ActivityLogItem[]>(() => sintesaService.getLogs());
@@ -22,6 +22,13 @@ export default function DashboardPage() {
   const [validDocsCount] = useState(() => sintesaService.getDocuments().filter((d) => d.status === 'Terverifikasi').length);
   const [activeEvalsCount] = useState(() => sintesaService.getEvaluations().length);
   const [activeRtlCount] = useState(() => sintesaService.getRtlList().filter((r) => r.status === 'Sedang Berjalan').length);
+
+  React.useEffect(() => {
+    const active = sintesaService.getActiveUser();
+    if (active && (active.id !== user.id || active.role !== user.role)) {
+      setUser(active);
+    }
+  }, [user]);
 
   return (
     <AppShell

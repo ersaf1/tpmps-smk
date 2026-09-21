@@ -3,31 +3,17 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Lock, User, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
-import { INITIAL_USERS } from '@/lib/services/sintesaDataService';
-import { UserRole } from '@/types/sintesa';
+import { Lock, Mail, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
+import { INITIAL_USERS, INITIAL_UNITS, sintesaService } from '@/lib/services/sintesaDataService';
+import { UserRole, UserProfile } from '@/types/sintesa';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [identifier, setIdentifier] = useState('197509182002122001'); // Default NIP TPMPS
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('sintesa123');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // Quick account credentials lookup
-  const ACCOUNTS: { role: UserRole; title: string; nip: string; email: string; name: string }[] = [
-    { role: 'tpmps', title: 'Ketua TPMPS', nip: INITIAL_USERS.tpmps.nip, email: INITIAL_USERS.tpmps.email, name: INITIAL_USERS.tpmps.fullName },
-    { role: 'kepala_sekolah', title: 'Kepala Sekolah', nip: INITIAL_USERS.kepala_sekolah.nip, email: INITIAL_USERS.kepala_sekolah.email, name: INITIAL_USERS.kepala_sekolah.fullName },
-    { role: 'guru', title: 'WKS / Guru', nip: INITIAL_USERS.guru.nip, email: INITIAL_USERS.guru.email, name: INITIAL_USERS.guru.fullName },
-    { role: 'admin', title: 'Administrator', nip: INITIAL_USERS.admin.nip, email: INITIAL_USERS.admin.email, name: INITIAL_USERS.admin.fullName }
-  ];
-
-  const handleQuickFill = (nip: string) => {
-    setIdentifier(nip);
-    setPassword('sintesa123');
-    setErrorMessage(null);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,36 +22,96 @@ export default function LoginPage() {
 
     // Simulate authenticating against Supabase / Database
     setTimeout(() => {
-      // Find matching user by NIP or Email
-      const matchedRole = (Object.keys(INITIAL_USERS) as UserRole[]).find((r) => {
-        const u = INITIAL_USERS[r];
-        return u.nip === identifier.trim() || u.email.toLowerCase() === identifier.trim().toLowerCase();
-      });
+      const cleanEmail = email.trim().toLowerCase();
 
-      if (!matchedRole || password.trim().length < 4) {
-        setErrorMessage('Kredensial tidak valid. Silakan periksa kembali NIP / Email dan kata sandi Anda.');
+      // Find matching user by email / role alias
+      let authenticatedUser: UserProfile | null = null;
+
+      // 1. Kepala Sekolah aliases
+      if (
+        cleanEmail === 'kepala.sekolah@smkn2magelang.sch.id' ||
+        cleanEmail === 'kepsek@smkn2magelang.sch.id' ||
+        cleanEmail === 'kepsek@smk-unggul.sch.id' ||
+        cleanEmail === 'kepsek@gmail.com' ||
+        cleanEmail === 'kepala.sekolah@gmail.com' ||
+        cleanEmail === 'kepsek'
+      ) {
+        authenticatedUser = INITIAL_USERS.kepala_sekolah;
+      }
+      // 2. Administrator aliases
+      else if (
+        cleanEmail === 'admin.sintesa@smkn2magelang.sch.id' ||
+        cleanEmail === 'admin@smkn2magelang.sch.id' ||
+        cleanEmail === 'admin@gmail.com' ||
+        cleanEmail === 'admin@smk-unggul.sch.id' ||
+        cleanEmail === 'admin'
+      ) {
+        authenticatedUser = INITIAL_USERS.admin;
+      }
+      // 3. TPMPS aliases
+      else if (
+        cleanEmail === 'tpmps.ketua@smkn2magelang.sch.id' ||
+        cleanEmail === 'tpmps@smkn2magelang.sch.id' ||
+        cleanEmail === 'indah.tpmps@smk-unggul.sch.id' ||
+        cleanEmail === 'tpmps@gmail.com' ||
+        cleanEmail === 'tpmps'
+      ) {
+        authenticatedUser = INITIAL_USERS.tpmps;
+      }
+      // 4. Guru / WKS Kurikulum aliases
+      else if (
+        cleanEmail === 'budi.santoso@smkn2magelang.sch.id' ||
+        cleanEmail === 'guru@smkn2magelang.sch.id' ||
+        cleanEmail === 'guru'
+      ) {
+        authenticatedUser = INITIAL_USERS.guru;
+      }
+      // 5. Check exact match in INITIAL_USERS
+      else {
+        const foundRole = (Object.keys(INITIAL_USERS) as UserRole[]).find((r) => {
+          return INITIAL_USERS[r].email.toLowerCase() === cleanEmail;
+        });
+
+        if (foundRole) {
+          authenticatedUser = INITIAL_USERS[foundRole];
+        } else {
+          // 6. Check match in 18 INITIAL_UNITS
+          const matchedUnit = INITIAL_UNITS.find(
+            (u) =>
+              u.email.toLowerCase() === cleanEmail ||
+              cleanEmail === `${u.code.toLowerCase()}@smkn2magelang.sch.id`
+          );
+
+          if (matchedUnit) {
+            authenticatedUser = {
+              id: `usr-${matchedUnit.id}`,
+              nip: '198501012010011001',
+              fullName: matchedUnit.picName,
+              email: matchedUnit.email,
+              role: matchedUnit.code === 'SPI' ? 'admin' : 'guru',
+              unitId: matchedUnit.id,
+              unitName: matchedUnit.name,
+              avatarUrl: '/avatar-guru.png',
+              isActive: true,
+              createdAt: new Date().toISOString()
+            };
+          }
+        }
+      }
+
+      if (!authenticatedUser || password.trim().length < 4) {
+        setErrorMessage('Kredensial tidak valid. Silakan periksa kembali alamat email dan kata sandi Anda.');
         setIsLoading(false);
         return;
       }
 
-      const authenticatedUser = INITIAL_USERS[matchedRole];
-
-      // Set cookie and localStorage for session persistence
-      const sessionPayload = {
-        userId: authenticatedUser.id,
-        nip: authenticatedUser.nip,
-        role: authenticatedUser.role,
-        name: authenticatedUser.fullName,
-        exp: Math.floor(Date.now() / 1000) + 86400
-      };
-      const encoded = btoa(JSON.stringify(sessionPayload));
-      document.cookie = `sintesa_session=${encoded}; path=/; max-age=86400; SameSite=Lax`;
-      localStorage.setItem('sintesa_auth_user', JSON.stringify(authenticatedUser));
+      // CRUCIAL: Set active user in sintesaService so role and identity persist correctly
+      sintesaService.setActiveUser(authenticatedUser);
 
       // Redirect to dashboard
       router.push('/dashboard');
       router.refresh();
-    }, 900);
+    }, 600);
   };
 
   return (
@@ -112,21 +158,21 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Input Identifier */}
+            {/* Input Email */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                NIP / Alamat Email Resmi
+                Alamat Email Resmi
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <User className="w-4 h-4" />
+                  <Mail className="w-4 h-4" />
                 </div>
                 <input
-                  type="text"
+                  type="email"
                   required
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="Masukkan NIP atau email sekolah"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Contoh: kepala.sekolah@smkn2magelang.sch.id"
                   className="w-full min-h-[46px] pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] focus:ring-2 focus:ring-blue-500/20 text-sm text-slate-900 placeholder-slate-400 transition-all outline-hidden"
                 />
               </div>
@@ -183,34 +229,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Credentials (RBAC Real Auth Guidance) */}
-          <div className="mt-8 pt-6 border-t border-slate-100">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Akses Autentikasi Produksi (NIP Resmi):
-              </span>
-              <span className="text-[10px] text-[#0077B6] font-mono font-semibold bg-sky-50 px-2 py-0.5 rounded border border-sky-200">Password: sintesa123</span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              {ACCOUNTS.map((acc) => (
-                <button
-                  key={acc.role}
-                  type="button"
-                  onClick={() => handleQuickFill(acc.nip)}
-                  className="p-2.5 rounded-xl bg-slate-50 hover:bg-sky-50/70 border border-slate-200 hover:border-sky-300 text-left transition-all cursor-pointer group"
-                >
-                  <div className="text-[11px] font-bold text-[#0077B6] group-hover:text-[#005f92] flex items-center justify-between">
-                    <span>{acc.title}</span>
-                    <span className="text-[9px] text-slate-400 uppercase">{acc.role}</span>
-                  </div>
-                  <div className="text-[11px] font-mono text-slate-900 font-semibold truncate mt-0.5">{acc.nip}</div>
-                  <div className="text-[10px] text-slate-500 truncate">{acc.name.split(',')[0]}</div>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Security Footer */}

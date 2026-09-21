@@ -40,6 +40,11 @@ export default function EvaluasiListPage() {
   // Delete Dialog state
   const [targetDelete, setTargetDelete] = useState<EvaluasiMutu | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentUser, setCurrentUser] = useState(() => sintesaService.getActiveUser());
+
+  useEffect(() => {
+    setCurrentUser(sintesaService.getActiveUser());
+  }, []);
 
   const loadData = () => {
     setIsLoading(true);
@@ -365,14 +370,16 @@ export default function EvaluasiListPage() {
                             <UploadCloud className="w-4 h-4" />
                           </Link>
 
-                          <button
-                            type="button"
-                            title="Hapus"
-                            onClick={() => setTargetDelete(item)}
-                            className="p-2 rounded-xl bg-slate-50 hover:bg-rose-50 border border-slate-200 text-slate-600 hover:text-rose-600 transition-all cursor-pointer shadow-2xs"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {(currentUser.role === 'admin' || currentUser.role === 'tpmps') && (
+                            <button
+                              type="button"
+                              title="Hapus"
+                              onClick={() => setTargetDelete(item)}
+                              className="p-2 rounded-xl bg-slate-50 hover:bg-rose-50 border border-slate-200 text-slate-600 hover:text-rose-600 transition-all cursor-pointer shadow-2xs"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -446,13 +453,15 @@ export default function EvaluasiListPage() {
                       Edit
                     </Link>
 
-                    <button
-                      type="button"
-                      onClick={() => setTargetDelete(item)}
-                      className="min-h-[44px] px-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-600 flex items-center justify-center cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {(currentUser.role === 'admin' || currentUser.role === 'tpmps') && (
+                      <button
+                        type="button"
+                        onClick={() => setTargetDelete(item)}
+                        className="min-h-[44px] px-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-600 flex items-center justify-center cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

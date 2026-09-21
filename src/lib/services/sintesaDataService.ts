@@ -454,16 +454,39 @@ class SintesaDataEngine {
 
   // --- AUTHENTICATION ---
   public getActiveUser(): UserProfile {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedUser = localStorage.getItem('sintesa_auth_user');
+        if (savedUser) {
+          const parsed = JSON.parse(savedUser);
+          if (parsed && parsed.id && parsed.role) {
+            this.activeUser = parsed;
+          }
+        }
+      } catch {
+        // use current activeUser
+      }
+    }
     return this.activeUser;
   }
 
   public setActiveUser(user: UserProfile) {
     this.activeUser = user;
     this.persist('sintesa_auth_user', user);
+    if (typeof window !== 'undefined') {
+      const sessionPayload = {
+        userId: user.id,
+        nip: user.nip,
+        role: user.role,
+        name: user.fullName,
+        exp: Math.floor(Date.now() / 1000) + 86400
+      };
+      const encoded = btoa(JSON.stringify(sessionPayload));
+      document.cookie = `sintesa_session=${encoded}; path=/; max-age=86400; SameSite=Lax`;
+    }
   }
 
   public logout() {
-    this.activeUser = INITIAL_USERS.tpmps;
     if (typeof window !== 'undefined') {
       localStorage.removeItem('sintesa_auth_user');
       document.cookie = 'sintesa_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';

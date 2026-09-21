@@ -15,13 +15,16 @@ interface AppShellProps {
 
 export default function AppShell({ children, title, subtitle }: AppShellProps) {
   const router = useRouter();
-  const [currentUser] = useState<UserProfile | null>(() => sintesaService.getActiveUser());
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => sintesaService.getActiveUser());
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   useEffect(() => {
-    if (!currentUser) {
+    const active = sintesaService.getActiveUser();
+    if (!active) {
       router.push('/login');
+    } else if (!currentUser || currentUser.id !== active.id || currentUser.role !== active.role) {
+      setCurrentUser(active);
     }
   }, [currentUser, router]);
 

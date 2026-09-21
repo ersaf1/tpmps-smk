@@ -265,25 +265,27 @@ export default function Sidebar({
                 </div>
               </Link>
 
-              <Link
-                href="/dokumen/validasi"
-                onClick={onCloseMobile}
-                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  isActive('/dokumen/validasi')
-                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <CheckCircle className="w-4 h-4 text-slate-500" />
-                  <span className={isCollapsed ? 'lg:hidden' : ''}>Validasi Dokumen</span>
-                </div>
-                {validatingDocCount > 0 && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
-                    {validatingDocCount} Baru
-                  </span>
-                )}
-              </Link>
+              {user.role !== 'guru' && (
+                <Link
+                  href="/dokumen/validasi"
+                  onClick={onCloseMobile}
+                  className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                    isActive('/dokumen/validasi')
+                      ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <CheckCircle className="w-4 h-4 text-slate-500" />
+                    <span className={isCollapsed ? 'lg:hidden' : ''}>Validasi Dokumen</span>
+                  </div>
+                  {validatingDocCount > 0 && (
+                    <span className={`text-[10px] px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                      {validatingDocCount} Baru
+                    </span>
+                  )}
+                </Link>
+              )}
             </div>
           </div>
 

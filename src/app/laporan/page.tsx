@@ -22,6 +22,28 @@ export default function LaporanPage() {
   const { showToast } = useToast();
   const [standards] = useState<StandardSNP[]>(() => sintesaService.getStandards());
   const [units] = useState<UnitKerja[]>(() => sintesaService.getUnits());
+  const [currentUser, setCurrentUser] = useState(() => sintesaService.getActiveUser());
+  const [isApprovedByKepsek, setIsApprovedByKepsek] = useState(false);
+
+  useEffect(() => {
+    setCurrentUser(sintesaService.getActiveUser());
+    const savedApproval = localStorage.getItem('sintesa_kepsek_approved_report');
+    if (savedApproval === 'true') {
+      setIsApprovedByKepsek(true);
+    }
+  }, []);
+
+  const handleApproveReport = () => {
+    setIsApprovedByKepsek(true);
+    localStorage.setItem('sintesa_kepsek_approved_report', 'true');
+    sintesaService.addLog(
+      'APPROVE_LAPORAN',
+      'Laporan Mutu',
+      'EDS-2025/2026',
+      'Kepala Sekolah mengesahkan Rapor Mutu Evaluasi Diri Sekolah TA 2025/2026'
+    );
+    showToast('Laporan Rapor Mutu 8 SNP berhasil disahkan oleh Kepala Sekolah!', 'success');
+  };
 
   const handlePrint = () => {
     window.print();
@@ -253,7 +275,25 @@ export default function LaporanPage() {
               <p className="font-bold text-slate-900 print:text-black mt-0.5">
                 Kepala SMK Negeri 2 Magelang
               </p>
-              <div className="h-20" />
+              <div className="h-20 flex items-center justify-center">
+                {isApprovedByKepsek ? (
+                  <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-700 text-center animate-in zoom-in-95">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 mx-auto" />
+                    <span className="text-[10px] font-bold block uppercase tracking-wider mt-0.5">Disahkan Secara Digital</span>
+                  </div>
+                ) : currentUser.role === 'kepala_sekolah' ? (
+                  <button
+                    type="button"
+                    onClick={handleApproveReport}
+                    className="no-print btn-enterprise px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-105 text-white text-xs font-bold shadow-md shadow-emerald-500/20 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Sahkan Rapor Mutu</span>
+                  </button>
+                ) : (
+                  <span className="text-[11px] text-slate-400 italic no-print">Menunggu Pengesahan Kepala Sekolah</span>
+                )}
+              </div>
               <p className="font-bold text-slate-900 print:text-black underline">
                 Drs. H. Mulyono, M.Pd.
               </p>
