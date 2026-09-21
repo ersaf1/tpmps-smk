@@ -205,7 +205,7 @@ function UploadDokumenForm() {
             <CustomDropdown
               label="Kategori / Tipe Berkas"
               value={fileType}
-              onChange={(val) => setFileType(val as any)}
+              onChange={(val) => setFileType(val as 'pdf' | 'excel' | 'word' | 'image')}
               options={[
                 { value: 'pdf', label: 'PDF Document (.pdf)' },
                 { value: 'excel', label: 'Excel Spreadsheet (.xlsx)' },

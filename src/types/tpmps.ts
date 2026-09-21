@@ -10,6 +10,7 @@ export interface UserProfile {
   id: string; // Primary Key
   name: string;
   email: string;
+  password?: string;
   role: UserRole;
   unitId?: string; // Foreign Key -> UnitKerja.id
   unitName?: string;
@@ -158,3 +159,74 @@ export interface EvaluasiRelational extends EvaluasiMutu {
   documents: BuktiDokumen[];
   programs: ProgramMutuRTL[];
 }
+
+// ==========================================
+// SISTEM LEMARI & LACI DIGITAL (FILING CABINET)
+// ==========================================
+
+export type StatusLaci = 'kosong' | 'menunggu_verifikasi' | 'disetujui' | 'revisi';
+
+export interface BerkasLaci {
+  id: string;
+  laciId: string;
+  unitId: string;
+  namaFile: string;
+  fileUrl?: string;
+  linkExternal?: string;
+  ukuranFile: string;
+  tipeFile: 'pdf' | 'excel' | 'word' | 'image' | 'link';
+  versi: string;
+  tahunAjaran?: string; // e.g. '2026/2027', '2025/2026', '2024/2025'
+  uploadedAt: string;
+  uploadedBy: string;
+  uploadedByUserId: string;
+  catatanPengirim?: string;
+}
+
+export interface LaciUnit {
+  id: string;
+  lemariId: string;
+  unitId: string;
+  unitName: string;
+  kodeLaci: string; // e.g. "LACI-A", "LACI-B", "LACI-C"
+  namaLaci: string; // e.g. "Laci A: Kurikulum Operasional Satuan Pendidikan (KOSP)"
+  deskripsiTugas: string;
+  kategoriJob: string; // e.g. "Perencanaan", "Pelaksanaan", "Evaluasi", "Pelaporan"
+  formatWajib: string[]; // e.g. ['pdf', 'docx', 'xlsx', 'link']
+  deadline?: string;
+  isMandatory: boolean;
+  status: StatusLaci;
+  tahunAjaran?: string; // e.g. '2026/2027'
+  berkasList: BerkasLaci[];
+  catatanSuperAdmin?: string;
+  verifiedBy?: string;
+  verifiedAt?: string;
+  updatedAt: string;
+}
+
+export interface LemariUnit {
+  id: string;
+  unitId: string;
+  unitCode: string;
+  unitName: string;
+  unitCategory: 'Manajemen' | 'Kejuruan' | 'Layanan' | 'Pengawasan';
+  pic: string;
+  tahunAjaran: string; // e.g. '2026/2027', '2025/2026', '2024/2025'
+  deskripsiJob: string;
+  totalLaci: number;
+  laciTerisi: number;
+  laciDisetujui: number;
+  laciRevisi: number;
+  laciKosong: number;
+  status: 'Aktif' | 'Arsip';
+  lastUpdated: string;
+}
+
+export interface TahunAjaranRoom {
+  id: string; // e.g. '2026/2027'
+  label: string; // e.g. 'Tahun Ajaran 2026/2027'
+  shortLabel: string; // e.g. '2026/2027'
+  status: 'Aktif' | 'Arsip' | 'Mendatang';
+  description: string;
+}
+
