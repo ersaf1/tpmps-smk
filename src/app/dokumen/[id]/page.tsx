@@ -46,8 +46,8 @@ export default function DokumenDetailPage() {
     const currentUser = sintesaService.getActiveUser();
     sintesaService.updateDocument(document.id, {
       status: newStatus,
-      verifiedBy: currentUser.id,
-      verifiedByName: currentUser.fullName,
+      verifiedBy: currentUser?.id || 'auditor',
+      verifiedByName: currentUser?.fullName || 'Auditor TPMPS',
       verifiedAt: new Date().toISOString()
     });
 
@@ -56,7 +56,7 @@ export default function DokumenDetailPage() {
         ? {
             ...prev,
             status: newStatus,
-            verifiedByName: currentUser.fullName,
+            verifiedByName: currentUser?.fullName || 'Auditor TPMPS',
             verifiedAt: new Date().toISOString()
           }
         : null

@@ -18,16 +18,30 @@ export async function proxy(request: NextRequest) {
   const isLoginPage = pathname === '/login';
   const isLandingPage = pathname === '/';
 
-  // Check custom session cookie first
-  const localSession = request.cookies.get('sintesa_session')?.value;
+  // Check custom session cookie with expiration validation
+  const localSessionCookie = request.cookies.get('sintesa_session')?.value;
+  let isLocalSessionValid = false;
+  if (localSessionCookie) {
+    try {
+      const decoded = JSON.parse(Buffer.from(localSessionCookie, 'base64').toString('utf-8'));
+      if (decoded.exp && decoded.exp > Math.floor(Date.now() / 1000)) {
+        isLocalSessionValid = true;
+      }
+    } catch {
+      isLocalSessionValid = false;
+    }
+  }
 
   // Check Supabase Auth if credentials exist
   let hasSupabaseUser = false;
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+  const supabaseKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && supabaseKey) {
     try {
       const client = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+        supabaseKey,
         {
           cookies: {
             getAll: () => request.cookies.getAll(),
@@ -47,7 +61,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  const isAuthenticated = Boolean(hasSupabaseUser || localSession);
+  const isAuthenticated = Boolean(hasSupabaseUser || isLocalSessionValid);
 
   // If user is authenticated and visits /login, redirect to /dashboard
   if (isAuthenticated && isLoginPage) {

@@ -53,8 +53,14 @@ export default function Sidebar({
   const router = useRouter();
   const roleConfig = ROLE_DEFINITIONS[user.role];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     sintesaService.logout();
+    try {
+      const { logoutAction } = await import('@/app/actions/authActions');
+      await logoutAction();
+    } catch {
+      // Offline or network fallback
+    }
     router.push('/login');
     router.refresh();
   };

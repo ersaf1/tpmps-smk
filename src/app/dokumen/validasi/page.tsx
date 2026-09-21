@@ -38,8 +38,8 @@ export default function DokumenValidasiPage() {
     const user = sintesaService.getActiveUser();
     sintesaService.updateDocument(id, {
       status,
-      verifiedBy: user.id,
-      verifiedByName: user.fullName,
+      verifiedBy: user?.id || 'auditor',
+      verifiedByName: user?.fullName || 'Auditor TPMPS',
       verifiedAt: new Date().toISOString()
     });
 
