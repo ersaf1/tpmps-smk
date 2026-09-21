@@ -1,4 +1,4 @@
-# SIGMA-TPMPS | Sistem Informasi Penjaminan Mutu Pendidikan Sekolah SMK
+# SINTESA-TPMPS | Sistem Informasi Penjaminan Mutu Pendidikan Sekolah SMK
 
 Aplikasi web modern berbasis **Next.js (App Router) + React + TypeScript + Tailwind CSS** yang dirancang berdasarkan **Product Requirements Document (PRD) Sistem Informasi TPMPS SMK**.
 

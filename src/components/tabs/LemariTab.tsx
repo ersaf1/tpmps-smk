@@ -85,7 +85,7 @@ interface LemariTabProps {
     deskripsiJob: string;
   }) => void;
   onDeleteLemariUnit?: (unitId: string) => void;
-  onOverrideStatusLaci?: (laciId: string, status: any) => void;
+  onOverrideStatusLaci?: (laciId: string, status: string) => void;
   onImpersonateUnit?: (unitId: string | null) => void;
 }
 
@@ -124,14 +124,14 @@ export default function LemariTab({
   });
 
   // Keep activeRoomId in sync when selectedPeriode changes
-  React.useEffect(() => {
-    if (selectedPeriode) {
-      const match = selectedPeriode.match(/\d{4}\/\d{4}/)?.[0];
-      if (match && match !== activeRoomId) {
-        setActiveRoomId(match);
-      }
+  const [prevPeriode, setPrevPeriode] = useState(selectedPeriode);
+  if (selectedPeriode !== prevPeriode) {
+    setPrevPeriode(selectedPeriode);
+    const match = selectedPeriode?.match(/\d{4}\/\d{4}/)?.[0];
+    if (match && match !== activeRoomId) {
+      setActiveRoomId(match);
     }
-  }, [selectedPeriode, activeRoomId]);
+  }
 
   const activeRoom = roomList.find((r) => r.id === activeRoomId) || roomList[0];
 
@@ -190,7 +190,9 @@ export default function LemariTab({
   const [inspectSearch, setInspectSearch] = useState<string>('');
 
   // Selected Lemari & Laci for Modal / Drawer View
-  const [activeLemari, setActiveLemari] = useState<LemariUnit | null>(null);
+  const [activeLemariId, setActiveLemariId] = useState<string | null>(null);
+  const activeLemari = lemariList.find((l) => l.id === activeLemariId) || null;
+  const setActiveLemari = (lemari: LemariUnit | null) => setActiveLemariId(lemari ? lemari.id : null);
   const [activeLaci, setActiveLaci] = useState<LaciUnit | null>(null);
 
   // Privacy Alert Modal State
@@ -226,27 +228,11 @@ export default function LemariTab({
   const [editUnitPic, setEditUnitPic] = useState('');
   const [editUnitDeskripsi, setEditUnitDeskripsi] = useState('');
 
-  // Sync activeLemari when lemariList changes (e.g. after rename)
-  React.useEffect(() => {
-    if (activeLemari) {
-      const fresh = lemariList.find((l) => l.id === activeLemari.id);
-      if (
-        fresh &&
-        (fresh.unitName !== activeLemari.unitName ||
-          fresh.unitCode !== activeLemari.unitCode ||
-          fresh.pic !== activeLemari.pic ||
-          fresh.deskripsiJob !== activeLemari.deskripsiJob)
-      ) {
-        setActiveLemari(fresh);
-      }
-    }
-  }, [lemariList, activeLemari]);
-
   const handleOpenEditUnitModal = (lemari: LemariUnit) => {
     setUnitToEdit(lemari);
     setEditUnitName(lemari.unitName);
     setEditUnitCode(lemari.unitCode);
-    setEditUnitCategory((lemari.unitCategory as any) || 'Manajemen');
+    setEditUnitCategory((lemari.unitCategory as 'Manajemen' | 'Kejuruan' | 'Layanan' | 'Pengawasan') || 'Manajemen');
     setEditUnitPic(lemari.pic);
     setEditUnitDeskripsi(lemari.deskripsiJob || '');
     setShowEditUnitModal(true);
@@ -1637,7 +1623,7 @@ export default function LemariTab({
                                   <span>{file.ukuranFile}</span>
                                   {file.catatanPengirim && (
                                     <span className="italic text-slate-400 truncate max-w-xs">
-                                      — "{file.catatanPengirim}"
+                                      — &quot;{file.catatanPengirim}&quot;
                                     </span>
                                   )}
                                 </div>
@@ -2328,7 +2314,7 @@ export default function LemariTab({
                       <div className="relative">
                         <select
                           value={uploadFileType}
-                          onChange={(e) => setUploadFileType(e.target.value as any)}
+                          onChange={(e) => setUploadFileType(e.target.value as 'pdf' | 'excel' | 'word' | 'image' | 'link')}
                           className="w-full appearance-none px-3 pr-8 py-2 border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
                         >
                           <option value="pdf">PDF Document (.pdf)</option>
@@ -2689,7 +2675,7 @@ export default function LemariTab({
                   <div className="relative">
                     <select
                       value={editUnitCategory}
-                      onChange={(e) => setEditUnitCategory(e.target.value as any)}
+                      onChange={(e) => setEditUnitCategory(e.target.value as 'Manajemen' | 'Kejuruan' | 'Layanan' | 'Pengawasan')}
                       className="w-full appearance-none px-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white cursor-pointer"
                     >
                       <option value="Manajemen">Manajemen</option>
@@ -2965,7 +2951,7 @@ export default function LemariTab({
                   <div className="relative">
                     <select
                       value={newLemariCategory}
-                      onChange={(e) => setNewLemariCategory(e.target.value as any)}
+                      onChange={(e) => setNewLemariCategory(e.target.value as 'Manajemen' | 'Kejuruan' | 'Layanan' | 'Pengawasan')}
                       className="w-full appearance-none px-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white cursor-pointer"
                     >
                       <option value="Manajemen">Manajemen</option>
@@ -3112,7 +3098,7 @@ export default function LemariTab({
                 <div className="relative">
                   <select
                     value={newRoomStatus}
-                    onChange={(e) => setNewRoomStatus(e.target.value as any)}
+                    onChange={(e) => setNewRoomStatus(e.target.value as 'Mendatang' | 'Aktif' | 'Arsip')}
                     className="w-full appearance-none px-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
                   >
                     <option value="Mendatang">Mendatang (Periode Persiapan)</option>

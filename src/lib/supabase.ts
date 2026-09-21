@@ -11,7 +11,7 @@ export const SUPABASE_CONFIG = {
  * Native REST API fetch wrapper for Supabase PostgREST
  * Bekerja langsung menggunakan fetch bawaan Next.js / browser tanpa dependensi eksternal
  */
-export async function supabaseRestFetch<T = any>(
+export async function supabaseRestFetch<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<{ data: T | null; error: string | null }> {
@@ -22,7 +22,7 @@ export async function supabaseRestFetch<T = any>(
       'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
       'Content-Type': 'application/json',
       'Prefer': 'return=representation',
-      ...(options.headers as Record<string, string> || {})
+      ...((options.headers as Record<string, string>) || {})
     };
 
     const res = await fetch(url, {
@@ -37,8 +37,8 @@ export async function supabaseRestFetch<T = any>(
 
     const data = await res.json();
     return { data, error: null };
-  } catch (err: any) {
-    return { data: null, error: err.message || 'Gagal terhubung ke Supabase' };
+  } catch (err: unknown) {
+    return { data: null, error: err instanceof Error ? err.message : 'Gagal terhubung ke Supabase' };
   }
 }
 
@@ -66,10 +66,10 @@ export async function testSupabaseConnection(): Promise<{ success: boolean; mess
       success: false,
       message: `Status respons Supabase: ${res.status} ${res.statusText}`
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     return {
       success: false,
-      message: `Gagal menjangkau server Supabase: ${err.message}`
+      message: `Gagal menjangkau server Supabase: ${err instanceof Error ? err.message : String(err)}`
     };
   }
 }
