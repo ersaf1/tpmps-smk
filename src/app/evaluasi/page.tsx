@@ -41,16 +41,17 @@ export default function EvaluasiListPage() {
   const [targetDelete, setTargetDelete] = useState<EvaluasiMutu | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   const loadData = () => {
     setIsLoading(true);
     const data = sintesaService.getEvaluations();
     setEvaluations(data);
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    const timer = window.setTimeout(loadData, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   // Filter and Search logic
   const filteredData = useMemo(() => {

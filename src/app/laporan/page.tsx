@@ -20,13 +20,8 @@ import {
 
 export default function LaporanPage() {
   const { showToast } = useToast();
-  const [standards, setStandards] = useState<StandardSNP[]>([]);
-  const [units, setUnits] = useState<UnitKerja[]>([]);
-
-  useEffect(() => {
-    setStandards(sintesaService.getStandards());
-    setUnits(sintesaService.getUnits());
-  }, []);
+  const [standards] = useState<StandardSNP[]>(() => sintesaService.getStandards());
+  const [units] = useState<UnitKerja[]>(() => sintesaService.getUnits());
 
   const handlePrint = () => {
     window.print();

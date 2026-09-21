@@ -30,17 +30,20 @@ export default function EditRtlPage() {
 
   useEffect(() => {
     if (!id) return;
-    const item = sintesaService.getRtlById(id);
-    if (item) {
-      setRtl(item);
-      setProgramName(item.programName);
-      setTargetKinerja(item.targetKinerja);
-      setAnggaran(item.anggaran.toString());
-      setProgress(item.progress);
-      setStatus(item.status);
-      setPriority(item.priority);
-      setDeadline(item.deadline);
-    }
+    const timer = window.setTimeout(() => {
+      const item = sintesaService.getRtlById(id);
+      if (item) {
+        setRtl(item);
+        setProgramName(item.programName);
+        setTargetKinerja(item.targetKinerja);
+        setAnggaran(item.anggaran.toString());
+        setProgress(item.progress);
+        setStatus(item.status);
+        setPriority(item.priority);
+        setDeadline(item.deadline);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [id]);
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -36,16 +36,18 @@ export default function EvaluasiDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    const ev = sintesaService.getEvaluationById(id);
-    if (ev) {
-      setEvaluation(ev);
-      // Fetch associated documents
-      const allDocs = sintesaService.getDocuments();
-      const matched = allDocs.filter(
-        (d) => d.standardId === ev.standardId || ev.documentIds?.includes(d.id)
-      );
-      setDocuments(matched);
-    }
+    const timer = window.setTimeout(() => {
+      const ev = sintesaService.getEvaluationById(id);
+      if (ev) {
+        setEvaluation(ev);
+        const allDocs = sintesaService.getDocuments();
+        const matched = allDocs.filter(
+          (d) => d.standardId === ev.standardId || ev.documentIds?.includes(d.id)
+        );
+        setDocuments(matched);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [id]);
 
   const handleDelete = () => {

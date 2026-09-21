@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import AppShell from '@/components/layout/AppShell';
 import DynamicWelcomeBanner from '@/components/dashboard/DynamicWelcomeBanner';
@@ -14,37 +14,14 @@ import { UserProfile, StandardSNP, ActivityLogItem, UnitKerja } from '@/types/si
 import { ArrowRight, ChevronRight, Award, CheckCircle2 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<UserProfile>(sintesaService.getActiveUser());
-  const [standards, setStandards] = useState<StandardSNP[]>([]);
-  const [units, setUnits] = useState<UnitKerja[]>([]);
-  const [logs, setLogs] = useState<ActivityLogItem[]>([]);
-  const [pendingDocsCount, setPendingDocsCount] = useState(0);
-  const [validDocsCount, setValidDocsCount] = useState(0);
-  const [activeEvalsCount, setActiveEvalsCount] = useState(0);
-  const [activeRtlCount, setActiveRtlCount] = useState(0);
-
-  useEffect(() => {
-    const activeUser = sintesaService.getActiveUser();
-    setUser(activeUser);
-
-    const stdList = sintesaService.getStandards();
-    setStandards(stdList);
-
-    const unitList = sintesaService.getUnits();
-    setUnits(unitList);
-
-    const docList = sintesaService.getDocuments();
-    setValidDocsCount(docList.filter((d) => d.status === 'Terverifikasi').length);
-    setPendingDocsCount(docList.filter((d) => d.status === 'Menunggu Review').length);
-
-    const evalList = sintesaService.getEvaluations();
-    setActiveEvalsCount(evalList.length);
-
-    const rtlList = sintesaService.getRtlList();
-    setActiveRtlCount(rtlList.filter((r) => r.status === 'Sedang Berjalan').length);
-
-    setLogs(sintesaService.getLogs());
-  }, []);
+  const [user] = useState<UserProfile>(() => sintesaService.getActiveUser());
+  const [standards] = useState<StandardSNP[]>(() => sintesaService.getStandards());
+  const [units] = useState<UnitKerja[]>(() => sintesaService.getUnits());
+  const [logs] = useState<ActivityLogItem[]>(() => sintesaService.getLogs());
+  const [pendingDocsCount] = useState(() => sintesaService.getDocuments().filter((d) => d.status === 'Menunggu Review').length);
+  const [validDocsCount] = useState(() => sintesaService.getDocuments().filter((d) => d.status === 'Terverifikasi').length);
+  const [activeEvalsCount] = useState(() => sintesaService.getEvaluations().length);
+  const [activeRtlCount] = useState(() => sintesaService.getRtlList().filter((r) => r.status === 'Sedang Berjalan').length);
 
   return (
     <AppShell

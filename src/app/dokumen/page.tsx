@@ -35,13 +35,14 @@ export default function DokumenListPage() {
   const [targetDelete, setTargetDelete] = useState<BuktiDokumen | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   const loadData = () => {
     setDocuments(sintesaService.getDocuments());
   };
+
+  useEffect(() => {
+    const timer = window.setTimeout(loadData, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const filteredDocs = useMemo(() => {
     return documents.filter((doc) => {

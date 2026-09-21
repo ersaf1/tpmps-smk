@@ -28,15 +28,18 @@ export default function EditEvaluasiPage() {
 
   useEffect(() => {
     if (!id) return;
-    const ev = sintesaService.getEvaluationById(id);
-    if (ev) {
-      setEvaluation(ev);
-      setNilaiMandiri(ev.nilaiMandiri);
-      setNilaiVerifikasi(ev.nilaiVerifikasi);
-      setStatus(ev.status);
-      setCatatanUnit(ev.catatanUnit || '');
-      setCatatanReviewer(ev.catatanReviewer || '');
-    }
+    const timer = window.setTimeout(() => {
+      const ev = sintesaService.getEvaluationById(id);
+      if (ev) {
+        setEvaluation(ev);
+        setNilaiMandiri(ev.nilaiMandiri);
+        setNilaiVerifikasi(ev.nilaiVerifikasi);
+        setStatus(ev.status);
+        setCatatanUnit(ev.catatanUnit || '');
+        setCatatanReviewer(ev.catatanReviewer || '');
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [id]);
 
   const handleSubmit = (e: React.FormEvent) => {

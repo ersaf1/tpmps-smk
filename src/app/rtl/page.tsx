@@ -33,13 +33,14 @@ export default function RtlListPage() {
   const [targetDelete, setTargetDelete] = useState<ProgramMutuRTL | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   const loadData = () => {
     setRtlList(sintesaService.getRtlList());
   };
+
+  useEffect(() => {
+    const timer = window.setTimeout(loadData, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const filteredRtl = useMemo(() => {
     return rtlList.filter((item) => {

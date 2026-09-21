@@ -23,15 +23,16 @@ export default function DokumenValidasiPage() {
   const [pendingDocs, setPendingDocs] = useState<BuktiDokumen[]>([]);
   const [totalDocsCount, setTotalDocsCount] = useState(0);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   const loadData = () => {
     const all = sintesaService.getDocuments();
     setTotalDocsCount(all.length);
     setPendingDocs(all.filter((d) => d.status === 'Menunggu Review' || d.status === 'Perlu Revisi'));
   };
+
+  useEffect(() => {
+    const timer = window.setTimeout(loadData, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const handleValidate = (id: string, status: 'Terverifikasi' | 'Ditolak' | 'Perlu Revisi') => {
     const user = sintesaService.getActiveUser();

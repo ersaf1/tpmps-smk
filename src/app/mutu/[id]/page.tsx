@@ -33,14 +33,17 @@ export default function StandardDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    const std = sintesaService.getStandardById(id);
-    if (std) {
-      setStandard(std);
-      const evals = sintesaService.getEvaluations().filter((e) => e.standardId === id);
-      setEvaluations(evals);
-      const docs = sintesaService.getDocuments().filter((d) => d.standardId === id);
-      setDocuments(docs);
-    }
+    const timer = window.setTimeout(() => {
+      const std = sintesaService.getStandardById(id);
+      if (std) {
+        setStandard(std);
+        const evals = sintesaService.getEvaluations().filter((e) => e.standardId === id);
+        setEvaluations(evals);
+        const docs = sintesaService.getDocuments().filter((d) => d.standardId === id);
+        setDocuments(docs);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [id]);
 
   const getStandardIcon = (icon: string) => {

@@ -34,8 +34,11 @@ export default function DokumenDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    const doc = sintesaService.getDocumentById(id);
-    if (doc) setDocument(doc);
+    const timer = window.setTimeout(() => {
+      const doc = sintesaService.getDocumentById(id);
+      if (doc) setDocument(doc);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [id]);
 
   const handleStatusChange = (newStatus: StatusDokumen) => {

@@ -34,8 +34,11 @@ export default function RtlDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    const item = sintesaService.getRtlById(id);
-    if (item) setRtl(item);
+    const timer = window.setTimeout(() => {
+      const item = sintesaService.getRtlById(id);
+      if (item) setRtl(item);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [id]);
 
   const handleDelete = () => {

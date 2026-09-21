@@ -15,23 +15,17 @@ interface AppShellProps {
 
 export default function AppShell({ children, title, subtitle }: AppShellProps) {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [currentUser] = useState<UserProfile | null>(() => sintesaService.getActiveUser());
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check session
-    const user = sintesaService.getActiveUser();
-    if (!user) {
+    if (!currentUser) {
       router.push('/login');
-      return;
     }
-    setCurrentUser(user);
-    setIsLoading(false);
-  }, [router]);
+  }, [currentUser, router]);
 
-  if (isLoading || !currentUser) {
+  if (!currentUser) {
     return (
       <div className="min-h-screen w-full bg-[#F8FAFC] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">

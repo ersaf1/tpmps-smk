@@ -26,8 +26,6 @@ export default function DonutDistributionChart() {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  let cumulativeOffset = 0;
-
   return (
     <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xs flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
@@ -45,10 +43,12 @@ export default function DonutDistributionChart() {
       <div className="flex flex-col sm:flex-row items-center justify-center gap-6 my-2">
         <div className="relative w-44 h-44 shrink-0 flex items-center justify-center">
           <svg width={size} height={size} className="rotate-[-90deg]">
-            {SEGMENTS.map((seg) => {
+            {SEGMENTS.map((seg, index) => {
               const strokeDasharray = `${(seg.percentage / 100) * circumference} ${circumference}`;
+              const cumulativeOffset = SEGMENTS
+                .slice(0, index)
+                .reduce((offset, previous) => offset + (previous.percentage / 100) * circumference, 0);
               const strokeDashoffset = -cumulativeOffset;
-              cumulativeOffset += (seg.percentage / 100) * circumference;
 
               return (
                 <circle
