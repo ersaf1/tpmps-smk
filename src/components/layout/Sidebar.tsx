@@ -23,7 +23,11 @@ import {
   LogOut,
   X,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  HardDrive,
+  ShieldCheck,
+  Presentation,
+  Calendar
 } from 'lucide-react';
 import { UserProfile, ROLE_DEFINITIONS } from '@/types/sintesa';
 import { sintesaService } from '@/lib/services/sintesaDataService';
@@ -208,6 +212,24 @@ export default function Sidebar({
               </Link>
 
               <Link
+                href="/periode"
+                onClick={onCloseMobile}
+                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                  isActive('/periode')
+                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Calendar className={`w-4 h-4 ${isActive('/periode') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                  <span className={isCollapsed ? 'lg:hidden' : ''}>Periode SPMI</span>
+                </div>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  Kasek
+                </span>
+              </Link>
+
+              <Link
                 href="/rtl"
                 onClick={onCloseMobile}
                 className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
@@ -235,6 +257,24 @@ export default function Sidebar({
               Dokumen Mutu
             </div>
             <div className="space-y-1">
+              <Link
+                href="/drive"
+                onClick={onCloseMobile}
+                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                  isActive('/drive')
+                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <HardDrive className={`w-4 h-4 ${isActive('/drive') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                  <span className={isCollapsed ? 'lg:hidden' : ''}>Google Drive Unit</span>
+                </div>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-[#0077B6] font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  Unit
+                </span>
+              </Link>
+
               <Link
                 href="/dokumen"
                 onClick={onCloseMobile}
@@ -308,6 +348,68 @@ export default function Sidebar({
                   <FileSpreadsheet className="w-4 h-4 text-slate-500" />
                   <span className={isCollapsed ? 'lg:hidden' : ''}>Laporan EDS</span>
                 </div>
+              </Link>
+            </div>
+          </div>
+
+          {/* Panduan & Hak Akses */}
+          <div>
+            <div className={`px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
+              Bantuan & Akun
+            </div>
+            <div className="space-y-1">
+              <Link
+                href="/panduan-akses"
+                onClick={onCloseMobile}
+                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                  isActive('/panduan-akses')
+                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className={`w-4 h-4 ${isActive('/panduan-akses') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                  <span className={isCollapsed ? 'lg:hidden' : ''}>Panduan & Akun Unit</span>
+                </div>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  SOP
+                </span>
+              </Link>
+
+              <Link
+                href="/unit"
+                onClick={onCloseMobile}
+                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                  isActive('/unit')
+                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Building2 className={`w-4 h-4 ${isActive('/unit') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                  <span className={isCollapsed ? 'lg:hidden' : ''}>Kelola Unit Kerja</span>
+                </div>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-[#0077B6] font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  CRUD
+                </span>
+              </Link>
+
+              <Link
+                href="/ppt"
+                onClick={onCloseMobile}
+                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                  isActive('/ppt')
+                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Presentation className={`w-4 h-4 ${isActive('/ppt') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                  <span className={isCollapsed ? 'lg:hidden' : ''}>Presentasi PPT</span>
+                </div>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded bg-sky-100 text-[#0077B6] font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  Slide
+                </span>
               </Link>
             </div>
           </div>

@@ -96,9 +96,13 @@ export default function Header({
             <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
               {title}
             </h1>
-            <span className="hidden sm:inline-flex text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-[#0077B6]">
-              TA 2025/2026
-            </span>
+            <Link
+              href="/periode"
+              title="Lihat Periode SPMI yang ditetapkan Kepala Sekolah"
+              className="hidden sm:inline-flex text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 hover:bg-blue-100 border border-blue-200 text-[#0077B6] transition-colors"
+            >
+              {sintesaService.getActivePeriode()?.name || 'TA 2025/2026'}
+            </Link>
           </div>
           {subtitle && (
             <p className="text-xs text-slate-500 hidden sm:block truncate">{subtitle}</p>

@@ -22,7 +22,8 @@ import {
   Trash2,
   Download,
   Filter,
-  ShieldCheck
+  ShieldCheck,
+  HardDrive
 } from 'lucide-react';
 
 export default function DokumenListPage() {
@@ -31,6 +32,7 @@ export default function DokumenListPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [selectedType, setSelectedType] = useState('ALL');
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
   const [targetDelete, setTargetDelete] = useState<BuktiDokumen | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -55,9 +57,10 @@ export default function DokumenListPage() {
       }
       if (selectedStatus !== 'ALL' && doc.status !== selectedStatus) return false;
       if (selectedType !== 'ALL' && doc.fileType !== selectedType) return false;
+      if (selectedCategory !== 'ALL' && doc.kategoriDokumen !== selectedCategory) return false;
       return true;
     });
-  }, [documents, searchQuery, selectedStatus, selectedType]);
+  }, [documents, searchQuery, selectedStatus, selectedType, selectedCategory]);
 
   const handleDelete = () => {
     if (!targetDelete) return;
@@ -115,6 +118,14 @@ export default function DokumenListPage() {
 
         <div className="flex items-center gap-3">
           <Link
+            href="/drive"
+            className="btn-enterprise px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-xs sm:text-sm font-bold text-[#0077B6] flex items-center gap-2 cursor-pointer shadow-2xs transition-colors"
+          >
+            <HardDrive className="w-4 h-4" />
+            <span>Google Drive Unit</span>
+          </Link>
+
+          <Link
             href="/dokumen/validasi"
             className="btn-enterprise px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs sm:text-sm font-semibold text-[#0077B6] flex items-center gap-2 cursor-pointer shadow-2xs"
           >
@@ -129,6 +140,127 @@ export default function DokumenListPage() {
             <UploadCloud className="w-4 h-4" />
             <span>Upload Berkas Baru</span>
           </Link>
+        </div>
+      </div>
+
+      {/* -------------------------------------------------------------
+          SPMI HIERARCHY BANNER (Manual Mutu 2024)
+          MM -> PM -> PK -> F / CM -> REKAP
+      ------------------------------------------------------------- */}
+      <div className="bg-white rounded-3xl p-5 mb-6 border border-slate-200 shadow-xs space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0077B6] border border-blue-200">
+              HIERARKI DOKUMEN INTERNAL SPMI
+            </span>
+            <span className="text-xs text-slate-500 font-semibold">
+              MM &rarr; PM &rarr; PK &rarr; F (Catatan Mutu)
+            </span>
+          </div>
+          <div className="text-xs text-slate-500">
+            MM & PM: <strong className="text-indigo-700 font-bold">Ketua TPMPS</strong> &bull; PK, CM(F), Rekap: <strong className="text-emerald-700 font-bold">Unit Kerja</strong>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-xs">
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('ALL')}
+            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+              selectedCategory === 'ALL'
+                ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
+            }`}
+          >
+            <div className="font-mono text-[10px] font-bold opacity-75">SEMUA</div>
+            <div className="font-black text-sm mt-0.5">Semua Dokumen</div>
+            <p className="text-[10px] opacity-75 mt-0.5">{documents.length} Berkas</p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('MM')}
+            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+              selectedCategory === 'MM'
+                ? 'border-indigo-600 bg-indigo-50/90 ring-2 ring-indigo-500/20'
+                : 'border-slate-200 bg-slate-50 hover:bg-white'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono font-black text-indigo-700">MM</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">L-1</span>
+            </div>
+            <div className="font-bold text-slate-900 mt-0.5">Manual Mutu</div>
+            <p className="text-[10px] text-slate-500 mt-0.5">Ketua TPMPS</p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('PM')}
+            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+              selectedCategory === 'PM'
+                ? 'border-[#0077B6] bg-blue-50/90 ring-2 ring-blue-500/20'
+                : 'border-slate-200 bg-slate-50 hover:bg-white'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono font-black text-[#0077B6]">PM</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-[#0077B6] font-bold">L-2</span>
+            </div>
+            <div className="font-bold text-slate-900 mt-0.5">Prosedur Mutu</div>
+            <p className="text-[10px] text-slate-500 mt-0.5">Ketua TPMPS</p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('PK')}
+            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+              selectedCategory === 'PK'
+                ? 'border-emerald-600 bg-emerald-50/90 ring-2 ring-emerald-500/20'
+                : 'border-slate-200 bg-slate-50 hover:bg-white'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono font-black text-emerald-700">PK</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">L-3</span>
+            </div>
+            <div className="font-bold text-slate-900 mt-0.5">Petunjuk Kerja</div>
+            <p className="text-[10px] text-slate-500 mt-0.5">Unit Biasa</p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('CM')}
+            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+              selectedCategory === 'CM'
+                ? 'border-amber-500 bg-amber-50/90 ring-2 ring-amber-500/20'
+                : 'border-slate-200 bg-slate-50 hover:bg-white'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono font-black text-amber-700">CM (F)</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">L-4</span>
+            </div>
+            <div className="font-bold text-slate-900 mt-0.5">Catatan Mutu</div>
+            <p className="text-[10px] text-slate-500 mt-0.5">Form Bukti Unit</p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('REKAP')}
+            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+              selectedCategory === 'REKAP'
+                ? 'border-purple-600 bg-purple-50/90 ring-2 ring-purple-500/20'
+                : 'border-slate-200 bg-slate-50 hover:bg-white'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono font-black text-purple-700">REKAP</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 font-bold">Rekap</span>
+            </div>
+            <div className="font-bold text-slate-900 mt-0.5">Rekapitulasi</div>
+            <p className="text-[10px] text-slate-500 mt-0.5">Laporan Unit</p>
+          </button>
         </div>
       </div>
 
@@ -211,8 +343,35 @@ export default function DokumenListPage() {
                   </span>
                 </div>
 
-                <div className="font-mono text-[11px] font-bold text-[#0077B6]">
-                  {doc.code}
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span className="font-mono text-[11px] font-bold text-[#0077B6]">
+                    {doc.code}
+                  </span>
+                  {doc.kategoriDokumen && (
+                    <span
+                      className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
+                        doc.kategoriDokumen === 'MM'
+                          ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                          : doc.kategoriDokumen === 'PM'
+                          ? 'bg-blue-50 text-[#0077B6] border-blue-200'
+                          : doc.kategoriDokumen === 'PK'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : doc.kategoriDokumen === 'CM'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : 'bg-purple-50 text-purple-700 border-purple-200'
+                      }`}
+                    >
+                      {doc.kategoriDokumen === 'MM'
+                        ? 'L1 • MM'
+                        : doc.kategoriDokumen === 'PM'
+                        ? 'L2 • PM'
+                        : doc.kategoriDokumen === 'PK'
+                        ? 'L3 • PK'
+                        : doc.kategoriDokumen === 'CM'
+                        ? 'L4 • CM (F)'
+                        : 'REKAP'}
+                    </span>
+                  )}
                 </div>
 
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight mt-1 line-clamp-2 leading-snug">

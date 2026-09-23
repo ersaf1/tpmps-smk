@@ -7,23 +7,31 @@ import AppShell from '@/components/layout/AppShell';
 import CustomDropdown from '@/components/ui/CustomDropdown';
 import { useToast } from '@/components/ui/ToastFeedback';
 import { sintesaService, INITIAL_UNITS, INITIAL_STANDARDS } from '@/lib/services/sintesaDataService';
-import { ArrowLeft, Save, Shield, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Save, Shield, HelpCircle, CheckCircle2, Lock, Sparkles } from 'lucide-react';
 
 export default function CreateEvaluasiPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [currentUser, setCurrentUser] = useState(() => sintesaService.getActiveUser());
+  const activePeriode = sintesaService.getActivePeriode();
+
   // Form states
-  const [unitId, setUnitId] = useState(INITIAL_UNITS[0].id);
+  const [unitId, setUnitId] = useState(() => {
+    const user = sintesaService.getActiveUser();
+    return user.unitId && INITIAL_UNITS.some((u) => u.id === user.unitId) ? user.unitId : INITIAL_UNITS[0].id;
+  });
   const [standardId, setStandardId] = useState(INITIAL_STANDARDS[0].id.toString());
-  const [periode, setPeriode] = useState('Semester Ganjil 2025/2026');
+  const [periode, setPeriode] = useState(activePeriode ? activePeriode.name : 'Semester Ganjil 2025/2026');
   const [indikatorCode, setIndikatorCode] = useState('SKL-1.2');
   const [indikatorName, setIndikatorName] = useState(
     'Tingkat keterserapan lulusan SMK pada IDUKA mitra, wirausaha, atau studi lanjut minimal 85%'
   );
   const [nilaiMandiri, setNilaiMandiri] = useState(88.0);
   const [catatanUnit, setCatatanUnit] = useState('');
+
+  const isKasek = currentUser.role === 'kepala_sekolah';
 
   const unitOptions = INITIAL_UNITS.map((u) => ({
     value: u.id,
@@ -39,6 +47,12 @@ export default function CreateEvaluasiPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isKasek) {
+      showToast('Akun Kepala Sekolah berstatus Read-Only dalam pengisian evaluasi mandiri unit kerja.', 'warning');
+      return;
+    }
+
     setIsSubmitting(true);
 
     const selectedUnit = INITIAL_UNITS.find((u) => u.id === unitId);
@@ -96,6 +110,23 @@ export default function CreateEvaluasiPage() {
               <Shield className="w-6 h-6" />
             </div>
           </div>
+
+          {isKasek && (
+            <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <Lock className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
+                <div>
+                  <strong>Mode Read-Only Kepala Sekolah:</strong> Evaluasi mandiri instrumen mutu diisi secara operasional oleh unit kerja pelaksana. Sebagai Kepala Sekolah, peran Anda adalah memantau dan <strong>membuat / menetapkan Periode Mutu SPMI</strong>.
+                </div>
+              </div>
+              <Link
+                href="/periode"
+                className="btn-enterprise px-3.5 py-2 rounded-xl bg-[#0077B6] hover:bg-[#0077B6]/90 text-white font-bold shrink-0 text-center"
+              >
+                Buka Manajemen Periode
+              </Link>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Row 1: Unit Kerja & Standar SNP */}

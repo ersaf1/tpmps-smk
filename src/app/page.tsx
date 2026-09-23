@@ -452,10 +452,13 @@ export default function LandingPage() {
             <h4 className="font-bold text-slate-900 uppercase tracking-wider mb-3">Tautan</h4>
             <ul className="space-y-2">
               <li><Link href="/dashboard" className="hover:text-[#0077B6]">Dashboard Mutu</Link></li>
+              <li><Link href="/drive" className="hover:text-[#0077B6]">Google Drive Unit</Link></li>
               <li><Link href="/evaluasi" className="hover:text-[#0077B6]">Evaluasi Mandiri</Link></li>
               <li><Link href="/dokumen" className="hover:text-[#0077B6]">Bank Dokumen</Link></li>
               <li><Link href="/rtl" className="hover:text-[#0077B6]">Rencana Tindak Lanjut</Link></li>
               <li><Link href="/laporan" className="hover:text-[#0077B6]">Laporan Mutu</Link></li>
+              <li><Link href="/panduan-akses" className="hover:text-[#0077B6]">Panduan & Akun Unit</Link></li>
+              <li><Link href="/ppt" className="hover:text-[#0077B6]">Presentasi PPT Mutu</Link></li>
             </ul>
           </div>
 

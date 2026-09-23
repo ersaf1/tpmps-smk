@@ -144,6 +144,31 @@ export default function DokumenDetailPage() {
                 <span className="font-mono text-xs font-bold text-[#0077B6] px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-200">
                   {document.code}
                 </span>
+                {document.kategoriDokumen && (
+                  <span
+                    className={`text-xs font-extrabold px-3 py-1 rounded-lg border ${
+                      document.kategoriDokumen === 'MM'
+                        ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                        : document.kategoriDokumen === 'PM'
+                        ? 'bg-blue-50 text-[#0077B6] border-blue-200'
+                        : document.kategoriDokumen === 'PK'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : document.kategoriDokumen === 'CM'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                        : 'bg-purple-50 text-purple-700 border-purple-200'
+                    }`}
+                  >
+                    {document.kategoriDokumen === 'MM'
+                      ? 'Level 1: Manual Mutu (MM) - Ketua TPMPS'
+                      : document.kategoriDokumen === 'PM'
+                      ? 'Level 2: Prosedur Mutu (PM) - Ketua TPMPS'
+                      : document.kategoriDokumen === 'PK'
+                      ? 'Level 3: Petunjuk Kerja (PK) - Unit'
+                      : document.kategoriDokumen === 'CM'
+                      ? 'Level 4: Catatan Mutu (F) - Unit'
+                      : 'Laporan: Rekapitulasi Unit'}
+                  </span>
+                )}
                 <span className="text-xs font-mono text-slate-500">
                   {document.fileName}
                 </span>

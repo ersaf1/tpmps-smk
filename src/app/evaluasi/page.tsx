@@ -143,6 +143,31 @@ export default function EvaluasiListPage() {
       title="Evaluasi Mutu Internal"
       subtitle="Instrumen Pengukuran dan Verifikasi Capaian Standar Nasional Pendidikan"
     >
+      {/* Kasek Executive Monitoring Banner */}
+      {currentUser.role === 'kepala_sekolah' && (
+        <div className="mb-6 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-blue-50 to-sky-50 border border-blue-200 text-blue-950 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#0077B6] text-white flex items-center justify-center shrink-0 shadow-sm shadow-sky-500/20 font-bold">
+              👑
+            </div>
+            <div>
+              <div className="font-black text-sm text-slate-900">
+                Mode Monitoring Eksekutif Kepala Sekolah (Read-Only)
+              </div>
+              <p className="text-slate-600 text-xs mt-0.5 max-w-2xl">
+                Sebagai Kepala Sekolah, Anda memiliki hak akses penuh memantau capaian mutu dari seluruh <strong>18 unit kerja resmi</strong> secara transparan. Anda juga memiliki <strong>wewenang eksklusif</strong> dalam menetapkan & membuat Periode Mutu SPMI.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/periode"
+            className="btn-enterprise px-4 py-2.5 rounded-xl bg-[#0077B6] hover:bg-[#0077B6]/90 text-white text-xs font-bold shrink-0 transition-all shadow-md shadow-sky-500/20 text-center"
+          >
+            Kelola Periode Mutu &rarr;
+          </Link>
+        </div>
+      )}
+
       {/* Top Action Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -150,18 +175,28 @@ export default function EvaluasiListPage() {
             Daftar Instrumen Evaluasi Mutu
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Total {filteredData.length} evaluasi terdata pada periode ini
+            Total {filteredData.length} evaluasi terdata pada 18 unit kerja sekolah
           </p>
         </div>
 
-        {/* Dedicated Create Page Link (NO POPUP MODAL) */}
-        <Link
-          href="/evaluasi/create"
-          className="btn-enterprise px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Input Evaluasi Baru</span>
-        </Link>
+        {/* Dedicated Action Button */}
+        {currentUser.role === 'kepala_sekolah' ? (
+          <Link
+            href="/periode"
+            className="btn-enterprise px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer shrink-0"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Kelola Periode Mutu (Kasek)</span>
+          </Link>
+        ) : (
+          <Link
+            href="/evaluasi/create"
+            className="btn-enterprise px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Input Evaluasi Baru</span>
+          </Link>
+        )}
       </div>
 
       {/* Filter and Realtime Search Panel */}
@@ -354,21 +389,25 @@ export default function EvaluasiListPage() {
                             <Eye className="w-4 h-4" />
                           </Link>
 
-                          <Link
-                            href={`/evaluasi/${item.id}/edit`}
-                            title="Edit Evaluasi"
-                            className="p-2 rounded-xl bg-slate-50 hover:bg-amber-50 border border-slate-200 text-slate-600 hover:text-amber-600 transition-all cursor-pointer shadow-2xs"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Link>
+                          {currentUser.role !== 'kepala_sekolah' && (
+                            <>
+                              <Link
+                                href={`/evaluasi/${item.id}/edit`}
+                                title="Edit Evaluasi"
+                                className="p-2 rounded-xl bg-slate-50 hover:bg-amber-50 border border-slate-200 text-slate-600 hover:text-amber-600 transition-all cursor-pointer shadow-2xs"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Link>
 
-                          <Link
-                            href={`/dokumen/upload?evalId=${item.id}`}
-                            title="Upload Bukti Fisik"
-                            className="p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-slate-600 hover:text-emerald-600 transition-all cursor-pointer shadow-2xs"
-                          >
-                            <UploadCloud className="w-4 h-4" />
-                          </Link>
+                              <Link
+                                href={`/dokumen/upload?evalId=${item.id}`}
+                                title="Upload Bukti Fisik"
+                                className="p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-slate-600 hover:text-emerald-600 transition-all cursor-pointer shadow-2xs"
+                              >
+                                <UploadCloud className="w-4 h-4" />
+                              </Link>
+                            </>
+                          )}
 
                           {(currentUser.role === 'admin' || currentUser.role === 'tpmps') && (
                             <button
@@ -446,12 +485,14 @@ export default function EvaluasiListPage() {
                       Detail
                     </Link>
 
-                    <Link
-                      href={`/evaluasi/${item.id}/edit`}
-                      className="min-h-[44px] px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-amber-600 flex items-center justify-center cursor-pointer"
-                    >
-                      Edit
-                    </Link>
+                    {currentUser.role !== 'kepala_sekolah' && (
+                      <Link
+                        href={`/evaluasi/${item.id}/edit`}
+                        className="min-h-[44px] px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-amber-600 flex items-center justify-center cursor-pointer"
+                      >
+                        Edit
+                      </Link>
+                    )}
 
                     {(currentUser.role === 'admin' || currentUser.role === 'tpmps') && (
                       <button

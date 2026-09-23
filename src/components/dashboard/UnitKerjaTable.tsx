@@ -20,6 +20,8 @@ export default function UnitKerjaTable({ units }: UnitKerjaTableProps) {
 
   const getCategoryBadge = (category: UnitKerja['category']) => {
     switch (category) {
+      case 'Pimpinan':
+        return 'bg-purple-50 text-purple-700 border border-purple-200/60';
       case 'Manajemen':
         return 'bg-sky-50 text-sky-700 border border-sky-200/60';
       case 'Kejuruan':
@@ -28,6 +30,10 @@ export default function UnitKerjaTable({ units }: UnitKerjaTableProps) {
         return 'bg-emerald-50 text-emerald-700 border border-emerald-200/60';
       case 'Pengawasan':
         return 'bg-amber-50 text-amber-700 border border-amber-200/60';
+      case 'Perencanaan':
+        return 'bg-teal-50 text-teal-700 border border-teal-200/60';
+      case 'Kesiswaan':
+        return 'bg-rose-50 text-rose-700 border border-rose-200/60';
       default:
         return 'bg-slate-50 text-slate-600 border border-slate-200';
     }

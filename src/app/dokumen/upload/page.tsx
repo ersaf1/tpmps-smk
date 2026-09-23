@@ -7,12 +7,21 @@ import AppShell from '@/components/layout/AppShell';
 import CustomDropdown from '@/components/ui/CustomDropdown';
 import { useToast } from '@/components/ui/ToastFeedback';
 import { sintesaService, INITIAL_UNITS, INITIAL_STANDARDS } from '@/lib/services/sintesaDataService';
-import { ArrowLeft, UploadCloud, FileText, CheckCircle2, Shield } from 'lucide-react';
+import { KategoriDokumenMutu, KATEGORI_DOKUMEN_MUTU } from '@/types/sintesa';
+import { ArrowLeft, UploadCloud, FileText, CheckCircle2, Shield, Info, AlertTriangle, Lock } from 'lucide-react';
 
 function UploadDokumenForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
+
+  const [currentUser, setCurrentUser] = useState(() => sintesaService.getActiveUser());
+  useEffect(() => {
+    setCurrentUser(sintesaService.getActiveUser());
+  }, []);
+
+  const isTPMPS = currentUser.role === 'admin' || currentUser.role === 'tpmps' || currentUser.unitId === 'u-10';
+  const isKasek = currentUser.role === 'kepala_sekolah';
 
   const prefillEvalId = searchParams.get('evalId');
   const prefillStandardId = searchParams.get('standardId');
@@ -21,7 +30,11 @@ function UploadDokumenForm() {
   const [fileName, setFileName] = useState('');
   const [fileSize, setFileSize] = useState('2.4 MB');
   const [fileType, setFileType] = useState<'pdf' | 'excel' | 'word' | 'image'>('pdf');
-  const [unitId, setUnitId] = useState(INITIAL_UNITS[0].id);
+  const [kategoriDokumen, setKategoriDokumen] = useState<KategoriDokumenMutu>(isTPMPS ? 'MM' : 'CM');
+  const [unitId, setUnitId] = useState(() => {
+    const user = sintesaService.getActiveUser();
+    return user.unitId && INITIAL_UNITS.some((u) => u.id === user.unitId) ? user.unitId : INITIAL_UNITS[0].id;
+  });
   const [standardId, setStandardId] = useState(prefillStandardId || INITIAL_STANDARDS[0].id.toString());
   const [version, setVersion] = useState('v1.0');
   const [notes, setNotes] = useState('');
@@ -68,17 +81,28 @@ function UploadDokumenForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isKasek) {
+      showToast('Akun Kepala Sekolah berstatus Read-Only dalam pengunggahan berkas mutu.', 'warning');
+      return;
+    }
+
     if (!fileName && !title) {
       showToast('Harap pilih berkas atau isi judul dokumen.', 'warning');
       return;
     }
 
+    // Role check for MM / PM
+    if ((kategoriDokumen === 'MM' || kategoriDokumen === 'PM') && !isTPMPS) {
+      showToast('Peringatan: Dokumen MM dan PM merupakan wewenang Ketua TPMPS.', 'warning');
+    }
+
     setIsUploading(true);
-    const currentUser = sintesaService.getActiveUser();
     const selectedUnit = INITIAL_UNITS.find((u) => u.id === unitId);
     const selectedStandard = INITIAL_STANDARDS.find((s) => s.id.toString() === standardId);
 
-    const code = `DOC-${selectedStandard?.code.replace('SNP-', '') || 'MUT'}-${Math.floor(100 + Math.random() * 900)}`;
+    const prefix = kategoriDokumen === 'CM' ? 'F' : kategoriDokumen;
+    const code = `DOC-${prefix}-${selectedStandard?.code.replace('SNP-', '') || 'MUT'}-${Math.floor(100 + Math.random() * 900)}`;
 
     setTimeout(() => {
       sintesaService.createDocument({
@@ -88,6 +112,7 @@ function UploadDokumenForm() {
         fileUrl: `/storage/documents/${code.toLowerCase()}.pdf`,
         fileSize,
         fileType,
+        kategoriDokumen,
         standardId: Number(standardId),
         standardName: selectedStandard?.name,
         unitId,
@@ -99,20 +124,30 @@ function UploadDokumenForm() {
         uploadedByName: currentUser.fullName
       });
 
-      showToast(`Berkas "${title}" berhasil diunggah ke repositori mutu!`, 'success');
+      showToast(`Berkas [${kategoriDokumen}] "${title}" berhasil diunggah ke repositori mutu!`, 'success');
       router.push('/dokumen');
     }, 600);
   };
 
   return (
     <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl">
+      {/* Kepala Sekolah Read-Only Banner */}
+      {isKasek && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-3">
+          <Lock className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
+          <div>
+            <strong>Mode Read-Only Kepala Sekolah:</strong> Sesuai Manual Mutu 2024, Kepala Sekolah berstatus <em>Read-Only</em> dalam pengisian dokumen rutin dan berwenang memantau seluruh 18 unit serta membuat/menetapkan <strong>Periode Mutu SPMI</strong>.
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between pb-6 mb-8 border-b border-slate-100">
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
             Upload Dokumen Bukti Fisik
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Berkas akan dienkripsi dan diarsipkan dalam Supabase Storage dengan akses terproteksi.
+            Berkas bukti mutu diarsipkan sesuai hierarki dokumen SPMI (MM &rarr; PM &rarr; PK &rarr; F / Catatan Mutu &rarr; Rekapitulasi).
           </p>
         </div>
         <div className="p-3 rounded-2xl bg-sky-50 border border-sky-200 text-[#0077B6]">
@@ -145,6 +180,100 @@ function UploadDokumenForm() {
           {fileName && (
             <div className="mt-3 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
               ✓ Berkas terpilih: {fileName} ({fileSize})
+            </div>
+          )}
+        </div>
+
+        {/* Hierarki Kategori Dokumen SPMI */}
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+              Kategori Dokumen Internal SPMI (Manual Mutu 2024)
+            </label>
+            <span className="text-[10px] font-semibold text-slate-500">
+              MM &rarr; PM &rarr; PK &rarr; F (Catatan Mutu) &rarr; Rekapitulasi
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+            {[
+              {
+                key: 'MM' as KategoriDokumenMutu,
+                level: 'Level 1',
+                title: 'Manual Mutu (MM)',
+                owner: 'Ketua TPMPS',
+                desc: 'Dokumen utama sistem manajemen mutu sekolah',
+                isRestricted: !isTPMPS
+              },
+              {
+                key: 'PM' as KategoriDokumenMutu,
+                level: 'Level 2',
+                title: 'Prosedur Mutu (PM)',
+                owner: 'Ketua TPMPS',
+                desc: 'SOP & prosedur tata cara proses mutu',
+                isRestricted: !isTPMPS
+              },
+              {
+                key: 'PK' as KategoriDokumenMutu,
+                level: 'Level 3',
+                title: 'Petunjuk Kerja (PK)',
+                owner: 'Unit Kerja',
+                desc: 'Instruksi & langkah teknis pelaksanaan unit',
+                isRestricted: false
+              },
+              {
+                key: 'CM' as KategoriDokumenMutu,
+                level: 'Level 4',
+                title: 'Catatan Mutu (F)',
+                owner: 'Unit Kerja',
+                desc: 'Formulir bukti & rekaman pelaksanaan mutu',
+                isRestricted: false
+              },
+              {
+                key: 'REKAP' as KategoriDokumenMutu,
+                level: 'Laporan',
+                title: 'Rekapitulasi Unit',
+                owner: 'Unit Kerja',
+                desc: 'Rekap capaian & laporan mutu unit kerja',
+                isRestricted: false
+              }
+            ].map((cat) => {
+              const isSelected = kategoriDokumen === cat.key;
+              return (
+                <button
+                  key={cat.key}
+                  type="button"
+                  onClick={() => setKategoriDokumen(cat.key)}
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                    isSelected
+                      ? 'border-[#0077B6] bg-sky-50/80 ring-2 ring-sky-500/20 shadow-xs'
+                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-mono text-xs font-black text-[#0077B6]">{cat.key === 'CM' ? 'CM (F)' : cat.key}</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-slate-100 text-slate-600">
+                      {cat.level}
+                    </span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-900 leading-tight">{cat.title}</div>
+                  <div className="text-[10px] font-semibold text-slate-500 mt-1">{cat.owner}</div>
+                  {cat.isRestricted && (
+                    <span className="text-[9px] text-amber-600 font-bold block mt-1">
+                      (Wewenang TPMPS)
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {!isTPMPS && (kategoriDokumen === 'MM' || kategoriDokumen === 'PM') && (
+            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+              <span>
+                <strong>Catatan Wewenang:</strong> Kategori <strong>{kategoriDokumen}</strong> adalah dokumen Level 1 & 2 yang disahkan oleh Ketua TPMPS. Akun unit kerja umumnya mengunggah <strong>PK (Petunjuk Kerja)</strong>, <strong>Catatan Mutu (F)</strong>, atau <strong>Rekapitulasi</strong>.
+              </span>
             </div>
           )}
         </div>

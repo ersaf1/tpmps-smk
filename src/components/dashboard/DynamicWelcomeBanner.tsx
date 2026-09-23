@@ -24,28 +24,28 @@ export default function DynamicWelcomeBanner({
   const getActionAlert = () => {
     if (user.role === 'tpmps') {
       return {
-        text: `Ada ${pendingDocsCount} dokumen bukti fisik yang menunggu verifikasi Anda hari ini.`,
+        text: `Ketua TPMPS mengelola dokumen Level 1 (MM) & Level 2 (PM). Ada ${pendingDocsCount} dokumen bukti fisik unit yang menunggu verifikasi Anda hari ini.`,
         ctaText: 'Verifikasi Dokumen',
         ctaHref: '/dokumen/validasi'
       };
     }
     if (user.role === 'kepala_sekolah') {
       return {
-        text: `Capaian 8 SNP sekolah saat ini rata-rata 87.2%. Terdapat ${activeRtlCount} program RTL yang sedang berjalan.`,
-        ctaText: 'Lihat Rapor Mutu',
-        ctaHref: '/laporan'
+        text: `Mode Monitoring Eksekutif (Read-Only): Memantau seluruh 18 unit kerja sekolah. Anda memiliki wewenang eksklusif menetapkan & membuat Periode Mutu SPMI.`,
+        ctaText: 'Kelola Periode Mutu',
+        ctaHref: '/periode'
       };
     }
     if (user.role === 'guru') {
       return {
-        text: `Instrumen evaluasi mandiri unit ${user.unitName || 'Kerja'} siap diinput untuk Semester Ganjil 2025/2026.`,
+        text: `Unit kerja mengelola dokumen Level 3 (PK), Level 4 (Catatan Mutu F), dan Rekapitulasi Unit. Instrumen evaluasi mandiri ${user.unitName || 'Kerja'} siap diisi.`,
         ctaText: 'Input Evaluasi',
         ctaHref: '/evaluasi/create'
       };
     }
     // Admin
     return {
-      text: `Sistem berjalan dengan ${activeEvalsCount} evaluasi terdata pada 18 unit kerja SMK Negeri 2 Magelang.`,
+      text: `Sistem berjalan dengan ${activeEvalsCount} evaluasi terdata pada 18 unit kerja resmi SMK Negeri 2 Magelang.`,
       ctaText: 'Audit Log Sistem',
       ctaHref: '/laporan'
     };
