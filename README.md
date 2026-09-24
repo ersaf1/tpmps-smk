@@ -1,69 +1,39 @@
-# SINTESA-TPMPS | Sistem Informasi Penjaminan Mutu Pendidikan Sekolah SMK
+# SINTESA TPMPS v2
 
-Aplikasi web modern berbasis **Next.js (App Router) + React + TypeScript + Tailwind CSS** yang dirancang berdasarkan **Product Requirements Document (PRD) Sistem Informasi TPMPS SMK**.
+Sistem arsip dokumen mutu SMK Negeri 2 Magelang berbasis Next.js 16 dan Supabase. Aplikasi difokuskan pada pengelolaan periode, folder, dan file seperti file manager sederhana.
 
----
+## Hak akses
 
-## 🌟 Fitur Utama Sesuai PRD
+- `superadmin`: mengelola seluruh folder, file, unit, dan pengguna.
+- `ketua_tpmps`: membaca seluruh arsip serta mengelola Manual Mutu, Prosedur Mutu, dan Dokumen Lainnya pada area TPMPS.
+- `kepala_sekolah`: membaca/mengunduh seluruh dokumen dan membuat periode.
+- `ketua_unit`: mengelola Petunjuk Kerja dan Catatan Mutu milik unitnya sendiri.
 
-1. **Simulasi Multi-Peran (RBAC Interaktif):**
-   - **Kepala Sekolah**: Akses eksekutif *read-only* ke seluruh 18 unit kerja, ringkasan KPI agregat, pemantauan 8 SNP, dan verifikasi akhir laporan resmi.
-   - **Ketua TPMPS**: Pengelolaan siklus PPEPP, validasi & verifikasi evaluasi unit kerja, persetujuan bukti fisik, dan monitoring rencana tindak lanjut (RTL).
-   - **Anggota TPMPS / Auditor Internal**: Pengumpulan data, audit berkas bukti dokumen, dan input draft rekomendasi perbaikan.
-   - **WKS / Unit Kerja (18 Unit)**: Input penilaian mandiri (*self-assessment*), unggah dokumen bukti, dan pelaporan tindak lanjut program.
-   - **Guru & Tenaga Kependidikan**: Unggah bukti dokumen kegiatan pembelajaran (modul ajar, bukti asesmen, portofolio).
-   - **Admin Sistem**: Pengaturan hak akses, bobot 8 Standar Nasional Pendidikan (SNP), user management, dan audit trail lengkap.
+Semua pembatasan utama diterapkan kembali di PostgreSQL Row Level Security, bukan hanya disembunyikan dari antarmuka.
 
-2. **Dashboard Mutu Real-Time:**
-   - Indeks Mutu Sekolah (Agregat 8 SNP, Predikat A / Unggul).
-   - Indikator Keterisian 18 Unit Kerja (100% Onboard).
-   - Persentase Dokumen Fisik Terverifikasi vs Pending.
-   - Kartu Capaian 8 Standar Nasional Pendidikan (SKL, Isi, Proses, Penilaian, PTK, Sarpras, Pengelolaan, Pembiayaan).
-   - Tabel Monitoring Kinerja 18 Unit Kerja per kategori (Manajemen, Kejuruan, Layanan, Pengawasan).
+## Menyiapkan aplikasi
 
-3. **Alur Evaluasi & Verifikasi (Workflow Stage):**
-   - Pipeline: `Draft` ➔ `Diajukan` ➔ `Direview` ➔ `Disetujui` / `Perlu Revisi`.
-   - Form penilaian mandiri dengan skor persentase (0-100%).
-   - Form verifikasi auditor TPMPS dengan catatan/rekomendasi dan kunci nilai.
+1. Salin `.env.example` menjadi `.env` dan isi Project URL, publishable key, serta service-role key.
+2. Terapkan migrasi Supabase sampai `20260924033022_simplify_document_management_v2.sql`.
+3. Buat 19 akun resmi dengan `npm run provision:users`.
+4. Simpan password sementara yang dicetak sekali ke password manager sekolah.
+5. Jalankan `npm run build`, lalu `npm run start`.
 
-4. **Bank Bukti Dokumen (Evidence Management):**
-   - Repositori terpusat dokumen bukti fisik (PDF, Spreadsheet, Word, Image).
-   - Filter berdasarkan 18 Unit Kerja, 8 SNP, dan Status Verifikasi.
-   - Simulator unggah berkas (drag-and-drop, versi v1.0, uploader identity).
-   - Pratinjau dokumen & tombol sahkan verifikasi langsung oleh auditor TPMPS.
+`SUPABASE_SERVICE_ROLE_KEY` hanya digunakan oleh skrip provisioning lokal. Jangan pernah menggunakan nama variabel `NEXT_PUBLIC_` untuk secret tersebut dan jangan memasukkannya ke deployment browser.
 
-5. **Monitoring Rencana Tindak Lanjut (RTL) Mutu:**
-   - Tampilan ganda: **Papan Kanban Interaktif** & **Tabel Daftar**.
-   - Kolom status: `Belum Mulai`, `Sedang Berjalan`, `Selesai`, `Terlambat`.
-   - Informasi anggaran biaya (Rp), PIC Unit, tingkat prioritas, dan deadline countdown.
-   - Slider update progres realisasi persentase real-time.
+## Pengembangan lokal
 
-6. **Generator Laporan Mutu & Evaluasi Diri Sekolah (EDS):**
-   - Template Laporan EDS Komprehensif, Rapor 8 SNP, dan Matriks RTL.
-   - **Pratinjau Dokumen Resmi**: Kop Surat Dinas Pendidikan Provinsi & SMKN 1 Unggul Terpadu, Berita Acara, Tabel Rapor 8 SNP, dan Tanda Tangan Digital Kepala Sekolah & Ketua TPMPS.
-   - Siap cetak ke PDF (`@media print` clean formatting) atau ekspor data.
-
-7. **Jejak Audit (Audit Trail):**
-   - Pencatatan seluruh aksi: `APPROVAL_LAPORAN`, `REVIEW_EVALUASI`, `SUBMIT_EVALUASI`, `UPLOAD_DOKUMEN`, `CREATE_RTL`.
-   - Dilengkapi stempel waktu (timestamp), user pelaku, peran, dan alamat IP.
-
----
-
-## 🚀 Cara Menjalankan Aplikasi
-
-Aplikasi berada pada direktori:
 ```bash
-cd C:\Users\lulus\tpmps-smk
-```
-
-### 1. Mode Development:
-```bash
+npm install
 npm run dev
 ```
-Buka browser di: **[http://localhost:3000](http://localhost:3000)**
 
-### 2. Mode Production:
-```bash
-npm run build
-npm run start
-```
+Tidak ada akun demo atau password bersama di aplikasi. Login hanya menerima email dan kata sandi akun Supabase Auth yang valid.
+
+## Batas unggahan
+
+- Semua ekstensi dan tipe file diperbolehkan.
+- Maksimal 50 MB untuk setiap file.
+- Maksimal 10 file dalam satu proses unggah.
+- File kosong ditolak.
+- File disimpan pada bucket privat dan hanya disajikan sebagai unduhan terautentikasi.

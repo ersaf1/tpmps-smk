@@ -1,141 +1,59 @@
-'use client';
+import { redirect } from 'next/navigation';
+import DocumentExplorer from '@/components/documents/DocumentExplorer';
+import { requireProfile } from '@/lib/auth';
+import { serverClient } from '@/lib/supabase/server';
+import type { FileItem, FolderItem, PeriodItem } from '@/types/documents';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import AppShell from '@/components/layout/AppShell';
-import DynamicWelcomeBanner from '@/components/dashboard/DynamicWelcomeBanner';
-import MetricCardsGrid from '@/components/dashboard/MetricCardsGrid';
-import SplineChart from '@/components/dashboard/SplineChart';
-import DonutDistributionChart from '@/components/dashboard/DonutDistributionChart';
-import ActivityTimeline from '@/components/dashboard/ActivityTimeline';
-import UnitKerjaTable from '@/components/dashboard/UnitKerjaTable';
-import { sintesaService } from '@/lib/services/sintesaDataService';
-import { UserProfile, StandardSNP, ActivityLogItem, UnitKerja } from '@/types/sintesa';
-import { ArrowRight, ChevronRight, Award, CheckCircle2 } from 'lucide-react';
+interface DashboardProps {
+  searchParams: Promise<{ period?: string; folder?: string }>;
+}
 
-export default function DashboardPage() {
-  const [user] = useState<UserProfile>(() => sintesaService.getActiveUser());
-  const [standards] = useState<StandardSNP[]>(() => sintesaService.getStandards());
-  const [units] = useState<UnitKerja[]>(() => sintesaService.getUnits());
-  const [logs] = useState<ActivityLogItem[]>(() => sintesaService.getLogs());
-  const [pendingDocsCount] = useState(() => sintesaService.getDocuments().filter((d) => d.status === 'Menunggu Review').length);
-  const [validDocsCount] = useState(() => sintesaService.getDocuments().filter((d) => d.status === 'Terverifikasi').length);
-  const [activeEvalsCount] = useState(() => sintesaService.getEvaluations().length);
-  const [activeRtlCount] = useState(() => sintesaService.getRtlList().filter((r) => r.status === 'Sedang Berjalan').length);
+export default async function DashboardPage({ searchParams }: DashboardProps) {
+  const profile = await requireProfile();
+  if (profile.mustChangePassword) redirect('/account/password');
+  const supabase = await serverClient();
+  const params = await searchParams;
 
-  return (
-    <AppShell
-      title="Dashboard Penjaminan Mutu"
-      subtitle="Monitoring Agregat 8 Standar Nasional Pendidikan SMK Negeri 2 Magelang"
-    >
-      {/* Dynamic Welcome Banner (Replaces old simulated role banner) */}
-      <DynamicWelcomeBanner
-        user={user}
-        pendingDocsCount={pendingDocsCount}
-        activeEvalsCount={activeEvalsCount}
-        activeRtlCount={activeRtlCount}
-      />
+  const [{ data: periodRows }, { data: unitRows }] = await Promise.all([
+    supabase.from('periods').select('id, name, starts_on, ends_on, is_active').order('starts_on', { ascending: false }),
+    supabase.from('document_units').select('id, name').eq('is_active', true).order('sort_order')
+  ]);
 
-      {/* Top 4 Production KPIs */}
-      <MetricCardsGrid
-        totalStandards={standards.length || 8}
-        validDocsCount={validDocsCount}
-        activeEvalsCount={activeEvalsCount}
-        activeRtlCount={activeRtlCount}
-      />
+  const periods: PeriodItem[] = (periodRows ?? []).map((row) => ({
+    id: row.id, name: row.name, startsOn: row.starts_on, endsOn: row.ends_on, isActive: row.is_active
+  }));
+  const selectedPeriod = periods.find((item) => item.id === params.period)
+    ?? periods.find((item) => item.isActive)
+    ?? periods[0]
+    ?? null;
 
-      {/* Telemetry Charts Grid (Spline Line Chart & Grade Distribution Donut) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-        <div className="lg:col-span-7">
-          <SplineChart />
-        </div>
-        <div className="lg:col-span-5">
-          <DonutDistributionChart />
-        </div>
-      </div>
+  if (selectedPeriod && !params.period) redirect(`/dashboard?period=${selectedPeriod.id}`);
 
-      {/* 8 SNP Progress Overview & Live Audit Trail Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left: 8 Standar Mutu Progress Bars */}
-        <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xl flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
-                CAPAIAN 8 STANDAR NASIONAL PENDIDIKAN (SNP)
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Monitoring skor realisasi berbobot vs target mutu 95.0%
-              </p>
-            </div>
+  let currentFolder: FolderItem | null = null;
+  if (selectedPeriod && params.folder) {
+    const { data } = await supabase.from('folders').select('id, name, parent_id, period_id, scope, document_kind, unit_id, created_at, unit:document_units!unit_id(name)').eq('id', params.folder).eq('period_id', selectedPeriod.id).is('deleted_at', null).single();
+    if (data) {
+      const unit = Array.isArray(data.unit) ? data.unit[0] : data.unit;
+      currentFolder = { id: data.id, name: data.name, parentId: data.parent_id, periodId: data.period_id, scope: data.scope, documentKind: data.document_kind, unitId: data.unit_id, unitName: unit?.name ?? null, createdAt: data.created_at } as FolderItem;
+    }
+  }
 
-            <Link
-              href="/mutu/1"
-              className="text-xs font-semibold text-[#0077B6] hover:underline flex items-center gap-1 shrink-0"
-            >
-              <span>Detail Mutu</span>
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
+  let folders: FolderItem[] = [];
+  let files: FileItem[] = [];
+  if (selectedPeriod) {
+    let folderQuery = supabase.from('folders').select('id, name, parent_id, period_id, scope, document_kind, unit_id, created_at, unit:document_units!unit_id(name)').eq('period_id', selectedPeriod.id).is('deleted_at', null).order('name');
+    folderQuery = currentFolder ? folderQuery.eq('parent_id', currentFolder.id) : folderQuery.is('parent_id', null);
+    const { data: folderRows } = await folderQuery;
+    folders = (folderRows ?? []).map((row) => {
+      const unit = Array.isArray(row.unit) ? row.unit[0] : row.unit;
+      return { id: row.id, name: row.name, parentId: row.parent_id, periodId: row.period_id, scope: row.scope, documentKind: row.document_kind, unitId: row.unit_id, unitName: unit?.name ?? null, createdAt: row.created_at } as FolderItem;
+    });
 
-          <div className="space-y-4">
-            {standards.map((snp) => {
-              return (
-                <Link
-                  key={snp.id}
-                  href={`/mutu/${snp.id}`}
-                  className="block p-3.5 rounded-2xl bg-slate-50 hover:bg-sky-50/50 border border-slate-200/80 hover:border-sky-200 transition-all group"
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2.5 truncate">
-                      <span className="text-xs font-bold text-[#0077B6] font-mono shrink-0">
-                        {snp.code}
-                      </span>
-                      <span className="text-xs font-semibold text-slate-900 truncate group-hover:text-[#0077B6] transition-colors">
-                        {snp.name}
-                      </span>
-                    </div>
+    if (currentFolder) {
+      const { data: fileRows } = await supabase.from('file_entries').select('id, folder_id, original_name, mime_type, size_bytes, created_at').eq('folder_id', currentFolder.id).is('deleted_at', null).order('original_name');
+      files = (fileRows ?? []).map((row) => ({ id: row.id, folderId: row.folder_id, originalName: row.original_name, mimeType: row.mime_type, sizeBytes: row.size_bytes, createdAt: row.created_at }));
+    }
+  }
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs font-mono font-bold text-slate-900">
-                        {snp.currentScore.toFixed(1)}%
-                      </span>
-                      <span className="text-[10px] text-slate-500 font-mono">
-                        / {snp.targetScore}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Progress indicator bar */}
-                  <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden relative">
-                    <div
-                      className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[#0077B6] to-[#0284C7]"
-                      style={{ width: `${Math.min(100, snp.currentScore)}%` }}
-                    />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Sesuai instrumen akreditasi vokasi BAP-S/M</span>
-            </div>
-            <span className="font-semibold text-[#0077B6]">SMK PK / Rujukan</span>
-          </div>
-        </div>
-
-        {/* Right: Live Activity Timeline */}
-        <div className="lg:col-span-5">
-          <ActivityTimeline logs={logs} />
-        </div>
-      </div>
-
-      {/* Borderless Table 18 Unit Kerja SMK Negeri 2 Magelang */}
-      <div className="mt-8">
-        <UnitKerjaTable units={units} />
-      </div>
-    </AppShell>
-  );
+  return <DocumentExplorer profile={profile} periods={periods} selectedPeriod={selectedPeriod} currentFolder={currentFolder} folders={folders} files={files} units={unitRows ?? []} />;
 }

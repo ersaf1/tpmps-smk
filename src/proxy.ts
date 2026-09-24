@@ -1,72 +1,62 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
+const legacyRoutes = ['/evaluasi', '/rtl', '/mutu', '/laporan', '/dokumen'];
 
-  // Security Response Headers
+function applySecurityHeaders(response: NextResponse) {
+  const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
+    ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
+    : '';
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';"
-  );
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   response.headers.set('Cache-Control', 'private, no-store');
+  response.headers.set('Content-Security-Policy', [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self'",
+    `connect-src 'self' ${supabaseOrigin}`,
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'"
+  ].join('; '));
+  return response;
+}
+
+export async function proxy(request: NextRequest) {
+  let response = NextResponse.next({ request });
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  let authenticated = false;
+
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && key) {
+    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL, key, {
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookies) => {
+          cookies.forEach(({ name, value }) => request.cookies.set(name, value));
+          response = NextResponse.next({ request });
+          cookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        }
+      }
+    });
+    const { data } = await supabase.auth.getUser();
+    authenticated = Boolean(data.user);
+  }
 
   const pathname = request.nextUrl.pathname;
-  const isLoginPage = pathname === '/login';
-  const isLandingPage = pathname === '/';
-
-  // Check custom session cookie first
-  const localSession = request.cookies.get('sintesa_session')?.value;
-
-  // Check Supabase Auth if credentials exist
-  let hasSupabaseUser = false;
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-    try {
-      const client = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-        {
-          cookies: {
-            getAll: () => request.cookies.getAll(),
-            setAll: (values) => {
-              values.forEach(({ name, value }) => request.cookies.set(name, value));
-              response = NextResponse.next({ request });
-              values.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-              response.headers.set('Cache-Control', 'private, no-store');
-            }
-          }
-        }
-      );
-      const { data: { user } } = await client.auth.getUser();
-      if (user) hasSupabaseUser = true;
-    } catch {
-      hasSupabaseUser = false;
-    }
+  if (legacyRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))) {
+    return applySecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
   }
-
-  const isAuthenticated = Boolean(hasSupabaseUser || localSession);
-
-  // If user is authenticated and visits /login, redirect to /dashboard
-  if (isAuthenticated && isLoginPage) {
-    const redirect = NextResponse.redirect(new URL('/dashboard', request.url));
-    return redirect;
+  if (!authenticated && pathname !== '/login') {
+    return applySecurityHeaders(NextResponse.redirect(new URL('/login', request.url)));
   }
-
-  // Public pages: Landing page (/) and Login (/login)
-  const isPublicRoute = isLandingPage || isLoginPage;
-
-  // If user is not authenticated and attempts to access protected internal routes, redirect to /login
-  if (!isAuthenticated && !isPublicRoute) {
-    const redirect = NextResponse.redirect(new URL('/login', request.url));
-    response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
-    redirect.headers.set('Cache-Control', 'private, no-store');
-    return redirect;
+  if (authenticated && pathname === '/login') {
+    return applySecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
   }
-
-  return response;
+  return applySecurityHeaders(response);
 }
 
 export const config = {
