@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import AppShell from '@/components/layout/AppShell';
@@ -20,8 +20,8 @@ function UploadDokumenForm() {
     setCurrentUser(sintesaService.getActiveUser());
   }, []);
 
-  const isTPMPS = currentUser.role === 'admin' || currentUser.role === 'tpmps' || currentUser.unitId === 'u-10';
-  const isKasek = currentUser.role === 'kepala_sekolah';
+  const isTPMPS = currentUser?.role === 'admin' || currentUser?.role === 'tpmps' || currentUser?.unitId === 'u-10';
+  const isKasek = currentUser?.role === 'kepala_sekolah';
 
   const prefillEvalId = searchParams.get('evalId');
   const prefillStandardId = searchParams.get('standardId');

@@ -10,7 +10,7 @@ import { UserRole, UserProfile } from '@/types/sintesa';
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('sintesa123');
+  const [password, setPassword] = useState('Sintesa2026!');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -18,8 +18,8 @@ export default function LoginPage() {
 
   const handleQuickLogin = (userEmail: string) => {
     setEmail(userEmail);
-    setPassword('sintesa123');
-    loginWithEmail(userEmail, 'sintesa123');
+    setPassword('Sintesa2026!');
+    loginWithEmail(userEmail, 'Sintesa2026!');
   };
 
   const loginWithEmail = (targetEmail: string, targetPass: string) => {
@@ -34,6 +34,9 @@ export default function LoginPage() {
       if (
         cleanEmail === 'kasek' ||
         cleanEmail === 'kepsek' ||
+        cleanEmail === 'kurniawan' ||
+        cleanEmail === 'kurniawan.basuki' ||
+        cleanEmail === 'kurniawan.basuki@smkn2magelang.sch.id' ||
         cleanEmail === 'kasek@smkn2magelang.sch.id' ||
         cleanEmail === 'kepala.sekolah@smkn2magelang.sch.id' ||
         cleanEmail === 'kepsek@smkn2magelang.sch.id'
@@ -55,6 +58,9 @@ export default function LoginPage() {
       // 3. TPMPS
       else if (
         cleanEmail === 'tpmps' ||
+        cleanEmail === 'vickky' ||
+        cleanEmail === 'vickky.listyaningsih' ||
+        cleanEmail === 'vickky.listyaningsih@smkn2magelang.sch.id' ||
         cleanEmail === 'tpmps.ketua@smkn2magelang.sch.id' ||
         cleanEmail === 'tpmps@smkn2magelang.sch.id'
       ) {
@@ -64,13 +70,14 @@ export default function LoginPage() {
           unitName: '10. UNIT KERJA TPMPS'
         };
       }
-      // 4. Check in INITIAL_UNITS by code or email
+      // 4. Check in INITIAL_UNITS by code, email, or prefix
       else {
         const matchedUnit = INITIAL_UNITS.find((u) => {
           const codeMatch = cleanEmail === u.code.toLowerCase();
           const emailMatch = cleanEmail === u.email.toLowerCase();
+          const emailPrefixMatch = cleanEmail === u.email.split('@')[0].toLowerCase();
           const prefixMatch = cleanEmail === `${u.code.toLowerCase()}@smkn2magelang.sch.id`;
-          return codeMatch || emailMatch || prefixMatch;
+          return codeMatch || emailMatch || emailPrefixMatch || prefixMatch;
         });
 
         if (matchedUnit) {
@@ -183,33 +190,33 @@ export default function LoginPage() {
                   <button
                     type="button"
                     disabled={isLoading}
-                    onClick={() => handleQuickLogin('kasek@smkn2magelang.sch.id')}
+                    onClick={() => handleQuickLogin('kurniawan.basuki@smkn2magelang.sch.id')}
                     className="p-3 rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100/80 text-left transition-all cursor-pointer group disabled:opacity-50"
                   >
                     <div className="text-xs font-bold text-blue-900 group-hover:text-blue-700">1. KASEK</div>
-                    <div className="text-[10px] text-blue-700 font-medium truncate">Drs. H. Mulyono, M.Pd.</div>
+                    <div className="text-[10px] text-blue-700 font-medium truncate">Kurniawan Basuki, S.Pd., M.T.</div>
                     <div className="text-[9px] text-blue-500 font-mono mt-0.5">Kepala Sekolah</div>
                   </button>
 
                   <button
                     type="button"
                     disabled={isLoading}
-                    onClick={() => handleQuickLogin('tpmps@smkn2magelang.sch.id')}
+                    onClick={() => handleQuickLogin('vickky.listyaningsih@smkn2magelang.sch.id')}
                     className="p-3 rounded-xl border border-amber-200 bg-amber-50/60 hover:bg-amber-100/80 text-left transition-all cursor-pointer group disabled:opacity-50"
                   >
                     <div className="text-xs font-bold text-amber-900 group-hover:text-amber-700">10. UNIT TPMPS</div>
-                    <div className="text-[10px] text-amber-700 font-medium truncate">Dra. Hj. Siti Fatimah, M.M.</div>
+                    <div className="text-[10px] text-amber-700 font-medium truncate">Vickky Listyaningsih, M.Kom.</div>
                     <div className="text-[9px] text-amber-500 font-mono mt-0.5">Ketua TPMPS (MM & PM)</div>
                   </button>
 
                   <button
                     type="button"
                     disabled={isLoading}
-                    onClick={() => handleQuickLogin('admin.sintesa@smkn2magelang.sch.id')}
+                    onClick={() => handleQuickLogin('admin@smkn2magelang.sch.id')}
                     className="p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition-all cursor-pointer group disabled:opacity-50"
                   >
                     <div className="text-xs font-bold text-slate-900 group-hover:text-slate-700">SUPER ADMIN</div>
-                    <div className="text-[10px] text-slate-600 font-medium truncate">Rian Prasetyo, S.Kom.</div>
+                    <div className="text-[10px] text-slate-600 font-medium truncate">Administrator SINTESA</div>
                     <div className="text-[9px] text-slate-400 font-mono mt-0.5">Admin Pusat</div>
                   </button>
                 </div>
@@ -301,7 +308,7 @@ export default function LoginPage() {
                   </button>
                 </div>
                 <p className="text-[10px] text-slate-400 mt-1">
-                  Kata sandi default: <strong>sintesa123</strong>
+                  Kata sandi default: <strong>Sintesa2026!</strong> (atau <strong>sintesa123</strong>)
                 </p>
               </div>
 

@@ -18,24 +18,24 @@ import {
 // K3 dipecah menjadi 4 Kejuruan: PPLG, MPLB, PM, AKL (Tanpa K3 Generik)
 // ============================================================================
 export const INITIAL_UNITS: UnitKerja[] = [
-  { id: 'u-01', code: 'KASEK', name: '1. KASEK (Kepala Sekolah)', category: 'Pimpinan', picName: 'Drs. H. Mulyono, M.Pd.', email: 'kasek@smkn2magelang.sch.id', score: 96.5, totalIndicators: 30, completedIndicators: 30 },
-  { id: 'u-02', code: 'WKS-1', name: '2. UNIT KERJA WKS 1 (Kurikulum)', category: 'Manajemen', picName: 'Dra. Sri Wahyuni, M.Pd.', email: 'wks1@smkn2magelang.sch.id', score: 89.5, totalIndicators: 24, completedIndicators: 22 },
-  { id: 'u-03', code: 'WKS-2', name: '3. UNIT KERJA WKS 2 (Kesiswaan)', category: 'Manajemen', picName: 'Bambang Sutrisno, S.Pd.', email: 'wks2@smkn2magelang.sch.id', score: 86.0, totalIndicators: 20, completedIndicators: 18 },
-  { id: 'u-04', code: 'WKS-3', name: '4. UNIT KERJA WKS 3 (Sarpras)', category: 'Manajemen', picName: 'Ir. Agus Haryanto, M.T.', email: 'wks3@smkn2magelang.sch.id', score: 78.4, totalIndicators: 22, completedIndicators: 16 },
-  { id: 'u-05', code: 'WKS-4', name: '5. UNIT KERJA WKS 4 (Humas & Hubin)', category: 'Manajemen', picName: 'Drs. Hendro Wibowo', email: 'wks4@smkn2magelang.sch.id', score: 92.0, totalIndicators: 18, completedIndicators: 17 },
-  { id: 'u-06', code: 'PPLG', name: '6. UNIT KEJURUAN PPLG', category: 'Kejuruan', picName: 'Eko Prasetyo, S.Kom., M.Cs.', email: 'pplg@smkn2magelang.sch.id', score: 94.0, totalIndicators: 26, completedIndicators: 25 },
-  { id: 'u-07', code: 'MPLB', name: '7. UNIT KEJURUAN MPLB', category: 'Kejuruan', picName: 'Dewi Lestari, S.Pd.', email: 'mplb@smkn2magelang.sch.id', score: 91.5, totalIndicators: 24, completedIndicators: 22 },
-  { id: 'u-08', code: 'PM', name: '8. UNIT KEJURUAN PM', category: 'Kejuruan', picName: 'Rudi Hartono, S.E.', email: 'pm@smkn2magelang.sch.id', score: 90.0, totalIndicators: 22, completedIndicators: 20 },
-  { id: 'u-09', code: 'AKL', name: '9. UNIT KEJURUAN AKL', category: 'Kejuruan', picName: 'Siti Rahmawati, S.E., M.Akt.', email: 'akl@smkn2magelang.sch.id', score: 93.0, totalIndicators: 24, completedIndicators: 23 },
-  { id: 'u-10', code: 'TPMPS', name: '10. UNIT KERJA TPMPS', category: 'Pengawasan', picName: 'Dra. Hj. Siti Fatimah, M.M.', email: 'tpmps@smkn2magelang.sch.id', score: 97.0, totalIndicators: 32, completedIndicators: 32 },
-  { id: 'u-11', code: 'RENBANG', name: '11. UNIT KERJA RENBANG', category: 'Perencanaan', picName: 'Drs. Supriyadi, M.M.', email: 'renbang@smkn2magelang.sch.id', score: 88.5, totalIndicators: 18, completedIndicators: 16 },
-  { id: 'u-12', code: 'KATU', name: '12. UNIT KERJA KATU', category: 'Layanan', picName: 'Nurul Hidayati, S.Sos.', email: 'katu@smkn2magelang.sch.id', score: 84.0, totalIndicators: 20, completedIndicators: 18 },
-  { id: 'u-13', code: 'KALAB', name: '13. UNIT KERJA KALAB', category: 'Layanan', picName: 'Supriyanto, A.Md.', email: 'kalab@smkn2magelang.sch.id', score: 83.0, totalIndicators: 15, completedIndicators: 12 },
-  { id: 'u-14', code: 'PERPUSTAKAAN', name: '14. UNIT KERJA PERPUSTAKAAN', category: 'Layanan', picName: 'Tri Utami, S.I.Pust.', email: 'perpustakaan@smkn2magelang.sch.id', score: 90.0, totalIndicators: 14, completedIndicators: 13 },
-  { id: 'u-15', code: 'NASWIL', name: '15. UNIT KERJA NASWIL', category: 'Kesiswaan', picName: 'Drs. H. Mulyadi, M.Pd.', email: 'naswil@smkn2magelang.sch.id', score: 87.0, totalIndicators: 16, completedIndicators: 14 },
-  { id: 'u-16', code: 'BK', name: '16. UNIT KERJA BK', category: 'Layanan', picName: 'Dra. Endang Sulastri', email: 'bk@smkn2magelang.sch.id', score: 89.0, totalIndicators: 16, completedIndicators: 15 },
-  { id: 'u-17', code: 'BKK', name: '17. UNIT KERJA BKK', category: 'Layanan', picName: 'Wahyu Nugroho, S.Pd.', email: 'bkk@smkn2magelang.sch.id', score: 93.5, totalIndicators: 18, completedIndicators: 17 },
-  { id: 'u-18', code: 'UPS', name: '18. UNIT KERJA UPS', category: 'Kejuruan', picName: 'Anwar Sadat, S.T.', email: 'ups@smkn2magelang.sch.id', score: 86.8, totalIndicators: 20, completedIndicators: 17 }
+  { id: 'u-01', code: 'KASEK', name: '1. KASEK (Kepala Sekolah)', category: 'Pimpinan', picName: 'Kurniawan Basuki, S.Pd., M.T.', email: 'kurniawan.basuki@smkn2magelang.sch.id', score: 96.5, totalIndicators: 30, completedIndicators: 30 },
+  { id: 'u-02', code: 'WKS-1', name: '2. UNIT KERJA WKS 1 (Kurikulum)', category: 'Manajemen', picName: 'Yuana Dwi Utami, S.Pd.', email: 'yuana.dwi.utami@smkn2magelang.sch.id', score: 89.5, totalIndicators: 24, completedIndicators: 22 },
+  { id: 'u-03', code: 'WKS-2', name: '3. UNIT KERJA WKS 2 (Kesiswaan)', category: 'Manajemen', picName: 'Drs. Agus Supriyanto', email: 'agus.supriyanto@smkn2magelang.sch.id', score: 86.0, totalIndicators: 20, completedIndicators: 18 },
+  { id: 'u-04', code: 'WKS-3', name: '4. UNIT KERJA WKS 3 (Sarpras)', category: 'Manajemen', picName: 'May Wilasih, S.Pd.', email: 'may.wilasih@smkn2magelang.sch.id', score: 78.4, totalIndicators: 22, completedIndicators: 16 },
+  { id: 'u-05', code: 'WKS-4', name: '5. UNIT KERJA WKS 4 (Humas & Hubin)', category: 'Manajemen', picName: 'Antuk Madiyanto, S.Pd.', email: 'antuk.madiyanto@smkn2magelang.sch.id', score: 92.0, totalIndicators: 18, completedIndicators: 17 },
+  { id: 'u-06', code: 'PPLG', name: '6. UNIT KEJURUAN PPLG', category: 'Kejuruan', picName: 'Arifin Andi Gunawan, S.Kom.', email: 'arifin.andi.gunawan@smkn2magelang.sch.id', score: 94.0, totalIndicators: 26, completedIndicators: 25 },
+  { id: 'u-07', code: 'MPLB', name: '7. UNIT KEJURUAN MPLB', category: 'Kejuruan', picName: 'Purwaningsri, S.Pd., M.M.', email: 'purwaningsri@smkn2magelang.sch.id', score: 91.5, totalIndicators: 24, completedIndicators: 22 },
+  { id: 'u-08', code: 'PM', name: '8. UNIT KEJURUAN PM', category: 'Kejuruan', picName: 'Fieka Praditaliana, S.Pd.', email: 'fieka.praditaliana@smkn2magelang.sch.id', score: 90.0, totalIndicators: 22, completedIndicators: 20 },
+  { id: 'u-09', code: 'AKL', name: '9. UNIT KEJURUAN AKL', category: 'Kejuruan', picName: 'Cicilia Nugrahanti, S.Pd.', email: 'cicilia.nugrahanti@smkn2magelang.sch.id', score: 93.0, totalIndicators: 24, completedIndicators: 23 },
+  { id: 'u-10', code: 'TPMPS', name: '10. UNIT KERJA TPMPS', category: 'Pengawasan', picName: 'Vickky Listyaningsih, M.Kom.', email: 'vickky.listyaningsih@smkn2magelang.sch.id', score: 97.0, totalIndicators: 32, completedIndicators: 32 },
+  { id: 'u-11', code: 'RENBANG', name: '11. UNIT KERJA RENBANG', category: 'Perencanaan', picName: 'Dra. Gigih Murniati', email: 'gigih.murniati@smkn2magelang.sch.id', score: 88.5, totalIndicators: 18, completedIndicators: 16 },
+  { id: 'u-12', code: 'TU', name: '12. UNIT KERJA TU', category: 'Layanan', picName: 'Murtiningsih, S.Pd., M.Pd.', email: 'murtiningsih@smkn2magelang.sch.id', score: 84.0, totalIndicators: 20, completedIndicators: 18 },
+  { id: 'u-13', code: 'LAB', name: '13. UNIT KERJA LAB', category: 'Layanan', picName: 'Yunus Adi Wibowo, S.Kom.', email: 'yunus.adi.wibowo@smkn2magelang.sch.id', score: 83.0, totalIndicators: 15, completedIndicators: 12 },
+  { id: 'u-14', code: 'PERPUS', name: '14. UNIT KERJA PERPUS', category: 'Layanan', picName: 'Dra. Wiwik Pristiwati', email: 'wiwik.pristiwati@smkn2magelang.sch.id', score: 90.0, totalIndicators: 14, completedIndicators: 13 },
+  { id: 'u-15', code: 'UMUM', name: '15. UNIT KERJA UMUM', category: 'Layanan', picName: 'Mugi Rahayu, S.Pd., M.Pd.', email: 'mugi.rahayu@smkn2magelang.sch.id', score: 87.0, totalIndicators: 16, completedIndicators: 14 },
+  { id: 'u-16', code: 'BK', name: '16. UNIT KERJA BK', category: 'Layanan', picName: 'Esti Zunastiti, S.Pd.', email: 'esti.zunastiti@smkn2magelang.sch.id', score: 89.0, totalIndicators: 16, completedIndicators: 15 },
+  { id: 'u-17', code: 'BKK', name: '17. UNIT KERJA BKK', category: 'Layanan', picName: 'Anggraini Kusumawardani, S.Pd.', email: 'anggraini.kusumawardani@smkn2magelang.sch.id', score: 93.5, totalIndicators: 18, completedIndicators: 17 },
+  { id: 'u-18', code: 'USMAN', name: '18. UNIT KERJA USMAN', category: 'Layanan', picName: 'Tri Djoko, S.Pd.', email: 'tri.djoko@smkn2magelang.sch.id', score: 86.8, totalIndicators: 20, completedIndicators: 17 }
 ];
 
 // ============================================================================
@@ -109,8 +109,8 @@ export const INITIAL_USERS: Record<UserRole, UserProfile> = {
   admin: {
     id: 'usr-admin-01',
     nip: '198204152008011005',
-    fullName: 'Rian Prasetyo, S.Kom. (Admin)',
-    email: 'admin.sintesa@smkn2magelang.sch.id',
+    fullName: 'Administrator SINTESA',
+    email: 'admin@smkn2magelang.sch.id',
     role: 'admin',
     unitId: 'u-01',
     unitName: 'Administrator Pusat SINTESA',
@@ -122,8 +122,8 @@ export const INITIAL_USERS: Record<UserRole, UserProfile> = {
   kepala_sekolah: {
     id: 'usr-kepsek-01',
     nip: '196803121992031004',
-    fullName: 'Drs. H. Mulyono, M.Pd.',
-    email: 'kasek@smkn2magelang.sch.id',
+    fullName: 'Kurniawan Basuki, S.Pd., M.T.',
+    email: 'kurniawan.basuki@smkn2magelang.sch.id',
     role: 'kepala_sekolah',
     unitId: 'u-01',
     unitName: '1. KASEK (Kepala Sekolah)',
@@ -135,8 +135,8 @@ export const INITIAL_USERS: Record<UserRole, UserProfile> = {
   tpmps: {
     id: 'usr-tpmps-01',
     nip: '197509182002122001',
-    fullName: 'Dra. Hj. Siti Fatimah, M.M. (Ketua TPMPS)',
-    email: 'tpmps@smkn2magelang.sch.id',
+    fullName: 'Vickky Listyaningsih, M.Kom.',
+    email: 'vickky.listyaningsih@smkn2magelang.sch.id',
     role: 'tpmps',
     unitId: 'u-10',
     unitName: '10. UNIT KERJA TPMPS',
@@ -148,8 +148,8 @@ export const INITIAL_USERS: Record<UserRole, UserProfile> = {
   guru: {
     id: 'usr-guru-01',
     nip: '198711052011011008',
-    fullName: 'Eko Prasetyo, S.Kom., M.Cs.',
-    email: 'pplg@smkn2magelang.sch.id',
+    fullName: 'Arifin Andi Gunawan, S.Kom.',
+    email: 'arifin.andi.gunawan@smkn2magelang.sch.id',
     role: 'guru',
     unitId: 'u-06',
     unitName: '6. UNIT KEJURUAN PPLG',
