@@ -1,19 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const DEFAULT_PASSWORD = process.env.INITIAL_USER_PASSWORD || 'Sintesa2026!';
-
-if (!url || !serviceRoleKey) {
-  console.error('\n[ERROR] NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY wajib tersedia.');
-  console.info('Tip: Jika service-role key belum tersedia di .env lokal, Anda dapat menggunakan script SQL di:');
-  console.info('     supabase/provision_19_accounts.sql langsung di SQL Editor Supabase Dashboard.\n');
-  process.exit(1);
-}
-
-const admin = createClient(url, serviceRoleKey, {
-  auth: { autoRefreshToken: false, persistSession: false }
-});
 
 export const accounts = [
   { email: 'admin@smkn2magelang.sch.id', fullName: 'Administrator SINTESA', position: 'Superadmin', role: 'superadmin' },
@@ -37,7 +22,22 @@ export const accounts = [
   { email: 'tri.djoko@smkn2magelang.sch.id', fullName: 'Tri Djoko, S.Pd.', position: 'Ka. Usman', role: 'ketua_unit', unitCode: 'USMAN' }
 ];
 
-async function provisionUsers() {
+export async function provisionUsers() {
+  const { createClient } = await import('@supabase/supabase-js');
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !serviceRoleKey) {
+    console.error('\n[ERROR] NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY wajib tersedia.');
+    console.info('Tip: Jika service-role key belum tersedia di .env lokal, Anda dapat menggunakan script SQL di:');
+    console.info('     supabase/provision_19_accounts.sql langsung di SQL Editor Supabase Dashboard.\n');
+    process.exit(1);
+  }
+
+  const admin = createClient(url, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  });
+
   console.log(`\n=== Memulai Provisioning 19 Akun Resmi SINTESA TPMPS ===`);
   console.log(`Kata sandi default yang ditetapkan: "${DEFAULT_PASSWORD}"\n`);
 
@@ -126,7 +126,10 @@ async function provisionUsers() {
   console.log(`Semua akun dapat login menggunakan kata sandi: ${DEFAULT_PASSWORD}\n`);
 }
 
-provisionUsers().catch((err) => {
-  console.error('[FATAL ERROR]:', err);
-  process.exit(1);
-});
+const isMain = process.argv[1]?.replace(/\\/g, '/').endsWith('scripts/provision-users.mjs');
+if (isMain) {
+  provisionUsers().catch((err) => {
+    console.error('[FATAL ERROR]:', err);
+    process.exit(1);
+  });
+}
