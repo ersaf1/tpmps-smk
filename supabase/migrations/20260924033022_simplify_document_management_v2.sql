@@ -1,5 +1,7 @@
 -- SINTESA TPMPS v2: document management focused schema.
 -- This migration intentionally removes the previous demo/evaluation modules.
+-- Supabase Auth users are provisioned through the supported Admin API by
+-- `npm run setup:production`; never insert directly into managed auth tables.
 
 begin;
 

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "provision:users": "node --env-file=.env scripts/provision-users.mjs"
+    "setup:production": "node --env-file=.env scripts/setup-production.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
@@ -26,6 +26,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "postgres": "3.4.7",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

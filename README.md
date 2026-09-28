@@ -13,11 +13,10 @@ Semua pembatasan utama diterapkan kembali di PostgreSQL Row Level Security, buka
 
 ## Menyiapkan aplikasi
 
-1. Salin `.env.example` menjadi `.env` dan isi Project URL, publishable key, serta service-role key.
-2. Terapkan migrasi Supabase sampai `20260924033022_simplify_document_management_v2.sql`.
-3. Buat 19 akun resmi dengan `npm run provision:users`.
-4. Simpan password sementara yang dicetak sekali ke password manager sekolah.
-5. Jalankan `npm run build`, lalu `npm run start`.
+1. Salin `.env.example` menjadi `.env`, lalu isi Project URL, publishable key, `DATABASE_URL`, dan service-role key.
+2. Jalankan satu perintah `npm run setup:production`. Perintah ini menerapkan schema v2, menyiapkan Storage/RLS, dan membuat 19 akun resmi sekaligus.
+3. Simpan password sementara yang dicetak sekali ke password manager sekolah.
+4. Jalankan `npm run build`, lalu `npm run start`.
 
 `SUPABASE_SERVICE_ROLE_KEY` hanya digunakan oleh skrip provisioning lokal. Jangan pernah menggunakan nama variabel `NEXT_PUBLIC_` untuk secret tersebut dan jangan memasukkannya ke deployment browser.
 
