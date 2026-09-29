@@ -1397,8 +1397,8 @@ class SintesaDataEngine {
 
       const savedUnits = localStorage.getItem('sintesa_units');
       let loadedUnits = savedUnits ? JSON.parse(savedUnits) : null;
-      // Auto-migrate to official 18 units (PPLG, MPLB, PM, AKL without generic K3)
-      if (!loadedUnits || loadedUnits.length !== 18 || loadedUnits.some((u: UnitKerja) => u.code === 'K3')) {
+      // Auto-migrate to official 18 units if empty or contains legacy generic K3
+      if (!loadedUnits || loadedUnits.length === 0 || loadedUnits.some((u: UnitKerja) => u.code === 'K3')) {
         loadedUnits = [...INITIAL_UNITS];
         this.persist('sintesa_units', loadedUnits);
       }
@@ -1502,11 +1502,17 @@ class SintesaDataEngine {
       id: newId,
       score: data.score || 85.0,
       totalIndicators: data.totalIndicators || 20,
-      completedIndicators: data.completedIndicators || 0
+      completedIndicators: data.completedIndicators || 0,
+      statusJabatan: data.statusJabatan || 'Definitif'
     };
     this.units = [...this.units, newUnit];
     this.persist('sintesa_units', this.units);
-    this.addLog('CREATE_UNIT', 'Unit Kerja', newUnit.code, `Menambahkan unit kerja baru: "${newUnit.name}" (${newUnit.code})`);
+    this.addLog(
+      'CREATE_UNIT',
+      'Unit Kerja',
+      newUnit.code,
+      `Super Admin menambahkan unit kerja baru: "${newUnit.name}" (${newUnit.code}) dengan Ka.Unit: ${newUnit.picName}`
+    );
     return newUnit;
   }
 
@@ -1514,13 +1520,77 @@ class SintesaDataEngine {
     const idx = this.units.findIndex((u) => u.id === id);
     if (idx === -1) return null;
 
+    const oldUnit = this.units[idx];
     const updated = {
-      ...this.units[idx],
+      ...oldUnit,
       ...updates
     };
     this.units[idx] = updated;
     this.persist('sintesa_units', this.units);
-    this.addLog('UPDATE_UNIT', 'Unit Kerja', updated.code, `Memperbarui data unit kerja "${updated.name}"`);
+
+    if (updates.picName && updates.picName !== oldUnit.picName) {
+      if (this.activeUser && (this.activeUser.unitId === id || this.activeUser.email.toLowerCase() === oldUnit.email.toLowerCase())) {
+        this.activeUser = {
+          ...this.activeUser,
+          fullName: updated.picName,
+          nip: updated.nip || this.activeUser.nip,
+          email: updated.email
+        };
+        this.setActiveUser(this.activeUser);
+      }
+      this.addLog('UPDATE_KA_UNIT', 'Unit Kerja', updated.code, `Super Admin mengubah Ka.Unit "${updated.name}" menjadi "${updated.picName}"`);
+    } else {
+      this.addLog('UPDATE_UNIT', 'Unit Kerja', updated.code, `Super Admin memperbarui data unit kerja "${updated.name}"`);
+    }
+
+    return updated;
+  }
+
+  public changeKaUnit(
+    unitId: string,
+    data: {
+      picName: string;
+      nip?: string;
+      email?: string;
+      phone?: string;
+      statusJabatan?: 'Definitif' | 'Plt' | 'Koordinator';
+      skPenugasan?: string;
+    }
+  ): UnitKerja | null {
+    const idx = this.units.findIndex((u) => u.id === unitId);
+    if (idx === -1) return null;
+
+    const currentUnit = this.units[idx];
+    const oldPic = currentUnit.picName;
+
+    const updated: UnitKerja = {
+      ...currentUnit,
+      picName: data.picName.trim(),
+      nip: data.nip?.trim() || currentUnit.nip,
+      email: data.email?.trim().toLowerCase() || currentUnit.email,
+      phone: data.phone?.trim() || currentUnit.phone,
+      statusJabatan: data.statusJabatan || currentUnit.statusJabatan || 'Definitif',
+      skPenugasan: data.skPenugasan?.trim() || currentUnit.skPenugasan
+    };
+
+    this.units[idx] = updated;
+    this.persist('sintesa_units', this.units);
+
+    // Sinkronisasi sesi pengguna aktif jika unit yang bersangkutan sedang login
+    if (this.activeUser && (this.activeUser.unitId === unitId || this.activeUser.email.toLowerCase() === currentUnit.email.toLowerCase())) {
+      this.activeUser = {
+        ...this.activeUser,
+        fullName: updated.picName,
+        nip: updated.nip || this.activeUser.nip,
+        email: updated.email,
+        phone: updated.phone || this.activeUser.phone
+      };
+      this.setActiveUser(this.activeUser);
+    }
+
+    const logDetails = `Super Admin menetapkan Ka.Unit baru "${updated.name}": ${updated.picName}${updated.nip ? ` (NIP: ${updated.nip})` : ''} [${updated.statusJabatan || 'Definitif'}]${updated.skPenugasan ? ` SK: ${updated.skPenugasan}` : ''} (sebelumnya: ${oldPic})`;
+    this.addLog('CHANGE_KA_UNIT', 'Unit Kerja', updated.code, logDetails);
+
     return updated;
   }
 
@@ -1530,7 +1600,7 @@ class SintesaDataEngine {
 
     this.units = this.units.filter((u) => u.id !== id);
     this.persist('sintesa_units', this.units);
-    this.addLog('DELETE_UNIT', 'Unit Kerja', target.code, `Menghapus unit kerja "${target.name}" (${target.code})`);
+    this.addLog('DELETE_UNIT', 'Unit Kerja', target.code, `Super Admin menghapus unit kerja "${target.name}" (${target.code})`);
     return true;
   }
 

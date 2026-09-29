@@ -182,6 +182,9 @@ export interface UnitKerja {
   score: number;
   totalIndicators?: number;
   completedIndicators?: number;
+  nip?: string;
+  statusJabatan?: 'Definitif' | 'Plt' | 'Koordinator';
+  skPenugasan?: string;
 }
 
 export interface StandardSNP {

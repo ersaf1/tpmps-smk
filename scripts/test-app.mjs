@@ -158,6 +158,133 @@ runTest('Ketua TPMPS & Kasek dapat memfilter dan memvalidasi dokumen unit', () =
 });
 
 // -------------------------------------------------------------
+// TEST SUITE 4: SUPER ADMIN UNIT CRUD & PERGANTIAN KA.UNIT KERJA
+// -------------------------------------------------------------
+console.log('\n--- TEST SUITE 4: Super Admin Unit CRUD & Pergantian Ka.Unit Kerja ---');
+
+runTest('Super Admin dapat membuat unit kerja baru (Create)', () => {
+  const units = [];
+  function createUnit(data) {
+    const newUnit = {
+      ...data,
+      id: `u-${Date.now()}`,
+      score: 85.0,
+      totalIndicators: data.totalIndicators || 20,
+      completedIndicators: 0,
+      statusJabatan: data.statusJabatan || 'Definitif'
+    };
+    units.push(newUnit);
+    return newUnit;
+  }
+
+  const created = createUnit({
+    code: 'DKV',
+    name: 'Program Keahlian Desain Komunikasi Visual',
+    category: 'Kejuruan',
+    picName: 'Bambang Pratama, S.Sn.',
+    nip: '198906152015021002',
+    email: 'dkv@smkn2magelang.sch.id',
+    phone: '081234567890',
+    statusJabatan: 'Definitif',
+    totalIndicators: 22
+  });
+
+  assert.equal(units.length, 1);
+  assert.equal(created.code, 'DKV');
+  assert.equal(created.picName, 'Bambang Pratama, S.Sn.');
+  assert.equal(created.nip, '198906152015021002');
+  assert.equal(created.statusJabatan, 'Definitif');
+});
+
+runTest('Super Admin dapat memperbarui data unit kerja (Update)', () => {
+  const unit = {
+    id: 'u-dkv-01',
+    code: 'DKV',
+    name: 'Program Keahlian DKV',
+    category: 'Kejuruan',
+    picName: 'Bambang Pratama, S.Sn.',
+    email: 'dkv@smkn2magelang.sch.id',
+    totalIndicators: 20
+  };
+
+  function updateUnit(target, updates) {
+    return Object.assign(target, updates);
+  }
+
+  const updated = updateUnit(unit, {
+    name: 'Program Keahlian Desain Komunikasi Visual (DKV Terakreditasi A)',
+    totalIndicators: 25
+  });
+
+  assert.equal(updated.name, 'Program Keahlian Desain Komunikasi Visual (DKV Terakreditasi A)');
+  assert.equal(updated.totalIndicators, 25);
+});
+
+runTest('Super Admin dapat mengubah Ka.Unit Kerja (Kepala Unit)', () => {
+  const unit = {
+    id: 'u-06',
+    code: 'PPLG',
+    name: '6. UNIT KEJURUAN PPLG',
+    picName: 'Arifin Andi Gunawan, S.Kom.',
+    nip: '198711052011011008',
+    email: 'arifin.andi.gunawan@smkn2magelang.sch.id',
+    phone: '081578904321',
+    statusJabatan: 'Definitif'
+  };
+
+  const auditLogs = [];
+
+  function changeKaUnit(target, data) {
+    const oldPic = target.picName;
+    target.picName = data.picName;
+    if (data.nip) target.nip = data.nip;
+    if (data.email) target.email = data.email;
+    if (data.phone) target.phone = data.phone;
+    if (data.statusJabatan) target.statusJabatan = data.statusJabatan;
+    if (data.skPenugasan) target.skPenugasan = data.skPenugasan;
+
+    auditLogs.push({
+      action: 'CHANGE_KA_UNIT',
+      details: `Super Admin menetapkan Ka.Unit baru "${target.name}": ${target.picName} (sebelumnya: ${oldPic})`
+    });
+
+    return target;
+  }
+
+  const updated = changeKaUnit(unit, {
+    picName: 'Rian Prasetyo, S.Kom., M.Cs.',
+    nip: '198805202014031003',
+    email: 'rian.prasetyo@smkn2magelang.sch.id',
+    statusJabatan: 'Plt',
+    skPenugasan: 'SK Kepala Sekolah No. 800/033/2026'
+  });
+
+  assert.equal(updated.picName, 'Rian Prasetyo, S.Kom., M.Cs.');
+  assert.equal(updated.nip, '198805202014031003');
+  assert.equal(updated.email, 'rian.prasetyo@smkn2magelang.sch.id');
+  assert.equal(updated.statusJabatan, 'Plt');
+  assert.equal(updated.skPenugasan, 'SK Kepala Sekolah No. 800/033/2026');
+  assert.equal(auditLogs.length, 1);
+  assert.ok(auditLogs[0].details.includes('Rian Prasetyo'));
+});
+
+runTest('Super Admin dapat menghapus unit kerja (Delete)', () => {
+  let units = [
+    { id: 'u-1', code: 'DKV', name: 'DKV' },
+    { id: 'u-2', code: 'ANIM', name: 'Animasi' }
+  ];
+
+  function deleteUnit(id) {
+    units = units.filter(u => u.id !== id);
+    return true;
+  }
+
+  deleteUnit('u-1');
+  assert.equal(units.length, 1);
+  assert.equal(units[0].code, 'ANIM');
+});
+
+// -------------------------------------------------------------
 // RINGKASAN HASIL TEST
 // -------------------------------------------------------------
 console.log('\n======================================================');

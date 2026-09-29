@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Lock, Mail, Eye, EyeOff, ArrowRight, AlertCircle, Building2, ShieldCheck, UserCheck } from 'lucide-react';
 import { INITIAL_USERS, INITIAL_UNITS, sintesaService } from '@/lib/services/sintesaDataService';
-import { UserRole, UserProfile } from '@/types/sintesa';
+import { UserRole, UserProfile, UnitKerja } from '@/types/sintesa';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +15,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState<'manual' | 'quick'>('quick');
+  const [availableUnits, setAvailableUnits] = useState<UnitKerja[]>([]);
+
+  useEffect(() => {
+    const loaded = sintesaService.getUnits().filter((u) => u.code !== 'KASEK' && u.code !== 'TPMPS');
+    setAvailableUnits(loaded.length > 0 ? loaded : INITIAL_UNITS.filter((u) => u.code !== 'KASEK' && u.code !== 'TPMPS'));
+  }, []);
 
   const handleQuickLogin = (userEmail: string) => {
     setEmail(userEmail);
@@ -70,9 +76,10 @@ export default function LoginPage() {
           unitName: '10. UNIT KERJA TPMPS'
         };
       }
-      // 4. Check in INITIAL_UNITS by code, email, or prefix
+      // 4. Check in dynamic units (sintesaService) by code, email, or prefix
       else {
-        const matchedUnit = INITIAL_UNITS.find((u) => {
+        const currentUnits = sintesaService.getUnits();
+        const matchedUnit = currentUnits.find((u) => {
           const codeMatch = cleanEmail === u.code.toLowerCase();
           const emailMatch = cleanEmail === u.email.toLowerCase();
           const emailPrefixMatch = cleanEmail === u.email.split('@')[0].toLowerCase();
@@ -83,13 +90,14 @@ export default function LoginPage() {
         if (matchedUnit) {
           authenticatedUser = {
             id: `usr-${matchedUnit.id}`,
-            nip: '198501012010011001',
+            nip: matchedUnit.nip || '198501012010011001',
             fullName: matchedUnit.picName,
             email: matchedUnit.email,
             role: 'guru',
             unitId: matchedUnit.id,
             unitName: matchedUnit.name,
             avatarUrl: '/avatar-guru.png',
+            phone: matchedUnit.phone,
             isActive: true,
             createdAt: new Date().toISOString()
           };
@@ -241,7 +249,7 @@ export default function LoginPage() {
                   Akun 16 Unit Kerja Pelaksana (WKS, 4 Kejuruan, & Unit Pendukung)
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-1">
-                  {INITIAL_UNITS.filter((u) => u.code !== 'KASEK' && u.code !== 'TPMPS').map((unit) => (
+                  {availableUnits.map((unit) => (
                     <button
                       key={unit.id}
                       type="button"
