@@ -5,13 +5,20 @@ export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   // Security Response Headers
+  const isDev = process.env.NODE_ENV !== 'production';
+  const cspHeader = [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ''}`.trim(),
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co"
+  ].join('; ');
+
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';"
-  );
+  response.headers.set('Content-Security-Policy', cspHeader);
   response.headers.set('Cache-Control', 'private, no-store');
 
   const pathname = request.nextUrl.pathname;
