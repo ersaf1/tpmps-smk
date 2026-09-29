@@ -1410,8 +1410,6 @@ class SintesaDataEngine {
       const savedUser = localStorage.getItem('sintesa_auth_user');
       if (savedUser) {
         this.activeUser = JSON.parse(savedUser);
-      } else {
-        this.activeUser = null;
       }
     } catch {
       this.evaluations = [...INITIAL_EVALUATIONS];
@@ -1451,7 +1449,7 @@ class SintesaDataEngine {
     return this.activeUser;
   }
 
-  public setActiveUser(user: UserProfile | null) {
+  public setActiveUser(user: UserProfile) {
     this.activeUser = user;
     this.persist('sintesa_auth_user', user);
     if (typeof window !== 'undefined') {
@@ -1473,7 +1471,7 @@ class SintesaDataEngine {
   }
 
   public logout() {
-    this.activeUser = null;
+    this.activeUser = INITIAL_USERS.tpmps;
     if (typeof window !== 'undefined') {
       localStorage.removeItem('sintesa_auth_user');
       document.cookie = 'sintesa_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; SameSite=Lax';
@@ -1861,12 +1859,11 @@ class SintesaDataEngine {
   }
 
   public addLog(action: string, entity: string, entityId: string, details: string) {
-    const user = this.getActiveUser();
     const newLog: ActivityLogItem = {
       id: `log-${Date.now()}`,
-      userId: user?.id || 'system',
-      userName: user?.fullName || 'Sistem Penjaminan Mutu',
-      roleName: (user?.role || 'admin').toUpperCase(),
+      userId: this.activeUser.id,
+      userName: this.activeUser.fullName,
+      roleName: this.activeUser.role.toUpperCase(),
       action,
       entity,
       entityId,
