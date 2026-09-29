@@ -1460,15 +1460,21 @@ class SintesaDataEngine {
         name: user.fullName,
         exp: Math.floor(Date.now() / 1000) + 86400
       };
-      const encoded = btoa(JSON.stringify(sessionPayload));
+      let encoded = '';
+      try {
+        encoded = btoa(unescape(encodeURIComponent(JSON.stringify(sessionPayload))));
+      } catch {
+        encoded = btoa(JSON.stringify(sessionPayload));
+      }
       document.cookie = `sintesa_session=${encoded}; path=/; max-age=86400; SameSite=Lax`;
     }
   }
 
   public logout() {
+    this.activeUser = INITIAL_USERS.tpmps;
     if (typeof window !== 'undefined') {
       localStorage.removeItem('sintesa_auth_user');
-      document.cookie = 'sintesa_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = 'sintesa_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; SameSite=Lax';
     }
   }
 

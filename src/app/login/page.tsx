@@ -26,7 +26,7 @@ export default function LoginPage() {
     setIsLoading(true);
     setErrorMessage(null);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const cleanEmail = targetEmail.trim().toLowerCase();
       let authenticatedUser: UserProfile | null = null;
 
@@ -102,10 +102,23 @@ export default function LoginPage() {
         return;
       }
 
+      try {
+        const { browserClient } = await import('@/lib/supabase/client');
+        const supabase = browserClient();
+        if (supabase) {
+          await supabase.auth.signInWithPassword({
+            email: authenticatedUser.email,
+            password: targetPass.trim()
+          });
+        }
+      } catch {
+        // Graceful fallback to client session
+      }
+
       sintesaService.setActiveUser(authenticatedUser);
       router.push('/dashboard');
       router.refresh();
-    }, 500);
+    }, 400);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
