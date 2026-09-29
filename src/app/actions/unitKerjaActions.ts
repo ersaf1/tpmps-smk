@@ -84,7 +84,7 @@ export async function updateUnitKerjaAction(
     } catch {
       // Fallback dev mode check
       const activeUser = sintesaService.getActiveUser();
-      userRole = activeUser.role;
+      userRole = activeUser?.role || '';
     }
 
     const ALLOWED_ROLES = ['admin', 'tpmps', 'kepala_sekolah'];

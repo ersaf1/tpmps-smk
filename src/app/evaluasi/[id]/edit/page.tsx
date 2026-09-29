@@ -57,8 +57,8 @@ export default function EditEvaluasiPage() {
         status,
         catatanUnit: catatanUnit.trim(),
         catatanReviewer: catatanReviewer.trim(),
-        reviewerName: currentUser.fullName,
-        reviewerId: currentUser.id,
+        reviewerName: currentUser?.fullName || 'Reviewer Mutu',
+        reviewerId: currentUser?.id || 'usr-reviewer',
         reviewedAt: new Date().toISOString()
       });
 

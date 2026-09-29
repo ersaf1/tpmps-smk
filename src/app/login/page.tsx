@@ -144,6 +144,7 @@ export default function LoginPage() {
                 height={56}
                 className="object-contain"
                 priority
+                unoptimized
               />
             </div>
 
@@ -346,10 +347,10 @@ export default function LoginPage() {
           )}
         </div>
 
-        {/* Security Footer */}
-        <div className="mt-6 text-center text-xs text-slate-500">
-          Dilindungi oleh <span className="text-[#0077B6] font-semibold">Supabase PostgreSQL RLS</span> &{' '}
-          <span className="text-slate-800 font-semibold">Audit Logging Mutu SMK Negeri 2 Magelang</span>
+        {/* Security Badge Footer */}
+        <div className="mt-6 flex items-center justify-center gap-2 text-[11px] text-slate-500">
+          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <span>Autentikasi Terenkripsi &bull; Supabase Auth &amp; PostgreSQL RLS</span>
         </div>
       </div>
     </div>

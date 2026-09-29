@@ -120,8 +120,8 @@ function UploadDokumenForm() {
         version,
         status: 'Menunggu Review',
         notes: notes.trim(),
-        uploadedBy: currentUser.id,
-        uploadedByName: currentUser.fullName
+        uploadedBy: currentUser?.id || 'usr-anon',
+        uploadedByName: currentUser?.fullName || 'Pengunggah Mutu'
       });
 
       showToast(`Berkas [${kategoriDokumen}] "${title}" berhasil diunggah ke repositori mutu!`, 'success');
