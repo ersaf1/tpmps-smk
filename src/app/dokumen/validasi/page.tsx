@@ -39,6 +39,7 @@ export default function DokumenValidasiPage() {
   const [units, setUnits] = useState<UnitKerja[]>([]);
   const [selectedUnit, setSelectedUnit] = useState<string>('ALL');
   const [selectedStandard, setSelectedStandard] = useState<string>('ALL');
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -89,6 +90,8 @@ export default function DokumenValidasiPage() {
     return documents.filter((doc) => {
       // Unit filter
       if (selectedUnit !== 'ALL' && doc.unitId !== selectedUnit) return false;
+      // Category / Penempatan filter
+      if (selectedCategory !== 'ALL' && doc.kategoriDokumen !== selectedCategory) return false;
       // Standard filter
       if (selectedStandard !== 'ALL' && doc.standardId.toString() !== selectedStandard) return false;
       // Status filter
@@ -104,7 +107,7 @@ export default function DokumenValidasiPage() {
       }
       return true;
     });
-  }, [documents, selectedUnit, selectedStandard, selectedStatus, searchQuery]);
+  }, [documents, selectedUnit, selectedCategory, selectedStandard, selectedStatus, searchQuery]);
 
   // Statistics
   const totalCount = documents.length;
@@ -233,7 +236,7 @@ export default function DokumenValidasiPage() {
                 onChange={(e) => setSelectedUnit(e.target.value)}
                 className="px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0077B6] focus:bg-white"
               >
-                <option value="ALL">Semua 15 Unit Kerja</option>
+                <option value="ALL">Semua {units.length} Unit Kerja</option>
                 {units.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.name}
@@ -243,7 +246,7 @@ export default function DokumenValidasiPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
             {/* Search Input */}
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -253,8 +256,7 @@ export default function DokumenValidasiPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0077B6]"
-              >
-              </input>
+              />
             </div>
 
             {/* Standard SNP Filter */}
@@ -270,6 +272,23 @@ export default function DokumenValidasiPage() {
                     {s.code}: {s.name}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            {/* Penempatan Dokumen Filter */}
+            <div>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0077B6]"
+              >
+                <option value="ALL">Semua Penempatan Dokumen</option>
+                <option value="MM">Level 1: Manual Mutu (MM)</option>
+                <option value="PM">Level 2: Prosedur Mutu (PM)</option>
+                <option value="PK">Level 3: Petunjuk Kerja (PK)</option>
+                <option value="CM">Level 4: Catatan Mutu (CM / F)</option>
+                <option value="LAINNYA">Dokumen Lainnya / Pendukung</option>
+                <option value="REKAP">Rekapitulasi Capaian Unit</option>
               </select>
             </div>
 
@@ -323,6 +342,35 @@ export default function DokumenValidasiPage() {
                       <span className="font-mono text-xs font-bold text-[#0077B6] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
                         {doc.code}
                       </span>
+                      {doc.kategoriDokumen && (
+                        <span
+                          className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                            doc.kategoriDokumen === 'MM'
+                              ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                              : doc.kategoriDokumen === 'PM'
+                              ? 'bg-blue-50 text-[#0077B6] border-blue-200'
+                              : doc.kategoriDokumen === 'PK'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : doc.kategoriDokumen === 'CM'
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : doc.kategoriDokumen === 'LAINNYA'
+                              ? 'bg-slate-100 text-slate-700 border-slate-300'
+                              : 'bg-purple-50 text-purple-700 border-purple-200'
+                          }`}
+                        >
+                          {doc.kategoriDokumen === 'MM'
+                            ? 'L1 • MM'
+                            : doc.kategoriDokumen === 'PM'
+                            ? 'L2 • PM'
+                            : doc.kategoriDokumen === 'PK'
+                            ? 'L3 • PK'
+                            : doc.kategoriDokumen === 'CM'
+                            ? 'L4 • CM(F)'
+                            : doc.kategoriDokumen === 'LAINNYA'
+                            ? 'LAIN • DOKUMEN LAIN'
+                            : 'REKAP'}
+                        </span>
+                      )}
                       <span className="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded-md">
                         {doc.unitName}
                       </span>
@@ -425,7 +473,14 @@ export default function DokumenValidasiPage() {
                       {/* Document Meta Info */}
                       <div className="space-y-4">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-mono font-bold text-[#0077B6]">{inspectDoc.code}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-[#0077B6]">{inspectDoc.code}</span>
+                            {inspectDoc.kategoriDokumen && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0077B6] border border-blue-200">
+                                {inspectDoc.kategoriDokumen === 'CM' ? 'Catatan Mutu (F)' : inspectDoc.kategoriDokumen === 'LAINNYA' ? 'Dokumen Lainnya' : inspectDoc.kategoriDokumen}
+                              </span>
+                            )}
+                          </div>
                           <span className="text-slate-400 font-mono">Versi {inspectDoc.version}</span>
                         </div>
 

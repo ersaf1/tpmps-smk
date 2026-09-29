@@ -58,7 +58,7 @@ export const ROLE_DEFINITIONS: Record<UserRole, RoleInfo> = {
 // 4 LEVEL DOKUMEN MUTU INTERNAL (MANUAL MUTU 2024)
 // MM -> PM -> PK -> F / CM (Catatan Mutu) + Rekapitulasi
 // ==========================================
-export type KategoriDokumenMutu = 'MM' | 'PM' | 'PK' | 'CM' | 'REKAP';
+export type KategoriDokumenMutu = 'MM' | 'PM' | 'PK' | 'CM' | 'REKAP' | 'LAINNYA';
 
 export interface KategoriDokumenInfo {
   code: KategoriDokumenMutu;
@@ -133,6 +133,18 @@ export const KATEGORI_DOKUMEN_MUTU: Record<KategoriDokumenMutu, KategoriDokumenI
     badgeBg: 'bg-purple-50',
     badgeBorder: 'border-purple-200',
     badgeText: 'text-purple-700'
+  },
+  LAINNYA: {
+    code: 'LAINNYA',
+    name: 'Dokumen Lainnya',
+    level: 'Lainnya',
+    alias: 'Dokumen Lainnya / Pendukung',
+    owner: 'UNIT',
+    ownerLabel: 'Unit Biasa / Kerja',
+    description: 'Dokumen pendukung, surat keputusan, portofolio tambahan, sertifikat, atau arsip spesifik unit lainnya.',
+    badgeBg: 'bg-slate-100',
+    badgeBorder: 'border-slate-300',
+    badgeText: 'text-slate-700'
   }
 };
 

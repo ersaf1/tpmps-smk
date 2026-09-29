@@ -7,7 +7,7 @@ import AppShell from '@/components/layout/AppShell';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/ToastFeedback';
 import { sintesaService, INITIAL_UNITS, INITIAL_STANDARDS } from '@/lib/services/sintesaDataService';
-import { BuktiDokumen, UnitKerja, StatusDokumen, UserProfile } from '@/types/sintesa';
+import { BuktiDokumen, UnitKerja, StatusDokumen, UserProfile, KategoriDokumenMutu, KATEGORI_DOKUMEN_MUTU } from '@/types/sintesa';
 import {
   Search,
   Folder,
@@ -64,6 +64,7 @@ export default function GoogleDriveUnitPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'pdf' | 'excel' | 'word' | 'image'>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
+  const [filterCategory, setFilterCategory] = useState<string>('ALL');
   const [activeTab, setActiveTab] = useState<'all' | 'starred' | 'recent' | 'verified'>('all');
 
   // Documents State
@@ -86,6 +87,7 @@ export default function GoogleDriveUnitPage() {
   const [uploadStandardId, setUploadStandardId] = useState<number>(2);
   const [uploadFolder, setUploadFolder] = useState<string>('02. Standar Isi & Kurikulum');
   const [uploadFileType, setUploadFileType] = useState<'pdf' | 'excel' | 'word' | 'image'>('pdf');
+  const [uploadKategori, setUploadKategori] = useState<KategoriDokumenMutu>('CM');
   const [uploadNotes, setUploadNotes] = useState('');
   const [uploadFileName, setUploadFileName] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -115,6 +117,67 @@ export default function GoogleDriveUnitPage() {
     return units.find((u) => u.id === selectedUnitId) || units[0] || INITIAL_UNITS[0];
   }, [units, selectedUnitId]);
 
+  const isTPMPSUnit = useMemo(() => {
+    return (
+      activeUnit?.code === 'TPMPS' ||
+      activeUnit?.id === 'u-10' ||
+      currentUser?.role === 'admin' ||
+      currentUser?.role === 'tpmps'
+    );
+  }, [activeUnit, currentUser]);
+
+  const availableCategoriesForUnit = useMemo(() => {
+    if (isTPMPSUnit) {
+      return [
+        { value: 'ALL', label: 'Semua Penempatan Dokumen' },
+        { value: 'MM', label: 'Level 1: Manual Mutu (MM)' },
+        { value: 'PM', label: 'Level 2: Prosedur Mutu (PM)' },
+        { value: 'PK', label: 'Level 3: Petunjuk Kerja (PK)' },
+        { value: 'CM', label: 'Level 4: Catatan Mutu (CM / F)' },
+        { value: 'LAINNYA', label: 'Dokumen Lainnya / Pendukung' },
+        { value: 'REKAP', label: 'Rekapitulasi Capaian Unit' }
+      ];
+    }
+    return [
+      { value: 'ALL', label: 'Semua Penempatan Unit' },
+      { value: 'PK', label: 'Petunjuk Kerja (PK)' },
+      { value: 'CM', label: 'Catatan Mutu / Bukti Fisik (F)' },
+      { value: 'LAINNYA', label: 'Dokumen Lainnya / Pendukung' },
+      { value: 'REKAP', label: 'Rekapitulasi Unit' }
+    ];
+  }, [isTPMPSUnit]);
+
+  const uploadCategoryOptions = useMemo(() => {
+    if (isTPMPSUnit) {
+      return [
+        { value: 'MM' as KategoriDokumenMutu, label: 'Level 1: Manual Mutu (MM)', desc: 'Kebijakan utama SPMI sekolah (TPMPS)' },
+        { value: 'PM' as KategoriDokumenMutu, label: 'Level 2: Prosedur Mutu (PM)', desc: 'SOP & mekanisme pelaksanaan (TPMPS)' },
+        { value: 'PK' as KategoriDokumenMutu, label: 'Level 3: Petunjuk Kerja (PK)', desc: 'Petunjuk teknis operasional kegiatan' },
+        { value: 'CM' as KategoriDokumenMutu, label: 'Level 4: Catatan Mutu / Formulir (F)', desc: 'Bukti fisik rekaman mutu unit' },
+        { value: 'LAINNYA' as KategoriDokumenMutu, label: 'Dokumen Lainnya / Pendukung', desc: 'SK unit, sertifikat, portofolio & lampiran' },
+        { value: 'REKAP' as KategoriDokumenMutu, label: 'Rekapitulasi Capaian Unit', desc: 'Laporan ringkasan & capaian berkala' }
+      ];
+    }
+    return [
+      { value: 'PK' as KategoriDokumenMutu, label: 'Level 3: Petunjuk Kerja (PK)', desc: 'Petunjuk teknis operasional pelaksanaan unit' },
+      { value: 'CM' as KategoriDokumenMutu, label: 'Level 4: Catatan Mutu / Formulir (F)', desc: 'Formulir bukti fisik rekaman pelaksanaan mutu' },
+      { value: 'LAINNYA' as KategoriDokumenMutu, label: 'Dokumen Lainnya / Pendukung', desc: 'SK unit, portofolio kerja, arsip & dokumen lain' },
+      { value: 'REKAP' as KategoriDokumenMutu, label: 'Rekapitulasi Capaian Unit', desc: 'Laporan ringkasan capaian mutu unit' }
+    ];
+  }, [isTPMPSUnit]);
+
+  // Reset category filter and upload category if switching to regular unit
+  useEffect(() => {
+    if (!isTPMPSUnit) {
+      if (filterCategory === 'MM' || filterCategory === 'PM') {
+        setFilterCategory('ALL');
+      }
+      if (uploadKategori === 'MM' || uploadKategori === 'PM') {
+        setUploadKategori('CM');
+      }
+    }
+  }, [isTPMPSUnit, filterCategory, uploadKategori]);
+
   // Combined Folders for this unit
   const unitFolders = useMemo(() => {
     const custom = customFolders[selectedUnitId] || [];
@@ -141,7 +204,8 @@ export default function GoogleDriveUnitPage() {
         const matchTitle = doc.title.toLowerCase().includes(q);
         const matchCode = doc.code.toLowerCase().includes(q);
         const matchFolder = doc.folder?.toLowerCase().includes(q);
-        if (!matchTitle && !matchCode && !matchFolder) return false;
+        const matchCat = doc.kategoriDokumen?.toLowerCase().includes(q);
+        if (!matchTitle && !matchCode && !matchFolder && !matchCat) return false;
       }
 
       // Type filter
@@ -150,9 +214,12 @@ export default function GoogleDriveUnitPage() {
       // Status filter
       if (filterStatus !== 'ALL' && doc.status !== filterStatus) return false;
 
+      // Category / Penempatan filter
+      if (filterCategory !== 'ALL' && doc.kategoriDokumen !== filterCategory) return false;
+
       return true;
     });
-  }, [unitDocuments, currentFolder, searchQuery, filterType, filterStatus, activeTab]);
+  }, [unitDocuments, currentFolder, searchQuery, filterType, filterStatus, filterCategory, activeTab]);
 
   // Folder Counts
   const folderCounts = useMemo(() => {
@@ -230,7 +297,8 @@ export default function GoogleDriveUnitPage() {
 
         const standard = INITIAL_STANDARDS.find((s) => s.id === uploadStandardId);
         const fileName = uploadFileName.trim() || `${uploadTitle.replace(/\s+/g, '_')}.${uploadFileType === 'excel' ? 'xlsx' : uploadFileType === 'word' ? 'docx' : uploadFileType === 'image' ? 'jpg' : 'pdf'}`;
-        const newCode = `DOC-${activeUnit.code}-${Date.now().toString().slice(-4)}`;
+        const prefix = uploadKategori === 'CM' ? 'F' : (uploadKategori === 'LAINNYA' ? 'DOK' : uploadKategori);
+        const newCode = `DOC-${prefix}-${activeUnit.code}-${Date.now().toString().slice(-4)}`;
 
         const newDoc = sintesaService.createDocument({
           code: newCode,
@@ -239,6 +307,7 @@ export default function GoogleDriveUnitPage() {
           fileUrl: `/storage/documents/${fileName}`,
           fileSize: `${(Math.random() * 5 + 1.2).toFixed(1)} MB`,
           fileType: uploadFileType,
+          kategoriDokumen: uploadKategori,
           standardId: uploadStandardId,
           standardName: standard?.name || 'Standar Nasional Pendidikan',
           unitId: activeUnit.id,
@@ -260,7 +329,7 @@ export default function GoogleDriveUnitPage() {
         setUploadFileName('');
         setDocuments(sintesaService.getDocuments());
         setSelectedDoc(newDoc);
-        showToast(`Dokumen "${newDoc.title}" berhasil diunggah ke Google Drive ${activeUnit.name}!`, 'success');
+        showToast(`Dokumen [${uploadKategori === 'CM' ? 'CM (F)' : uploadKategori}] "${newDoc.title}" berhasil diunggah ke Google Drive ${activeUnit.name}!`, 'success');
       }, 400);
     }, 400);
   };
@@ -631,8 +700,21 @@ export default function GoogleDriveUnitPage() {
                 )}
               </nav>
 
-              {/* Status Filter */}
-              <div className="flex items-center gap-2">
+              {/* Filter Penempatan & Status */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <select
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-hidden focus:border-[#0077B6]"
+                  title="Filter Penempatan Dokumen Mutu"
+                >
+                  {availableCategoriesForUnit.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
@@ -835,8 +917,29 @@ export default function GoogleDriveUnitPage() {
                         </div>
 
                         {/* Title & Code */}
-                        <div className="text-[10px] font-mono font-bold text-[#0077B6]">
-                          {doc.code}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] font-mono font-bold text-[#0077B6]">
+                            {doc.code}
+                          </span>
+                          {doc.kategoriDokumen && (
+                            <span
+                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border ${
+                                doc.kategoriDokumen === 'MM'
+                                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                  : doc.kategoriDokumen === 'PM'
+                                  ? 'bg-blue-50 text-[#0077B6] border-blue-200'
+                                  : doc.kategoriDokumen === 'PK'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : doc.kategoriDokumen === 'CM'
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                  : doc.kategoriDokumen === 'LAINNYA'
+                                  ? 'bg-slate-100 text-slate-700 border-slate-300'
+                                  : 'bg-purple-50 text-purple-700 border-purple-200'
+                              }`}
+                            >
+                              {doc.kategoriDokumen === 'CM' ? 'CM (F)' : doc.kategoriDokumen === 'LAINNYA' ? 'LAINNYA' : doc.kategoriDokumen}
+                            </span>
+                          )}
                         </div>
                         <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-2 mt-1 leading-snug group-hover:text-[#0077B6] transition-colors">
                           {doc.title}
@@ -913,8 +1016,28 @@ export default function GoogleDriveUnitPage() {
                                   <div className="font-bold text-slate-900 truncate max-w-xs sm:max-w-sm">
                                     {doc.title}
                                   </div>
-                                  <div className="text-[10px] font-mono text-[#0077B6]">
-                                    {doc.code} &bull; {doc.fileName}
+                                  <div className="text-[10px] font-mono text-[#0077B6] flex items-center gap-1.5 flex-wrap mt-0.5">
+                                    <span>{doc.code}</span>
+                                    {doc.kategoriDokumen && (
+                                      <span
+                                        className={`text-[9px] font-sans font-bold px-1.5 py-0.2 rounded-md border ${
+                                          doc.kategoriDokumen === 'MM'
+                                            ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                            : doc.kategoriDokumen === 'PM'
+                                            ? 'bg-blue-50 text-[#0077B6] border-blue-200'
+                                            : doc.kategoriDokumen === 'PK'
+                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                            : doc.kategoriDokumen === 'CM'
+                                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                            : doc.kategoriDokumen === 'LAINNYA'
+                                            ? 'bg-slate-100 text-slate-700 border-slate-300'
+                                            : 'bg-purple-50 text-purple-700 border-purple-200'
+                                        }`}
+                                      >
+                                        {doc.kategoriDokumen === 'CM' ? 'CM (F)' : doc.kategoriDokumen === 'LAINNYA' ? 'LAINNYA' : doc.kategoriDokumen}
+                                      </span>
+                                    )}
+                                    <span>&bull; {doc.fileName}</span>
                                   </div>
                                 </div>
                               </div>
@@ -1032,6 +1155,19 @@ export default function GoogleDriveUnitPage() {
                     <div className="flex justify-between pt-2">
                       <span className="text-slate-500">Kode Bukti:</span>
                       <span className="font-mono font-bold text-slate-900">{selectedDoc.code}</span>
+                    </div>
+
+                    <div className="flex justify-between pt-2">
+                      <span className="text-slate-500">Penempatan Mutu:</span>
+                      <span className="font-semibold text-slate-900 text-right">
+                        {selectedDoc.kategoriDokumen
+                          ? selectedDoc.kategoriDokumen === 'CM'
+                            ? 'Catatan Mutu (F)'
+                            : selectedDoc.kategoriDokumen === 'LAINNYA'
+                            ? 'Dokumen Lainnya'
+                            : selectedDoc.kategoriDokumen
+                          : 'Dokumen Unit'}
+                      </span>
                     </div>
 
                     <div className="flex justify-between pt-2">
@@ -1181,6 +1317,42 @@ export default function GoogleDriveUnitPage() {
                   placeholder="Contoh: Laporan Penyelarasan Kurikulum dengan IDUKA 2025"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
                 />
+              </div>
+
+              {/* Penempatan Dokumen Mutu Sesuai Unit */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5 flex items-center justify-between">
+                  <span>Penempatan Dokumen Mutu *</span>
+                  <span className="text-[10px] text-slate-500 font-medium">
+                    {isTPMPSUnit ? 'Wewenang Penuh TPMPS' : 'Penempatan Khusus Unit Kerja'}
+                  </span>
+                </label>
+                <div className={`grid grid-cols-1 ${uploadCategoryOptions.length > 4 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-2`}>
+                  {uploadCategoryOptions.map((opt) => {
+                    const isSelected = uploadKategori === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setUploadKategori(opt.value)}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-[#0077B6] bg-sky-50/80 ring-1 ring-sky-500/30'
+                            : 'border-slate-200 bg-slate-50/60 hover:bg-white text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-xs font-bold text-[#0077B6]">
+                            {opt.value === 'CM' ? 'CM (F)' : opt.value}
+                          </span>
+                          {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-[#0077B6]" />}
+                        </div>
+                        <div className="text-xs font-semibold text-slate-900 mt-0.5">{opt.label}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">{opt.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

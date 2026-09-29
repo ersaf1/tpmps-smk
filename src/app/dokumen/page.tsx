@@ -162,7 +162,7 @@ export default function DokumenListPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-xs">
           <button
             type="button"
             onClick={() => setSelectedCategory('ALL')}
@@ -247,6 +247,23 @@ export default function DokumenListPage() {
 
           <button
             type="button"
+            onClick={() => setSelectedCategory('LAINNYA')}
+            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+              selectedCategory === 'LAINNYA'
+                ? 'border-slate-700 bg-slate-100 ring-2 ring-slate-400/20 shadow-xs'
+                : 'border-slate-200 bg-slate-50 hover:bg-white'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono font-black text-slate-700">LAIN</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-bold">Lainnya</span>
+            </div>
+            <div className="font-bold text-slate-900 mt-0.5">Dokumen Lainnya</div>
+            <p className="text-[10px] text-slate-500 mt-0.5">Pendukung / SK Unit</p>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setSelectedCategory('REKAP')}
             className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
               selectedCategory === 'REKAP'
@@ -267,7 +284,7 @@ export default function DokumenListPage() {
       {/* Filter & Search */}
       <div className="bg-white rounded-3xl p-5 mb-6 border border-slate-200 shadow-xs">
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
-          <div className="sm:col-span-6 relative">
+          <div className="sm:col-span-5 relative">
             <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
               Cari Berkas Bukti
             </label>
@@ -287,6 +304,23 @@ export default function DokumenListPage() {
 
           <div className="sm:col-span-3">
             <CustomDropdown
+              label="Penempatan Dokumen"
+              value={selectedCategory}
+              onChange={setSelectedCategory}
+              options={[
+                { value: 'ALL', label: 'Semua Penempatan Dokumen' },
+                { value: 'MM', label: 'Manual Mutu (MM - Level 1)' },
+                { value: 'PM', label: 'Prosedur Mutu (PM - Level 2)' },
+                { value: 'PK', label: 'Petunjuk Kerja (PK - Level 3)' },
+                { value: 'CM', label: 'Catatan Mutu (CM / F - Level 4)' },
+                { value: 'LAINNYA', label: 'Dokumen Lainnya / Pendukung' },
+                { value: 'REKAP', label: 'Rekapitulasi Capaian Unit' }
+              ]}
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <CustomDropdown
               label="Status Validasi"
               value={selectedStatus}
               onChange={setSelectedStatus}
@@ -300,7 +334,7 @@ export default function DokumenListPage() {
             />
           </div>
 
-          <div className="sm:col-span-3">
+          <div className="sm:col-span-2">
             <CustomDropdown
               label="Format Berkas"
               value={selectedType}
@@ -358,6 +392,8 @@ export default function DokumenListPage() {
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           : doc.kategoriDokumen === 'CM'
                           ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : doc.kategoriDokumen === 'LAINNYA'
+                          ? 'bg-slate-100 text-slate-700 border-slate-300'
                           : 'bg-purple-50 text-purple-700 border-purple-200'
                       }`}
                     >
@@ -369,6 +405,8 @@ export default function DokumenListPage() {
                         ? 'L3 • PK'
                         : doc.kategoriDokumen === 'CM'
                         ? 'L4 • CM (F)'
+                        : doc.kategoriDokumen === 'LAINNYA'
+                        ? 'LAIN • LAINNYA'
                         : 'REKAP'}
                     </span>
                   )}

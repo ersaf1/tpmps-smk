@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import AppShell from '@/components/layout/AppShell';
@@ -30,17 +30,96 @@ function UploadDokumenForm() {
   const [fileName, setFileName] = useState('');
   const [fileSize, setFileSize] = useState('2.4 MB');
   const [fileType, setFileType] = useState<'pdf' | 'excel' | 'word' | 'image'>('pdf');
-  const [kategoriDokumen, setKategoriDokumen] = useState<KategoriDokumenMutu>(isTPMPS ? 'MM' : 'CM');
+  const [allUnits, setAllUnits] = useState(() => sintesaService.getUnits());
   const [unitId, setUnitId] = useState(() => {
     const user = sintesaService.getActiveUser();
-    return user.unitId && INITIAL_UNITS.some((u) => u.id === user.unitId) ? user.unitId : INITIAL_UNITS[0].id;
+    const currentUnits = sintesaService.getUnits();
+    return user.unitId && currentUnits.some((u) => u.id === user.unitId) ? user.unitId : (currentUnits[0]?.id || 'u-01');
   });
-  const [standardId, setStandardId] = useState(prefillStandardId || INITIAL_STANDARDS[0].id.toString());
+  const [standardId, setStandardId] = useState(prefillStandardId || '2');
   const [version, setVersion] = useState('v1.0');
   const [notes, setNotes] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
-  const unitOptions = INITIAL_UNITS.map((u) => ({
+  const selectedUnitObj = useMemo(() => {
+    return allUnits.find((u) => u.id === unitId);
+  }, [allUnits, unitId]);
+
+  const isSelectedUnitTPMPS = useMemo(() => {
+    return selectedUnitObj?.code === 'TPMPS' || selectedUnitObj?.id === 'u-10' || isTPMPS;
+  }, [selectedUnitObj, isTPMPS]);
+
+  const [kategoriDokumen, setKategoriDokumen] = useState<KategoriDokumenMutu>(isTPMPS ? 'MM' : 'CM');
+
+  useEffect(() => {
+    setAllUnits(sintesaService.getUnits());
+  }, []);
+
+  useEffect(() => {
+    if (!isSelectedUnitTPMPS && (kategoriDokumen === 'MM' || kategoriDokumen === 'PM')) {
+      setKategoriDokumen('CM');
+    }
+  }, [isSelectedUnitTPMPS, kategoriDokumen]);
+
+  const availableCategories = useMemo(() => {
+    const list = [
+      {
+        key: 'MM' as KategoriDokumenMutu,
+        level: 'Level 1',
+        title: 'Manual Mutu (MM)',
+        owner: 'Ketua TPMPS',
+        desc: 'Dokumen utama sistem manajemen mutu sekolah',
+        isTPMPSOnly: true
+      },
+      {
+        key: 'PM' as KategoriDokumenMutu,
+        level: 'Level 2',
+        title: 'Prosedur Mutu (PM)',
+        owner: 'Ketua TPMPS',
+        desc: 'SOP & prosedur tata cara proses mutu',
+        isTPMPSOnly: true
+      },
+      {
+        key: 'PK' as KategoriDokumenMutu,
+        level: 'Level 3',
+        title: 'Petunjuk Kerja (PK)',
+        owner: 'Unit Kerja',
+        desc: 'Instruksi & langkah kerja teknis pelaksanaan unit',
+        isTPMPSOnly: false
+      },
+      {
+        key: 'CM' as KategoriDokumenMutu,
+        level: 'Level 4',
+        title: 'Catatan Mutu (F)',
+        owner: 'Unit Kerja',
+        desc: 'Formulir bukti & rekaman pelaksanaan mutu',
+        isTPMPSOnly: false
+      },
+      {
+        key: 'LAINNYA' as KategoriDokumenMutu,
+        level: 'Lainnya',
+        title: 'Dokumen Lainnya',
+        owner: 'Unit Kerja',
+        desc: 'Dokumen pendukung, SK, sertifikat, atau portofolio',
+        isTPMPSOnly: false
+      },
+      {
+        key: 'REKAP' as KategoriDokumenMutu,
+        level: 'Laporan',
+        title: 'Rekapitulasi Unit',
+        owner: 'Unit Kerja',
+        desc: 'Rekap capaian & laporan mutu unit kerja',
+        isTPMPSOnly: false
+      }
+    ];
+
+    if (!isSelectedUnitTPMPS) {
+      return list.filter((c) => !c.isTPMPSOnly);
+    }
+    return list;
+  }, [isSelectedUnitTPMPS]);
+
+  const unitOptions = allUnits.map((u) => ({
     value: u.id,
     label: `${u.code} - ${u.name}`,
     badge: u.category
@@ -93,15 +172,16 @@ function UploadDokumenForm() {
     }
 
     // Role check for MM / PM
-    if ((kategoriDokumen === 'MM' || kategoriDokumen === 'PM') && !isTPMPS) {
+    if ((kategoriDokumen === 'MM' || kategoriDokumen === 'PM') && !isSelectedUnitTPMPS) {
       showToast('Peringatan: Dokumen MM dan PM merupakan wewenang Ketua TPMPS.', 'warning');
+      return;
     }
 
     setIsUploading(true);
-    const selectedUnit = INITIAL_UNITS.find((u) => u.id === unitId);
+    const selectedUnit = allUnits.find((u) => u.id === unitId) || INITIAL_UNITS.find((u) => u.id === unitId);
     const selectedStandard = INITIAL_STANDARDS.find((s) => s.id.toString() === standardId);
 
-    const prefix = kategoriDokumen === 'CM' ? 'F' : kategoriDokumen;
+    const prefix = kategoriDokumen === 'CM' ? 'F' : (kategoriDokumen === 'LAINNYA' ? 'DOK' : kategoriDokumen);
     const code = `DOC-${prefix}-${selectedStandard?.code.replace('SNP-', '') || 'MUT'}-${Math.floor(100 + Math.random() * 900)}`;
 
     setTimeout(() => {
@@ -188,56 +268,17 @@ function UploadDokumenForm() {
         <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-              Kategori Dokumen Internal SPMI (Manual Mutu 2024)
+              Kategori Penempatan Dokumen Mutu {selectedUnitObj ? `(${selectedUnitObj.name})` : ''}
             </label>
             <span className="text-[10px] font-semibold text-slate-500">
-              MM &rarr; PM &rarr; PK &rarr; F (Catatan Mutu) &rarr; Rekapitulasi
+              {isSelectedUnitTPMPS
+                ? 'MM → PM → PK → CM (F) → Dokumen Lainnya → Rekap'
+                : 'Unit Pelaksana: PK → CM (F) → Dokumen Lainnya → Rekap'}
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-            {[
-              {
-                key: 'MM' as KategoriDokumenMutu,
-                level: 'Level 1',
-                title: 'Manual Mutu (MM)',
-                owner: 'Ketua TPMPS',
-                desc: 'Dokumen utama sistem manajemen mutu sekolah',
-                isRestricted: !isTPMPS
-              },
-              {
-                key: 'PM' as KategoriDokumenMutu,
-                level: 'Level 2',
-                title: 'Prosedur Mutu (PM)',
-                owner: 'Ketua TPMPS',
-                desc: 'SOP & prosedur tata cara proses mutu',
-                isRestricted: !isTPMPS
-              },
-              {
-                key: 'PK' as KategoriDokumenMutu,
-                level: 'Level 3',
-                title: 'Petunjuk Kerja (PK)',
-                owner: 'Unit Kerja',
-                desc: 'Instruksi & langkah teknis pelaksanaan unit',
-                isRestricted: false
-              },
-              {
-                key: 'CM' as KategoriDokumenMutu,
-                level: 'Level 4',
-                title: 'Catatan Mutu (F)',
-                owner: 'Unit Kerja',
-                desc: 'Formulir bukti & rekaman pelaksanaan mutu',
-                isRestricted: false
-              },
-              {
-                key: 'REKAP' as KategoriDokumenMutu,
-                level: 'Laporan',
-                title: 'Rekapitulasi Unit',
-                owner: 'Unit Kerja',
-                desc: 'Rekap capaian & laporan mutu unit kerja',
-                isRestricted: false
-              }
-            ].map((cat) => {
+          <div className={`grid grid-cols-1 ${isSelectedUnitTPMPS ? 'sm:grid-cols-3 md:grid-cols-6' : 'sm:grid-cols-2 md:grid-cols-4'} gap-2.5`}>
+            {availableCategories.map((cat) => {
               const isSelected = kategoriDokumen === cat.key;
               return (
                 <button
@@ -251,28 +292,26 @@ function UploadDokumenForm() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono text-xs font-black text-[#0077B6]">{cat.key === 'CM' ? 'CM (F)' : cat.key}</span>
+                    <span className="font-mono text-xs font-black text-[#0077B6]">
+                      {cat.key === 'CM' ? 'CM (F)' : cat.key === 'LAINNYA' ? 'LAINNYA' : cat.key}
+                    </span>
                     <span className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-slate-100 text-slate-600">
                       {cat.level}
                     </span>
                   </div>
                   <div className="text-xs font-bold text-slate-900 leading-tight">{cat.title}</div>
                   <div className="text-[10px] font-semibold text-slate-500 mt-1">{cat.owner}</div>
-                  {cat.isRestricted && (
-                    <span className="text-[9px] text-amber-600 font-bold block mt-1">
-                      (Wewenang TPMPS)
-                    </span>
-                  )}
+                  <p className="text-[10px] text-slate-400 mt-1 line-clamp-2">{cat.desc}</p>
                 </button>
               );
             })}
           </div>
 
-          {!isTPMPS && (kategoriDokumen === 'MM' || kategoriDokumen === 'PM') && (
-            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+          {!isSelectedUnitTPMPS && (
+            <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200 text-blue-800 text-[11px] flex items-center gap-2">
+              <Info className="w-4 h-4 shrink-0 text-[#0077B6]" />
               <span>
-                <strong>Catatan Wewenang:</strong> Kategori <strong>{kategoriDokumen}</strong> adalah dokumen Level 1 & 2 yang disahkan oleh Ketua TPMPS. Akun unit kerja umumnya mengunggah <strong>PK (Petunjuk Kerja)</strong>, <strong>Catatan Mutu (F)</strong>, atau <strong>Rekapitulasi</strong>.
+                <strong>Penempatan Khusus Unit Kerja:</strong> Unit pelaksana mengelola <strong>PK (Petunjuk Kerja)</strong>, <strong>CM (Catatan Mutu / Bukti Fisik)</strong>, <strong>Dokumen Lainnya</strong>, atau <strong>Rekapitulasi Unit</strong>. Dokumen Level 1 (MM) & Level 2 (PM) khusus dikelola oleh Tim TPMPS.
               </span>
             </div>
           )}
