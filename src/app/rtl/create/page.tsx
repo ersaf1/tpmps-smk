@@ -13,7 +13,10 @@ import { ArrowLeft, Save, Target } from 'lucide-react';
 export default function CreateRtlPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const [currentUser, setCurrentUser] = useState(() => sintesaService.getActiveUser());
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isKasek = currentUser?.role === 'kepala_sekolah';
 
   // Form states
   const [programName, setProgramName] = useState('');
@@ -37,6 +40,11 @@ export default function CreateRtlPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isKasek) {
+      showToast('Wewenang Kepala Sekolah dibatasi untuk pembuatan periode mutu dan audit folder unit.', 'warning');
+      router.push('/drive');
+      return;
+    }
     if (!programName.trim()) {
       showToast('Harap isi nama program RTL.', 'warning');
       return;
@@ -215,14 +223,31 @@ export default function CreateRtlPage() {
                 Batal
               </Link>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full sm:w-auto btn-enterprise px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 transition-all"
-              >
-                <Save className="w-4 h-4" />
-                <span>{isSubmitting ? 'Menyimpan...' : 'Simpan Program RTL'}</span>
-              </button>
+              {isKasek ? (
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/drive"
+                    className="btn-enterprise px-5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-xs sm:text-sm font-bold text-[#0077B6] flex items-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <span>Cek Folder Tiap Unit</span>
+                  </Link>
+                  <Link
+                    href="/periode"
+                    className="btn-enterprise px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold shadow-md shadow-amber-500/20 flex items-center gap-2 cursor-pointer transition-all"
+                  >
+                    <span>Kelola Periode (Kasek)</span>
+                  </Link>
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full sm:w-auto btn-enterprise px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 transition-all"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{isSubmitting ? 'Menyimpan...' : 'Simpan Program RTL'}</span>
+                </button>
+              )}
             </div>
           </form>
         </div>

@@ -38,7 +38,9 @@ import {
   Sparkles,
   Eye,
   X,
-  FileCheck
+  FileCheck,
+  ShieldCheck,
+  Calendar
 } from 'lucide-react';
 
 const DEFAULT_FOLDERS = [
@@ -59,6 +61,7 @@ export default function GoogleDriveUnitPage() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => sintesaService.getActiveUser());
   const [units, setUnits] = useState<UnitKerja[]>(() => sintesaService.getUnits());
   const [selectedUnitId, setSelectedUnitId] = useState<string>('u-01');
+  const [isViewingAllUnits, setIsViewingAllUnits] = useState<boolean>(() => currentUser?.role === 'kepala_sekolah');
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
@@ -104,6 +107,9 @@ export default function GoogleDriveUnitPage() {
     // If logged-in user is a unit (role === 'guru') and has unitId, default to their unit
     if (user && user.unitId && user.role === 'guru') {
       setSelectedUnitId(user.unitId);
+      setIsViewingAllUnits(false);
+    } else if (user && user.role === 'kepala_sekolah') {
+      setIsViewingAllUnits(true);
     } else if (loadedUnits.length > 0 && !loadedUnits.find((u) => u.id === selectedUnitId)) {
       setSelectedUnitId(loadedUnits[0].id);
     }
@@ -112,6 +118,10 @@ export default function GoogleDriveUnitPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const isKasek = useMemo(() => {
+    return currentUser?.role === 'kepala_sekolah';
+  }, [currentUser]);
 
   const activeUnit = useMemo(() => {
     return units.find((u) => u.id === selectedUnitId) || units[0] || INITIAL_UNITS[0];
@@ -417,27 +427,31 @@ export default function GoogleDriveUnitPage() {
 
           {/* Right: Actions (+ Baru, Grid/List, Info) */}
           <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => {
-                setUploadFolder(currentFolder || '02. Standar Isi & Kurikulum');
-                setIsUploadOpen(true);
-              }}
-              className="btn-enterprise px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center gap-2 cursor-pointer transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              <span>+ Baru</span>
-            </button>
+            {!isKasek && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadFolder(currentFolder || '02. Standar Isi & Kurikulum');
+                    setIsUploadOpen(true);
+                  }}
+                  className="btn-enterprise px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center gap-2 cursor-pointer transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Baru</span>
+                </button>
 
-            <button
-              type="button"
-              onClick={() => setIsNewFolderOpen(true)}
-              className="btn-enterprise px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-2 cursor-pointer shadow-2xs transition-colors"
-              title="Buat Folder Baru"
-            >
-              <FolderPlus className="w-4 h-4 text-[#0077B6]" />
-              <span className="hidden sm:inline">Folder Baru</span>
-            </button>
+                <button
+                  type="button"
+                  onClick={() => setIsNewFolderOpen(true)}
+                  className="btn-enterprise px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-2 cursor-pointer shadow-2xs transition-colors"
+                  title="Buat Folder Baru"
+                >
+                  <FolderPlus className="w-4 h-4 text-[#0077B6]" />
+                  <span className="hidden sm:inline">Folder Baru</span>
+                </button>
+              </>
+            )}
 
             {/* View Mode Switch */}
             <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
@@ -485,6 +499,41 @@ export default function GoogleDriveUnitPage() {
       </div>
 
       {/* -------------------------------------------------------------
+          KEPALA SEKOLAH AUDIT MODE BANNER
+      ------------------------------------------------------------- */}
+      {isKasek && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50/80 border border-amber-300 rounded-3xl p-5 mb-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-700 shrink-0">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm sm:text-base font-bold text-amber-950">
+                  Mode Pemeriksaan Kepala Sekolah (Read-Only)
+                </h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900 border border-amber-300 font-mono">
+                  Executive Audit
+                </span>
+              </div>
+              <p className="text-xs text-amber-800 mt-1 max-w-2xl leading-relaxed">
+                Sebagai Kepala Sekolah, Anda berwenang memeriksa seluruh folder dan berkas dari 18 unit kerja sekolah. Wewenang membuat periode dapat diakses di menu Periode SPMI.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/periode"
+              className="btn-enterprise px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs flex items-center gap-2 transition-colors"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Buat / Kelola Periode SPMI &rarr;</span>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* -------------------------------------------------------------
           MAIN 2-COLUMN LAYOUT: Left Unit Switcher & Right Drive Explorer
       ------------------------------------------------------------- */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -505,19 +554,48 @@ export default function GoogleDriveUnitPage() {
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
                   {units.length} Unit
                 </span>
-                <Link
-                  href="/unit"
-                  className="text-[10px] font-bold text-[#0077B6] hover:underline"
-                >
-                  Kelola &rarr;
-                </Link>
+                {!isKasek && (
+                  <Link
+                    href="/unit"
+                    className="text-[10px] font-bold text-[#0077B6] hover:underline"
+                  >
+                    Kelola &rarr;
+                  </Link>
+                )}
               </div>
             </div>
 
-            {/* Unit Dropdown / Selector */}
+            {/* Folder 18 Unit Kerja Root Toggle */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsViewingAllUnits(true);
+                setCurrentFolder(null);
+                setSelectedDoc(null);
+              }}
+              className={`w-full text-left px-3.5 py-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                isViewingAllUnits
+                  ? 'bg-gradient-to-r from-[#0077B6] to-[#0284C7] text-white shadow-md shadow-sky-500/20'
+                  : 'bg-blue-50/80 hover:bg-blue-100/70 text-[#0077B6] border border-blue-200'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Folder className={`w-4 h-4 ${isViewingAllUnits ? 'text-white fill-white/40' : 'text-[#0077B6] fill-sky-200'}`} />
+                <span>Folder 18 Unit Kerja</span>
+              </div>
+              <span
+                className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                  isViewingAllUnits ? 'bg-white/20 text-white' : 'bg-white text-[#0077B6] border border-blue-200'
+                }`}
+              >
+                18 Folder
+              </span>
+            </button>
+
+            {/* Unit List */}
             <div className="space-y-1.5 max-h-[360px] overflow-y-auto pr-1">
               {units.map((u, idx) => {
-                const isSelected = u.id === selectedUnitId;
+                const isSelected = !isViewingAllUnits && u.id === selectedUnitId;
                 const unitNumber = idx + 1;
                 return (
                   <button
@@ -525,6 +603,7 @@ export default function GoogleDriveUnitPage() {
                     type="button"
                     onClick={() => {
                       setSelectedUnitId(u.id);
+                      setIsViewingAllUnits(false);
                       setCurrentFolder(null);
                       setSelectedDoc(null);
                     }}
@@ -664,41 +743,136 @@ export default function GoogleDriveUnitPage() {
             RIGHT COLUMN: GOOGLE DRIVE EXPLORER & DETAILS (9 Cols)
         ========================================================= */}
         <div className={`${isDetailsOpen ? 'lg:col-span-6 xl:col-span-6' : 'lg:col-span-9'} space-y-6 transition-all`}>
-          {/* Breadcrumbs & Filter Bar */}
-          <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-              {/* Breadcrumb Navigation */}
-              <nav className="flex items-center gap-2 text-xs font-semibold text-slate-600 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentFolder(null);
-                    setActiveTab('all');
-                  }}
-                  className="hover:text-[#0077B6] transition-colors cursor-pointer flex items-center gap-1"
-                >
-                  <HardDrive className="w-3.5 h-3.5 text-[#0077B6]" />
-                  <span>Drive Unit</span>
-                </button>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                <button
-                  type="button"
-                  onClick={() => setCurrentFolder(null)}
-                  className={`hover:text-[#0077B6] transition-colors cursor-pointer ${
-                    !currentFolder ? 'font-bold text-slate-900' : ''
-                  }`}
-                >
-                  {activeUnit.name}
-                </button>
-                {currentFolder && (
-                  <>
+          {isViewingAllUnits ? (
+            /* =========================================================
+               VIEW 1: 18 UNIT KERJA AS VISUAL FOLDERS (Bukan Dropdown)
+            ========================================================= */
+            <div className="space-y-6">
+              <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#0077B6] shrink-0">
+                      <Folder className="w-6 h-6 fill-sky-200" />
+                    </div>
+                    <div>
+                      <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                        Folder Repositori 18 Unit Kerja
+                      </h2>
+                      <p className="text-xs text-slate-500">
+                        {isKasek
+                          ? 'Klik folder unit kerja di bawah untuk memeriksa dan meninjau kelengkapan berkas bukti fisik.'
+                          : 'Klik folder unit kerja di bawah untuk membuka dan mengelola berkas bukti fisik.'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 text-[#0077B6] border border-blue-200 self-start sm:self-auto font-mono">
+                    {units.length} Folder Unit
+                  </span>
+                </div>
+              </div>
+
+              {/* The 18 Unit Folders Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {units.map((u, idx) => {
+                  const unitDocs = documents.filter((d) => d.unitId === u.id);
+                  const verifiedCount = unitDocs.filter((d) => d.status === 'Terverifikasi').length;
+                  const unitNumber = idx + 1;
+
+                  return (
+                    <div
+                      key={u.id}
+                      onClick={() => {
+                        setSelectedUnitId(u.id);
+                        setIsViewingAllUnits(false);
+                        setCurrentFolder(null);
+                        setSelectedDoc(null);
+                      }}
+                      className="p-5 rounded-3xl bg-white border border-slate-200 hover:border-[#0077B6] hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-sky-100/80 border border-blue-200 flex items-center justify-center text-[#0077B6] group-hover:scale-105 transition-transform shadow-xs">
+                            <Folder className="w-6 h-6 fill-sky-200" />
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                              Unit {String(unitNumber).padStart(2, '0')}
+                            </span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-[#0077B6] border border-blue-200">
+                              {u.code}
+                            </span>
+                          </div>
+                        </div>
+
+                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#0077B6] transition-colors leading-snug line-clamp-2">
+                          {u.name}
+                        </h3>
+                        <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">
+                          PIC: {u.picName}
+                        </p>
+                      </div>
+
+                      <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-slate-700">
+                            {unitDocs.length} Berkas
+                          </span>
+                          {verifiedCount > 0 && (
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                              {verifiedCount} Sah
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] font-bold text-[#0077B6] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                          Buka Folder &rarr;
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            /* =========================================================
+               VIEW 2: INSIDE UNIT (Sub-Folders & Documents)
+            ========================================================= */
+            <>
+              {/* Breadcrumbs & Filter Bar */}
+              <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  {/* Breadcrumb Navigation */}
+                  <nav className="flex items-center gap-2 text-xs font-semibold text-slate-600 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsViewingAllUnits(true);
+                        setCurrentFolder(null);
+                        setActiveTab('all');
+                      }}
+                      className="hover:text-[#0077B6] transition-colors cursor-pointer flex items-center gap-1 font-bold text-[#0077B6]"
+                    >
+                      <Folder className="w-3.5 h-3.5 fill-sky-200" />
+                      <span>Semua 18 Unit</span>
+                    </button>
                     <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="font-bold text-[#0077B6] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
-                      {currentFolder}
-                    </span>
-                  </>
-                )}
-              </nav>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentFolder(null)}
+                      className={`hover:text-[#0077B6] transition-colors cursor-pointer ${
+                        !currentFolder ? 'font-bold text-slate-900' : ''
+                      }`}
+                    >
+                      {activeUnit.name}
+                    </button>
+                    {currentFolder && (
+                      <>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                        <span className="font-bold text-[#0077B6] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+                          {currentFolder}
+                        </span>
+                      </>
+                    )}
+                  </nav>
 
               {/* Filter Penempatan & Status */}
               <div className="flex items-center gap-2 flex-wrap">
@@ -966,17 +1140,19 @@ export default function GoogleDriveUnitPage() {
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setTargetDelete(doc);
-                            }}
-                            className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
-                            title="Hapus"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          {!isKasek && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setTargetDelete(doc);
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                              title="Hapus Dokumen"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1085,16 +1261,19 @@ export default function GoogleDriveUnitPage() {
                                 >
                                   <Eye className="w-4 h-4" />
                                 </button>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setTargetDelete(doc);
-                                  }}
-                                  className="p-1 rounded-md text-slate-400 hover:text-rose-600"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
+                                {!isKasek && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setTargetDelete(doc);
+                                    }}
+                                    className="p-1 rounded-md text-slate-400 hover:text-rose-600"
+                                    title="Hapus Dokumen"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -1106,6 +1285,8 @@ export default function GoogleDriveUnitPage() {
               </div>
             )}
           </div>
+            </>
+          )}
         </div>
 
         {/* =========================================================
@@ -1247,14 +1428,16 @@ export default function GoogleDriveUnitPage() {
                       <span>Halaman Validasi TPMPS</span>
                     </Link>
 
-                    <button
-                      type="button"
-                      onClick={() => setTargetDelete(selectedDoc)}
-                      className="w-full py-2 rounded-xl hover:bg-rose-50 text-rose-600 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>Hapus dari Drive</span>
-                    </button>
+                    {!isKasek && (
+                      <button
+                        type="button"
+                        onClick={() => setTargetDelete(selectedDoc)}
+                        className="w-full py-2 rounded-xl hover:bg-rose-50 text-rose-600 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Hapus dari Drive</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -1355,6 +1538,64 @@ export default function GoogleDriveUnitPage() {
                 </div>
               </div>
 
+              {/* Visual Folder Selector (Bukan Dropdown) */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                    <Folder className="w-3.5 h-3.5 text-[#0077B6] fill-sky-200" />
+                    <span>Pilih Folder Penyimpanan *</span>
+                  </label>
+                  <span className="text-[10px] text-slate-500 font-semibold">
+                    {unitFolders.length} Folder Tersedia
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1.5 border border-slate-200 rounded-2xl bg-slate-50/50">
+                  {unitFolders.map((f) => {
+                    const isSelected = uploadFolder === f;
+                    const count = folderCounts[f] || 0;
+                    return (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => setUploadFolder(f)}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between group ${
+                          isSelected
+                            ? 'border-[#0077B6] bg-blue-50/90 ring-2 ring-blue-500/20 shadow-xs'
+                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                              isSelected
+                                ? 'bg-blue-100 text-[#0077B6]'
+                                : 'bg-slate-100 text-slate-500 group-hover:text-[#0077B6]'
+                            }`}
+                          >
+                            <Folder className={`w-4 h-4 ${isSelected ? 'fill-sky-300' : ''}`} />
+                          </div>
+                          <div className="min-w-0">
+                            <div
+                              className={`text-xs font-bold truncate ${
+                                isSelected ? 'text-[#0077B6]' : 'text-slate-800'
+                              }`}
+                            >
+                              {f}
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-medium">
+                              {count} berkas tersimpan
+                            </div>
+                          </div>
+                        </div>
+                        {isSelected && (
+                          <CheckCircle2 className="w-4 h-4 text-[#0077B6] shrink-0 ml-1.5" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
@@ -1375,25 +1616,6 @@ export default function GoogleDriveUnitPage() {
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                    Folder Penyimpanan
-                  </label>
-                  <select
-                    value={uploadFolder}
-                    onChange={(e) => setUploadFolder(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
-                  >
-                    {unitFolders.map((f) => (
-                      <option key={f} value={f}>
-                        {f}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
                     Format Berkas
                   </label>
                   <select
@@ -1407,19 +1629,19 @@ export default function GoogleDriveUnitPage() {
                     <option value="image">Gambar / Foto Bukti (.jpg/.png)</option>
                   </select>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                    Nama File (Opsional)
-                  </label>
-                  <input
-                    type="text"
-                    value={uploadFileName}
-                    onChange={(e) => setUploadFileName(e.target.value)}
-                    placeholder="nama_berkas.pdf"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
-                  />
-                </div>
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Nama File (Opsional)
+                </label>
+                <input
+                  type="text"
+                  value={uploadFileName}
+                  onChange={(e) => setUploadFileName(e.target.value)}
+                  placeholder="nama_berkas.pdf"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
+                />
               </div>
 
               <div>

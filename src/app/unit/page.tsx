@@ -80,11 +80,8 @@ export default function UnitManagementPage() {
 
   const canManage = useMemo(() => {
     if (!currentUser) return false;
-    return (
-      currentUser.role === 'admin' ||
-      currentUser.role === 'tpmps' ||
-      currentUser.role === 'kepala_sekolah'
-    );
+    // Super Admin exclusively manages units and Ka.Unit assignments
+    return currentUser.role === 'admin';
   }, [currentUser]);
 
   const filteredUnits = useMemo(() => {

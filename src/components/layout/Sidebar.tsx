@@ -139,286 +139,407 @@ export default function Sidebar({
 
         {/* Navigation Scrollable Area */}
         <div className={`flex-1 overflow-y-auto ${isCollapsed ? 'lg:px-2' : 'px-3.5'} py-4 space-y-6`}>
-          {/* Main Dashboard */}
-          <div>
-            <Link
-              href="/dashboard"
-              onClick={onCloseMobile}
-              className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
-                isActive('/dashboard')
-                  ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <LayoutDashboard className={`w-4 h-4 ${isActive('/dashboard') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
-                <span className={isCollapsed ? 'lg:hidden' : ''}>Dashboard Mutu</span>
-              </div>
-            </Link>
-          </div>
-
-          {/* 8 Standar Mutu Pendidikan */}
-          <div>
-            <div className={`px-3 mb-2 flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
-              <span>8 Standar Mutu (SNP)</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-[#0077B6] font-bold">8</span>
-            </div>
-            <div className="space-y-1">
-              {STANDARDS_MENU.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.href);
-                return (
+          {/* =========================================================
+              NAVIGATION FOR KEPALA SEKOLAH (Cuma Bikin Periode & Cek Folder Unit)
+          ========================================================= */}
+          {user.role === 'kepala_sekolah' ? (
+            <div className="space-y-6">
+              {/* Executive Dashboard */}
+              <div>
+                <div className={`px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  Eksekutif
+                </div>
+                <div className="space-y-1">
                   <Link
-                    key={item.code}
-                    href={item.href}
+                    href="/dashboard"
                     onClick={onCloseMobile}
-                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3'} py-2 rounded-lg text-xs font-medium transition-all ${
-                      active
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
+                      isActive('/dashboard')
+                        ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <LayoutDashboard className={`w-4 h-4 ${isActive('/dashboard') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Dashboard Mutu</span>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Wewenang Utama Kepala Sekolah: Bikin Periode & Cek Folder Unit */}
+              <div>
+                <div className={`px-3 mb-2 text-[11px] font-bold text-amber-700 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  Wewenang Kepala Sekolah
+                </div>
+                <div className="space-y-1">
+                  {/* Bikin & Kelola Periode SPMI */}
+                  <Link
+                    href="/periode"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-3 rounded-xl text-xs font-semibold transition-all ${
+                      isActive('/periode')
+                        ? 'bg-amber-50 text-amber-900 border border-amber-300 font-bold shadow-xs'
+                        : 'text-slate-700 hover:bg-amber-50/60 hover:text-amber-900 border border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Calendar className={`w-4 h-4 ${isActive('/periode') ? 'text-amber-600' : 'text-amber-500'}`} />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Buat & Kelola Periode</span>
+                    </div>
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold border border-amber-200 ${isCollapsed ? 'lg:hidden' : ''}`}>
+                      Wewenang Kasek
+                    </span>
+                  </Link>
+
+                  {/* Cek Folder Tiap Unit */}
+                  <Link
+                    href="/drive"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-3 rounded-xl text-xs font-semibold transition-all ${
+                      isActive('/drive')
+                        ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold shadow-xs'
+                        : 'text-slate-700 hover:bg-blue-50/60 hover:text-[#0077B6] border border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <HardDrive className={`w-4 h-4 ${isActive('/drive') ? 'text-[#0077B6]' : 'text-sky-600'}`} />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Cek Folder Tiap Unit</span>
+                    </div>
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full bg-blue-100 text-[#0077B6] font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                      18 Unit
+                    </span>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Laporan & Panduan */}
+              <div>
+                <div className={`px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  Pengesahan & SOP
+                </div>
+                <div className="space-y-1">
+                  <Link
+                    href="/laporan"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                      isActive('/laporan')
                         ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5 truncate">
-                      <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-[#0077B6]' : 'text-slate-400'}`} />
-                      <span className={`truncate ${isCollapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
+                    <div className="flex items-center gap-2.5">
+                      <FileSpreadsheet className="w-4 h-4 text-slate-500" />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Laporan Mutu EDS</span>
                     </div>
-                    <span className={`text-[9px] font-mono text-slate-400 shrink-0 ${isCollapsed ? 'lg:hidden' : ''}`}>
-                      {item.code}
-                    </span>
                   </Link>
-                );
-              })}
+
+                  <Link
+                    href="/panduan-akses"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                      isActive('/panduan-akses')
+                        ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <ShieldCheck className="w-4 h-4 text-slate-500" />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Panduan & SOP Mutu</span>
+                    </div>
+                  </Link>
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* Evaluasi Mutu & Tindak Lanjut */}
-          <div>
-            <div className={`px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
-              Evaluasi & Rapor
-            </div>
-            <div className="space-y-1">
-              <Link
-                href="/evaluasi"
-                onClick={onCloseMobile}
-                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  isActive('/evaluasi')
-                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <FileCheck2 className={`w-4 h-4 ${isActive('/evaluasi') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
-                  <span className={isCollapsed ? 'lg:hidden' : ''}>Evaluasi Mutu</span>
-                </div>
-                {reviewCount > 0 && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
-                    {reviewCount} Review
-                  </span>
-                )}
-              </Link>
-
-              <Link
-                href="/periode"
-                onClick={onCloseMobile}
-                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  isActive('/periode')
-                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Calendar className={`w-4 h-4 ${isActive('/periode') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
-                  <span className={isCollapsed ? 'lg:hidden' : ''}>Periode SPMI</span>
-                </div>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
-                  Kasek
-                </span>
-              </Link>
-
-              <Link
-                href="/rtl"
-                onClick={onCloseMobile}
-                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  isActive('/rtl')
-                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Target className={`w-4 h-4 ${isActive('/rtl') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
-                  <span className={isCollapsed ? 'lg:hidden' : ''}>RTL (Tindak Lanjut)</span>
-                </div>
-                {rtlActiveCount > 0 && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
-                    {rtlActiveCount} Aktif
-                  </span>
-                )}
-              </Link>
-            </div>
-          </div>
-
-          {/* Dokumen & Bank Bukti */}
-          <div>
-            <div className={`px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
-              Dokumen Mutu
-            </div>
-            <div className="space-y-1">
-              <Link
-                href="/drive"
-                onClick={onCloseMobile}
-                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  isActive('/drive')
-                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <HardDrive className={`w-4 h-4 ${isActive('/drive') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
-                  <span className={isCollapsed ? 'lg:hidden' : ''}>Google Drive Unit</span>
-                </div>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-[#0077B6] font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
-                  Unit
-                </span>
-              </Link>
-
-              <Link
-                href="/dokumen"
-                onClick={onCloseMobile}
-                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  isActive('/dokumen') && pathname === '/dokumen'
-                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <FolderArchive className="w-4 h-4 text-slate-500" />
-                  <span className={isCollapsed ? 'lg:hidden' : ''}>Bank Dokumen</span>
-                </div>
-              </Link>
-
-              <Link
-                href="/dokumen/upload"
-                onClick={onCloseMobile}
-                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  isActive('/dokumen/upload')
-                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <UploadCloud className="w-4 h-4 text-slate-500" />
-                  <span className={isCollapsed ? 'lg:hidden' : ''}>Upload Dokumen</span>
-                </div>
-              </Link>
-
-              {user.role !== 'guru' && (
+          ) : (
+            /* =========================================================
+               STANDARD NAVIGATION FOR OTHER ROLES (Admin, TPMPS, Unit)
+            ========================================================= */
+            <>
+              {/* Main Dashboard */}
+              <div>
                 <Link
-                  href="/dokumen/validasi"
+                  href="/dashboard"
                   onClick={onCloseMobile}
-                  className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
-                    isActive('/dokumen/validasi')
-                      ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                  className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
+                    isActive('/dashboard')
+                      ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <CheckCircle className="w-4 h-4 text-slate-500" />
-                    <span className={isCollapsed ? 'lg:hidden' : ''}>Validasi Dokumen</span>
+                  <div className="flex items-center gap-3">
+                    <LayoutDashboard className={`w-4 h-4 ${isActive('/dashboard') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                    <span className={isCollapsed ? 'lg:hidden' : ''}>Dashboard Mutu</span>
                   </div>
-                  {validatingDocCount > 0 && (
-                    <span className={`text-[10px] px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
-                      {validatingDocCount} Baru
-                    </span>
-                  )}
                 </Link>
-              )}
-            </div>
-          </div>
+              </div>
 
-          {/* Laporan & Analitik */}
-          <div>
-            <div className={`px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
-              Laporan Mutu
-            </div>
-            <div className="space-y-1">
-              <Link
-                href="/laporan"
-                onClick={onCloseMobile}
-                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  isActive('/laporan')
-                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <FileSpreadsheet className="w-4 h-4 text-slate-500" />
-                  <span className={isCollapsed ? 'lg:hidden' : ''}>Laporan EDS</span>
+              {/* 8 Standar Mutu Pendidikan */}
+              <div>
+                <div className={`px-3 mb-2 flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  <span>8 Standar Mutu (SNP)</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-[#0077B6] font-bold">8</span>
                 </div>
-              </Link>
-            </div>
-          </div>
+                <div className="space-y-1">
+                  {STANDARDS_MENU.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.href);
+                    return (
+                      <Link
+                        key={item.code}
+                        href={item.href}
+                        onClick={onCloseMobile}
+                        className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3'} py-2 rounded-lg text-xs font-medium transition-all ${
+                          active
+                            ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 truncate">
+                          <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-[#0077B6]' : 'text-slate-400'}`} />
+                          <span className={`truncate ${isCollapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
+                        </div>
+                        <span className={`text-[9px] font-mono text-slate-400 shrink-0 ${isCollapsed ? 'lg:hidden' : ''}`}>
+                          {item.code}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
 
-          {/* Panduan & Hak Akses */}
-          <div>
-            <div className={`px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
-              Bantuan & Akun
-            </div>
-            <div className="space-y-1">
-              <Link
-                href="/panduan-akses"
-                onClick={onCloseMobile}
-                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  isActive('/panduan-akses')
-                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <ShieldCheck className={`w-4 h-4 ${isActive('/panduan-akses') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
-                  <span className={isCollapsed ? 'lg:hidden' : ''}>Panduan & Akun Unit</span>
+              {/* Evaluasi Mutu & Tindak Lanjut */}
+              <div>
+                <div className={`px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  Evaluasi & Rapor
                 </div>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
-                  SOP
-                </span>
-              </Link>
+                <div className="space-y-1">
+                  <Link
+                    href="/evaluasi"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                      isActive('/evaluasi')
+                        ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FileCheck2 className={`w-4 h-4 ${isActive('/evaluasi') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Evaluasi Mutu</span>
+                    </div>
+                    {reviewCount > 0 && (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                        {reviewCount} Review
+                      </span>
+                    )}
+                  </Link>
 
-              <Link
-                href="/unit"
-                onClick={onCloseMobile}
-                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  isActive('/unit')
-                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Building2 className={`w-4 h-4 ${isActive('/unit') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
-                  <span className={isCollapsed ? 'lg:hidden' : ''}>Kelola Unit Kerja</span>
-                </div>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-[#0077B6] font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
-                  CRUD
-                </span>
-              </Link>
+                  <Link
+                    href="/periode"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                      isActive('/periode')
+                        ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Calendar className={`w-4 h-4 ${isActive('/periode') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Periode SPMI</span>
+                    </div>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                      Kasek
+                    </span>
+                  </Link>
 
-              <Link
-                href="/ppt"
-                onClick={onCloseMobile}
-                className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  isActive('/ppt')
-                    ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Presentation className={`w-4 h-4 ${isActive('/ppt') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
-                  <span className={isCollapsed ? 'lg:hidden' : ''}>Presentasi PPT</span>
+                  <Link
+                    href="/rtl"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                      isActive('/rtl')
+                        ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Target className={`w-4 h-4 ${isActive('/rtl') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>RTL (Tindak Lanjut)</span>
+                    </div>
+                    {rtlActiveCount > 0 && (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                        {rtlActiveCount} Aktif
+                      </span>
+                    )}
+                  </Link>
                 </div>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded bg-sky-100 text-[#0077B6] font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
-                  Slide
-                </span>
-              </Link>
-            </div>
-          </div>
+              </div>
+
+              {/* Dokumen & Bank Bukti */}
+              <div>
+                <div className={`px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  Dokumen Mutu
+                </div>
+                <div className="space-y-1">
+                  <Link
+                    href="/drive"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                      isActive('/drive')
+                        ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <HardDrive className={`w-4 h-4 ${isActive('/drive') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Google Drive Unit</span>
+                    </div>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-[#0077B6] font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                      Unit
+                    </span>
+                  </Link>
+
+                  <Link
+                    href="/dokumen"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                      isActive('/dokumen') && pathname === '/dokumen'
+                        ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FolderArchive className="w-4 h-4 text-slate-500" />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Bank Dokumen</span>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/dokumen/upload"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                      isActive('/dokumen/upload')
+                        ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <UploadCloud className="w-4 h-4 text-slate-500" />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Upload Dokumen</span>
+                    </div>
+                  </Link>
+
+                  {user.role !== 'guru' && (
+                    <Link
+                      href="/dokumen/validasi"
+                      onClick={onCloseMobile}
+                      className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                        isActive('/dokumen/validasi')
+                          ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-slate-500" />
+                        <span className={isCollapsed ? 'lg:hidden' : ''}>Validasi Dokumen</span>
+                      </div>
+                      {validatingDocCount > 0 && (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                          {validatingDocCount} Baru
+                        </span>
+                      )}
+                    </Link>
+                  )}
+                </div>
+              </div>
+
+              {/* Laporan & Analitik */}
+              <div>
+                <div className={`px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  Laporan Mutu
+                </div>
+                <div className="space-y-1">
+                  <Link
+                    href="/laporan"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                      isActive('/laporan')
+                        ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FileSpreadsheet className="w-4 h-4 text-slate-500" />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Laporan EDS</span>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Panduan & Hak Akses */}
+              <div>
+                <div className={`px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider ${isCollapsed ? 'lg:hidden' : ''}`}>
+                  Bantuan & Akun
+                </div>
+                <div className="space-y-1">
+                  <Link
+                    href="/panduan-akses"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                      isActive('/panduan-akses')
+                        ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <ShieldCheck className={`w-4 h-4 ${isActive('/panduan-akses') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Panduan & Akun Unit</span>
+                    </div>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                      SOP
+                    </span>
+                  </Link>
+
+                  {user.role === 'admin' && (
+                    <Link
+                      href="/unit"
+                      onClick={onCloseMobile}
+                      className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                        isActive('/unit')
+                          ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Building2 className={`w-4 h-4 ${isActive('/unit') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                        <span className={isCollapsed ? 'lg:hidden' : ''}>Kelola Unit Kerja</span>
+                      </div>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-[#0077B6] font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                        Super Admin
+                      </span>
+                    </Link>
+                  )}
+
+                  <Link
+                    href="/ppt"
+                    onClick={onCloseMobile}
+                    className={`flex items-center ${isCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium transition-all ${
+                      isActive('/ppt')
+                        ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Presentation className={`w-4 h-4 ${isActive('/ppt') ? 'text-[#0077B6]' : 'text-slate-500'}`} />
+                      <span className={isCollapsed ? 'lg:hidden' : ''}>Presentasi PPT</span>
+                    </div>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded bg-sky-100 text-[#0077B6] font-bold ${isCollapsed ? 'lg:hidden' : ''}`}>
+                      Slide
+                    </span>
+                  </Link>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Persistent User Profile & Logout (Clean White/Slate) */}

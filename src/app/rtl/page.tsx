@@ -25,6 +25,7 @@ import {
 
 export default function RtlListPage() {
   const { showToast } = useToast();
+  const [currentUser, setCurrentUser] = useState(() => sintesaService.getActiveUser());
   const [rtlList, setRtlList] = useState<ProgramMutuRTL[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
@@ -33,7 +34,10 @@ export default function RtlListPage() {
   const [targetDelete, setTargetDelete] = useState<ProgramMutuRTL | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const isKasek = currentUser?.role === 'kepala_sekolah';
+
   const loadData = () => {
+    setCurrentUser(sintesaService.getActiveUser());
     setRtlList(sintesaService.getRtlList());
   };
 
@@ -59,6 +63,10 @@ export default function RtlListPage() {
 
   const handleDelete = () => {
     if (!targetDelete) return;
+    if (isKasek) {
+      showToast('Kepala Sekolah tidak memiliki wewenang menghapus program RTL unit.', 'warning');
+      return;
+    }
     setIsDeleting(true);
     setTimeout(() => {
       sintesaService.deleteRtl(targetDelete.id);
@@ -109,13 +117,23 @@ export default function RtlListPage() {
           </p>
         </div>
 
-        <Link
-          href="/rtl/create"
-          className="btn-enterprise px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center gap-2 cursor-pointer transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Buat Program RTL Baru</span>
-        </Link>
+        {isKasek ? (
+          <Link
+            href="/periode"
+            className="btn-enterprise px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold shadow-md shadow-amber-500/20 flex items-center gap-2 cursor-pointer transition-all"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Kelola Periode Mutu (Kasek)</span>
+          </Link>
+        ) : (
+          <Link
+            href="/rtl/create"
+            className="btn-enterprise px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center gap-2 cursor-pointer transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Buat Program RTL Baru</span>
+          </Link>
+        )}
       </div>
 
       {/* Filter and Search */}
@@ -258,21 +276,26 @@ export default function RtlListPage() {
                   Detail RTL
                 </Link>
 
-                <Link
-                  href={`/rtl/${rtl.id}/edit`}
-                  className="btn-enterprise p-2.5 rounded-xl bg-slate-50 hover:bg-amber-50 border border-slate-200 text-slate-600 hover:text-amber-600 shadow-2xs transition-colors"
-                >
-                  <Edit className="w-4 h-4" />
-                </Link>
+                {!isKasek && (
+                  <>
+                    <Link
+                      href={`/rtl/${rtl.id}/edit`}
+                      className="btn-enterprise p-2.5 rounded-xl bg-slate-50 hover:bg-amber-50 border border-slate-200 text-slate-600 hover:text-amber-600 shadow-2xs transition-colors"
+                      title="Edit Program RTL"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Link>
 
-                <button
-                  type="button"
-                  title="Hapus"
-                  onClick={() => setTargetDelete(rtl)}
-                  className="p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                    <button
+                      type="button"
+                      title="Hapus"
+                      onClick={() => setTargetDelete(rtl)}
+                      className="p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))

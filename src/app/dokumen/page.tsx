@@ -23,11 +23,14 @@ import {
   Download,
   Filter,
   ShieldCheck,
-  HardDrive
+  HardDrive,
+  Calendar,
+  Folder
 } from 'lucide-react';
 
 export default function DokumenListPage() {
   const { showToast } = useToast();
+  const [currentUser, setCurrentUser] = useState(() => sintesaService.getActiveUser());
   const [documents, setDocuments] = useState<BuktiDokumen[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
@@ -37,7 +40,10 @@ export default function DokumenListPage() {
   const [targetDelete, setTargetDelete] = useState<BuktiDokumen | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const isKasek = currentUser?.role === 'kepala_sekolah';
+
   const loadData = () => {
+    setCurrentUser(sintesaService.getActiveUser());
     setDocuments(sintesaService.getDocuments());
   };
 
@@ -64,6 +70,10 @@ export default function DokumenListPage() {
 
   const handleDelete = () => {
     if (!targetDelete) return;
+    if (isKasek) {
+      showToast('Kepala Sekolah berada dalam mode audit dan tidak memiliki wewenang menghapus dokumen.', 'warning');
+      return;
+    }
     setIsDeleting(true);
     setTimeout(() => {
       sintesaService.deleteDocument(targetDelete.id);
@@ -121,25 +131,37 @@ export default function DokumenListPage() {
             href="/drive"
             className="btn-enterprise px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-xs sm:text-sm font-bold text-[#0077B6] flex items-center gap-2 cursor-pointer shadow-2xs transition-colors"
           >
-            <HardDrive className="w-4 h-4" />
-            <span>Google Drive Unit</span>
+            <Folder className="w-4 h-4 fill-sky-200 text-[#0077B6]" />
+            <span>Folder 18 Unit Kerja</span>
           </Link>
 
-          <Link
-            href="/dokumen/validasi"
-            className="btn-enterprise px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs sm:text-sm font-semibold text-[#0077B6] flex items-center gap-2 cursor-pointer shadow-2xs"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Antrean Validasi</span>
-          </Link>
+          {isKasek ? (
+            <Link
+              href="/periode"
+              className="btn-enterprise px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold shadow-md shadow-amber-500/20 flex items-center gap-2 cursor-pointer transition-all"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Kelola Periode (Kasek)</span>
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/dokumen/validasi"
+                className="btn-enterprise px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs sm:text-sm font-semibold text-[#0077B6] flex items-center gap-2 cursor-pointer shadow-2xs"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Antrean Validasi</span>
+              </Link>
 
-          <Link
-            href="/dokumen/upload"
-            className="btn-enterprise px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center gap-2 cursor-pointer transition-all"
-          >
-            <UploadCloud className="w-4 h-4" />
-            <span>Upload Berkas Baru</span>
-          </Link>
+              <Link
+                href="/dokumen/upload"
+                className="btn-enterprise px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center gap-2 cursor-pointer transition-all"
+              >
+                <UploadCloud className="w-4 h-4" />
+                <span>Upload Berkas Baru</span>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
@@ -444,14 +466,16 @@ export default function DokumenListPage() {
                   Detail & Pratinjau
                 </Link>
 
-                <button
-                  type="button"
-                  title="Hapus Dokumen"
-                  onClick={() => setTargetDelete(doc)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {!isKasek && (
+                  <button
+                    type="button"
+                    title="Hapus Dokumen"
+                    onClick={() => setTargetDelete(doc)}
+                    className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
           ))

@@ -407,14 +407,31 @@ function UploadDokumenForm() {
             Batal
           </Link>
 
-          <button
-            type="submit"
-            disabled={isUploading}
-            className="w-full sm:w-auto btn-enterprise px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 transition-all"
-          >
-            <UploadCloud className="w-4 h-4" />
-            <span>{isUploading ? 'Mengunggah ke Storage...' : 'Simpan & Unggah Dokumen'}</span>
-          </button>
+          {isKasek ? (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/drive"
+                className="btn-enterprise px-5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-xs sm:text-sm font-bold text-[#0077B6] flex items-center gap-2 cursor-pointer transition-colors"
+              >
+                <span>Periksa Folder Tiap Unit</span>
+              </Link>
+              <Link
+                href="/periode"
+                className="btn-enterprise px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold shadow-md shadow-amber-500/20 flex items-center gap-2 cursor-pointer transition-colors"
+              >
+                <span>Buat & Kelola Periode</span>
+              </Link>
+            </div>
+          ) : (
+            <button
+              type="submit"
+              disabled={isUploading}
+              className="w-full sm:w-auto btn-enterprise px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 transition-all"
+            >
+              <UploadCloud className="w-4 h-4" />
+              <span>{isUploading ? 'Mengunggah ke Storage...' : 'Simpan & Unggah Dokumen'}</span>
+            </button>
+          )}
         </div>
       </form>
     </div>
