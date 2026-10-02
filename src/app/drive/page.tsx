@@ -436,18 +436,19 @@ export default function GoogleDriveUnitPage() {
                     setIsUploadOpen(true);
                   }}
                   className="btn-enterprise px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center gap-2 cursor-pointer transition-all"
+                  title="Upload Berkas ke Folder Unit"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>+ Baru</span>
+                  <UploadCloud className="w-4 h-4" />
+                  <span>+ Upload Berkas</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setIsNewFolderOpen(true)}
-                  className="btn-enterprise px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-2 cursor-pointer shadow-2xs transition-colors"
-                  title="Buat Folder Baru"
+                  className="btn-enterprise px-3.5 py-2.5 rounded-xl bg-white hover:bg-orange-50/70 border border-orange-300 text-orange-700 text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer shadow-2xs transition-colors"
+                  title="Buat Folder Baru di Unit Ini"
                 >
-                  <FolderPlus className="w-4 h-4 text-[#0077B6]" />
+                  <FolderPlus className="w-4 h-4 text-orange-500" />
                   <span className="hidden sm:inline">Folder Baru</span>
                 </button>
               </>
