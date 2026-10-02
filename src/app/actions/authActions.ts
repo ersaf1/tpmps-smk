@@ -1,12 +1,14 @@
 'use server';
 
 import { cookies, headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { serverClient, configured } from '@/lib/supabase/server';
+import { getCurrentProfile } from '@/lib/auth';
 import { UserProfile, UserRole } from '@/types/sintesa';
 
 // Schema Validasi Login Ketat
-const LoginSchema = z.object({
+export const LoginSchema = z.object({
   identifier: z
     .string()
     .trim()
@@ -27,6 +29,10 @@ export interface AuthResponse {
   message: string;
   user?: UserProfile;
   errors?: Record<string, string[]>;
+}
+
+export interface LoginState {
+  error?: string;
 }
 
 // In-Memory Rate Limiter untuk Mitigasi Brute Force (5 percobaan per 5 menit per IP)
@@ -61,20 +67,46 @@ function resetRateLimit(clientIp: string) {
 }
 
 /**
- * Server Action: Autentikasi Pengguna Produksi
- * Mendukung autentikasi via Supabase Auth (Email & Kata Sandi)
- * serta pencarian kredensial NIP resmi SMK Negeri 2 Magelang.
+ * Server Action: Autentikasi Pengguna via Form Action
  */
-export async function loginAction(rawData: LoginInput): Promise<AuthResponse> {
+export async function loginAction(_state: LoginState, formData: FormData): Promise<LoginState> {
+  const email = String(formData.get('email') ?? '').trim().toLowerCase();
+  const password = String(formData.get('password') ?? '');
+
+  if (!configured()) return { error: 'Layanan autentikasi belum dikonfigurasi.' };
+  if (!/^\S+@\S+\.\S+$/.test(email) || password.length < 1) {
+    return { error: 'Masukkan email dan kata sandi yang valid.' };
+  }
+
   try {
-    // 1. Validasi CSRF & Header Keamanan
+    const supabase = await serverClient();
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.user) return { error: 'Email atau kata sandi tidak valid.' };
+
+    const { data: profile } = await supabase.from('profiles').select('id, is_active').eq('id', data.user.id).single();
+    if (!profile?.is_active) {
+      await supabase.auth.signOut();
+      return { error: 'Akun tidak aktif atau belum terdaftar pada sistem.' };
+    }
+
+    await supabase.from('audit_logs').insert({ actor_id: data.user.id, action: 'LOGIN', entity_type: 'auth', entity_id: data.user.id });
+  } catch {
+    return { error: 'Gagal menghubungi server autentikasi.' };
+  }
+  redirect('/dashboard');
+}
+
+/**
+ * Server Action: Autentikasi Pengguna Produksi (Typed Login Input)
+ */
+export async function loginApiAction(rawData: LoginInput): Promise<AuthResponse> {
+  try {
     const headerList = await headers();
     const clientIp =
       headerList.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       headerList.get('x-real-ip') ||
       '127.0.0.1';
 
-    // 2. Rate Limiting Protection
     if (!checkRateLimit(clientIp)) {
       return {
         success: false,
@@ -82,7 +114,6 @@ export async function loginAction(rawData: LoginInput): Promise<AuthResponse> {
       };
     }
 
-    // 3. Validasi Skema Input
     const validationResult = LoginSchema.safeParse(rawData);
     if (!validationResult.success) {
       return {
@@ -95,7 +126,6 @@ export async function loginAction(rawData: LoginInput): Promise<AuthResponse> {
     const { identifier, password, rememberMe } = validationResult.data;
     const cleanId = identifier.trim();
 
-    // 4. Autentikasi Menggunakan Supabase
     let authenticatedUser: UserProfile | null = null;
     let authErrorMsg = '';
 
@@ -104,7 +134,6 @@ export async function loginAction(rawData: LoginInput): Promise<AuthResponse> {
         const supabase = await serverClient();
         let targetEmail = cleanId;
 
-        // Jika identifier bukan format email langsung, cari email terkait via RPC
         if (!cleanId.includes('@')) {
           const { data: resolvedEmail } = await supabase.rpc('get_email_by_identifier', {
             p_identifier: cleanId
@@ -113,7 +142,6 @@ export async function loginAction(rawData: LoginInput): Promise<AuthResponse> {
           if (resolvedEmail) {
             targetEmail = resolvedEmail;
           } else {
-            // Cek di tabel unit_kerja sebagai fallback
             const { data: unitByCode } = await supabase
               .from('unit_kerja')
               .select('email')
@@ -126,7 +154,6 @@ export async function loginAction(rawData: LoginInput): Promise<AuthResponse> {
           }
         }
 
-        // Jalankan autentikasi Supabase Auth resmi
         const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
           email: targetEmail,
           password: password
@@ -157,9 +184,7 @@ export async function loginAction(rawData: LoginInput): Promise<AuthResponse> {
       }
     }
 
-    // 5. Fallback Verifikasi Kredensial Terdaftar jika Supabase Auth belum mengonfirmasi email
     if (!authenticatedUser) {
-      // Jika kredensial tidak cocok dengan database Supabase
       return {
         success: false,
         message:
@@ -171,11 +196,9 @@ export async function loginAction(rawData: LoginInput): Promise<AuthResponse> {
       };
     }
 
-    // 6. Reset Rate Limit setelah Login Berhasil
     resetRateLimit(clientIp);
 
-    // 7. Terbitkan Sesi Cookie Aman (sintesa_session)
-    const maxAgeSeconds = rememberMe ? 86400 * 7 : 86400; // 7 hari atau 1 hari
+    const maxAgeSeconds = rememberMe ? 86400 * 7 : 86400;
     const sessionPayload = {
       userId: authenticatedUser.id,
       nip: authenticatedUser.nip,
@@ -195,10 +218,9 @@ export async function loginAction(rawData: LoginInput): Promise<AuthResponse> {
       maxAge: maxAgeSeconds,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
-      httpOnly: false // Izinkan akses sinkronisasi client-side
+      httpOnly: false
     });
 
-    // 8. Catat Audit Log Login
     if (configured()) {
       try {
         const supabase = await serverClient();
@@ -215,7 +237,7 @@ export async function loginAction(rawData: LoginInput): Promise<AuthResponse> {
           details: `Pengguna ${authenticatedUser.fullName} (${authenticatedUser.role}) berhasil masuk ke sistem`
         });
       } catch {
-        // Logging non-blocking
+        // Non-blocking
       }
     }
 
@@ -225,7 +247,7 @@ export async function loginAction(rawData: LoginInput): Promise<AuthResponse> {
       user: authenticatedUser
     };
   } catch (error: unknown) {
-    console.error('Server error in loginAction:', error);
+    console.error('Server error in loginApiAction:', error);
     return {
       success: false,
       message: 'Terjadi kesalahan pada server saat memproses login. Silakan coba kembali.'
@@ -235,26 +257,47 @@ export async function loginAction(rawData: LoginInput): Promise<AuthResponse> {
 
 /**
  * Server Action: Logout Pengguna
- * Menghapus token sesi cookie dan memutus sesi Supabase Auth.
  */
-export async function logoutAction(): Promise<{ success: boolean }> {
+export async function logoutAction(): Promise<void> {
   try {
     if (configured()) {
-      try {
-        const supabase = await serverClient();
-        await supabase.auth.signOut();
-      } catch {
-        // Ignore signOut network errors
-      }
+      const supabase = await serverClient();
+      await supabase.auth.signOut();
     }
+  } catch {
+    // Ignore network issues on sign out
+  }
 
+  try {
     const cookieStore = await cookies();
     cookieStore.delete('sintesa_session');
-
-    return { success: true };
   } catch {
-    return { success: false };
+    // Ignore
   }
+
+  redirect('/login');
+}
+
+/**
+ * Server Action: Ganti Kata Sandi (Password Change)
+ */
+export async function changePasswordAction(_state: LoginState, formData: FormData): Promise<LoginState> {
+  const profile = await getCurrentProfile();
+  if (!profile) return { error: 'Sesi berakhir. Silakan login kembali.' };
+
+  const password = String(formData.get('password') ?? '');
+  const confirmation = String(formData.get('confirmation') ?? '');
+  if (password !== confirmation) return { error: 'Konfirmasi kata sandi tidak sama.' };
+  if (password.length < 10 || !/[A-Za-z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+    return { error: 'Gunakan minimal 10 karakter yang memuat huruf, angka, dan simbol.' };
+  }
+
+  const supabase = await serverClient();
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: 'Kata sandi gagal diperbarui. Coba kembali.' };
+  const { error: profileError } = await supabase.rpc('mark_password_changed');
+  if (profileError) return { error: 'Kata sandi berubah, tetapi status akun gagal diperbarui. Hubungi administrator.' };
+  redirect('/dashboard');
 }
 
 /**

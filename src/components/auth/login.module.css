@@ -1,0 +1,36 @@
+:global(html):has(.page), :global(body):has(.page) { overflow: hidden; overscroll-behavior: none; }
+.page { position: fixed; inset: 0; height: 100dvh; overflow: clip; display: grid; grid-template-columns: 48% 52%; background: #FFFFFF; font-family: var(--font-geist-sans), sans-serif; }
+.login { display: flex; flex-direction: column; padding: clamp(24px, 4vw, 64px); min-width: 0; min-height: 0; }
+.brand { display: flex; gap: 13px; align-items: center; }
+.brand img { width: 40px; height: 48px; object-fit: contain; }
+.brand strong { font-size: 17px; letter-spacing: -.5px; color: #0F172A; }
+.brand strong span { font-weight: 500; color: #0077B6; }
+.brand p { font-size: 11px; color: #64748B; margin-top: 3px; }
+.formCard { width: 100%; max-width: 360px; margin: auto; padding-block: 20px; }
+.intro h1 { font-size: 30px; line-height: 1.2; letter-spacing: -1px; font-weight: 700; color: #0F172A; margin-bottom: 28px; }
+.help { margin-top: 20px; font-size: 12px; line-height: 1.5; color: #64748B; }
+.information { margin: 20px 20px 20px 0; padding: clamp(26px, 4vw, 64px); border: 1px solid #DDECF6; border-radius: 24px; background: #EFF7FC; color: #0F172A; display: flex; flex-direction: column; justify-content: center; gap: 28px; min-width: 0; min-height: 0; overflow: clip; }
+.story, .archive { width: 100%; max-width: 480px; align-self: center; }
+.story h2 { font-size: clamp(26px, 2.4vw, 36px); line-height: 1.15; letter-spacing: -1px; font-weight: 700; }
+.archive { border: 1px solid #D8E6EF; border-radius: 16px; background: #FFFFFF; padding: 0; overflow: hidden; box-shadow: 0 16px 40px -24px #07598540; }
+.archiveHeading { display: flex; align-items: center; gap: 10px; padding: 22px; border-bottom: 1px solid #E2E8F0; color: #0077B6; }
+.archiveHeading small { margin-left: auto; color: #64748B; font-size: 11px; }
+.archiveHeading > span { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #334155; }
+.categories { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 14px 16px; background: #F8FAFC; border-bottom: 1px solid #E2E8F0; }
+.categories button { cursor: pointer; padding: 11px 7px; color: #475569; font-size: 11px; font-weight: 500; text-align: center; border-radius: 8px; transition: background 160ms, color 160ms; min-height: 44px; }
+.categories button:hover { background: #E0F2FE; }
+.categories button[aria-pressed='true'] { background: #0077B6; color: #FFFFFF; }
+.categories button:focus-visible { outline: 2px solid #0077B6; outline-offset: 3px; }
+.preview { background: #FFFFFF; border-radius: 0 0 7px 7px; padding: 8px 22px; color: #0F172A; }
+.previewContent { animation: reveal 220ms ease-out; }
+.file { display: flex; align-items: center; gap: 10px; padding: 20px 0; border-bottom: 1px solid #E2E8F0; font-size: 12px; }
+.file:last-child { border-bottom: 0; }
+.file > svg { flex-shrink: 0; color: #0077B6; box-sizing: content-box; padding: 9px; background: #EFF7FC; border-radius: 8px; }
+.fileExtension { margin-left: auto; font-family: var(--font-geist-mono), monospace; font-size: 9px; color: #64748B; }
+@keyframes reveal { from { opacity: .3; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 899px) { .page { grid-template-columns: 1fr; } .information { display: none; } .login { padding: 24px max(24px, calc((100vw - 460px) / 2)); } }
+@media (max-height: 580px) { .login { padding-block: 12px; } .brand img { width: 30px; height: 36px; } .formCard { padding-block: 10px; } .intro h1 { font-size: 26px; margin-bottom: 14px; } .formCard form { display: flex; flex-direction: column; gap: 12px; } .formCard form > * { margin-block: 0; } .help { margin-top: 12px; } .information { gap: 20px; padding-block: 20px; } }
+@media (max-height: 440px) { .brand { display: none; } .formCard { padding-block: 0; } .intro h1 { font-size: 22px; margin-bottom: 8px; } .formCard form { gap: 8px; } .formCard form label { margin-bottom: 4px; } .formCard form input, .formCard form > button { height: 40px; } .help { margin-top: 8px; font-size: 11px; } .information { display: none; } .page { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .previewContent { animation: none; } .categories button { transition: none; } }
+@media (max-height: 440px) { .formCard form [role='alert'] { padding: 6px 10px; font-size: 12px; line-height: 16px; } }
+@media (max-width: 899px) { .formCard input { font-size: 16px; } }
