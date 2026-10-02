@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 const legacyRoutes = ['/evaluasi', '/rtl', '/mutu', '/laporan', '/dokumen'];
 
 function applySecurityHeaders(response: NextResponse) {
+  const isDevelopment = process.env.NODE_ENV === 'development';
   const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
     ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
     : '';
@@ -14,11 +15,11 @@ function applySecurityHeaders(response: NextResponse) {
   response.headers.set('Cache-Control', 'private, no-store');
   response.headers.set('Content-Security-Policy', [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    `connect-src 'self' ${supabaseOrigin}`,
+    `connect-src 'self' ${supabaseOrigin}${isDevelopment ? ' ws: wss:' : ''}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'"
@@ -60,5 +61,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|logo.png|.*\\.(?:svg|png|jpg|jpeg|webp)$).*)']
+  matcher: ['/((?!_next/|favicon.ico|logo.png|.*\\.(?:svg|png|jpg|jpeg|webp)$).*)']
 };

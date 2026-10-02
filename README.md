@@ -36,3 +36,7 @@ Tidak ada akun demo atau password bersama di aplikasi. Login hanya menerima emai
 - Maksimal 10 file dalam satu proses unggah.
 - File kosong ditolak.
 - File disimpan pada bucket privat dan hanya disajikan sebagai unduhan terautentikasi.
+
+## Data contoh arsip
+
+Jalankan `npm run seed:demo` setelah schema, akun, unit kerja, bucket Storage, dan periode aktif tersedia. Skrip memerlukan `SUPABASE_SERVICE_ROLE_KEY` di `.env` lokal. Skrip membuat sembilan folder bertingkat serta enam file PDF/CSV contoh yang diunggah ke bucket privat `documents`. Jika dijalankan ulang pada periode yang sama, folder dan file yang sudah ada tidak diduplikasi. Untuk melihat rencana isinya tanpa mengubah data, jalankan `npm run seed:demo -- --dry-run`.
