@@ -69,7 +69,7 @@ export default function DynamicWelcomeBanner({
             </span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Selamat datang kembali, <span className="text-[#0077B6]">{firstName}</span>.
           </h2>
 

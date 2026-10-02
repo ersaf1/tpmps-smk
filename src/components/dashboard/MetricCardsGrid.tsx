@@ -80,7 +80,7 @@ export default function MetricCardsGrid({
             </div>
 
             <div>
-              <div className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              <div className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
                 {m.value}
               </div>
               <p className="text-xs text-slate-500 mt-1 font-medium">{m.subtext}</p>

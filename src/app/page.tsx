@@ -89,8 +89,8 @@ export default function LandingPage() {
             />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xl font-black text-slate-900 tracking-tight">SINTESA</span>
-                <span className="text-xl font-black text-[#0077B6] tracking-tight">TPMPS</span>
+                <span className="text-xl font-bold text-slate-900 tracking-tight">SINTESA</span>
+                <span className="text-xl font-bold text-[#0077B6] tracking-tight">TPMPS</span>
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200 ml-1">
                   SMK PK
                 </span>
@@ -150,7 +150,7 @@ export default function LandingPage() {
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-[1.18]">
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.18]">
             Penjaminan Mutu Sekolah &amp; Repositori Digital{' '}
             <span className="text-[#0077B6]">18 Unit Kerja</span>
           </h1>
@@ -221,7 +221,7 @@ export default function LandingPage() {
                   <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                     {s.label}
                   </div>
-                  <div className={`text-2xl sm:text-3xl font-black ${s.accent} font-mono tracking-tight`}>
+                  <div className={`text-2xl sm:text-3xl font-bold ${s.accent} font-mono tracking-tight`}>
                     {s.val}
                   </div>
                 </div>
@@ -243,7 +243,7 @@ export default function LandingPage() {
             <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-blue-50 text-[#0077B6] border border-blue-200">
               Siklus Mutu Berkelanjutan
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mt-3">
               Implementasi Siklus PPEPP
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
@@ -285,7 +285,7 @@ export default function LandingPage() {
             <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
               Instrumen Penjaminan Mutu
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mt-3">
               8 Standar Nasional Pendidikan (SNP)
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
@@ -348,7 +348,7 @@ export default function LandingPage() {
             <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-blue-50 text-[#0077B6] border border-blue-200">
               Inovasi Digital
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mt-3">
               Keunggulan Ekosistem SINTESA
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 mt-2">

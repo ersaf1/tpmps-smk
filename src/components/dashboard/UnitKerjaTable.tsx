@@ -50,7 +50,7 @@ export default function UnitKerjaTable({ units }: UnitKerjaTableProps) {
     <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
             Ketercapaian Mutu 18 Unit Kerja
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">

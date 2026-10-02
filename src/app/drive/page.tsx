@@ -1825,7 +1825,7 @@ export default function GoogleDriveUnitPage() {
                   <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                     PEMERINTAH PROVINSI JAWA TENGAH &bull; DINAS PENDIDIKAN DAN KEBUDAYAAN
                   </div>
-                  <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                     SMK NEGERI 2 MAGELANG
                   </h2>
                   <p className="text-[10px] text-slate-600">

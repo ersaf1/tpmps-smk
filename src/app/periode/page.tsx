@@ -155,7 +155,7 @@ export default function PeriodeManagementPage() {
                   Siklus PPEPP SPMI
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-1">
                 Periode Mutu Pendidikan Sekolah
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
@@ -197,7 +197,7 @@ export default function PeriodeManagementPage() {
                 </span>
               </div>
 
-              <h2 className="text-lg sm:text-xl font-black text-slate-900">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
                 {activePeriode.name}
               </h2>
 

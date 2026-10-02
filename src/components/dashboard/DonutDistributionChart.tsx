@@ -70,7 +70,7 @@ export default function DonutDistributionChart() {
 
           {/* Center Donut Label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-            <span className="text-2xl font-black text-slate-900">18</span>
+            <span className="text-2xl font-bold text-slate-900">18</span>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
               Unit Kerja
             </span>

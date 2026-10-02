@@ -195,25 +195,25 @@ export default function SplineChart() {
           <div className="text-[11px] font-semibold text-slate-500 uppercase">
             Rata-rata Mutu
           </div>
-          <div className="text-lg sm:text-xl font-black text-[#0077B6] mt-0.5">
+          <div className="text-lg sm:text-xl font-bold text-[#0077B6] mt-0.5">
             87.2%
           </div>
         </div>
 
-        <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
           <div className="text-[11px] font-semibold text-slate-500 uppercase">
             Target Akreditasi
           </div>
-          <div className="text-lg sm:text-xl font-black text-amber-600 mt-0.5">
+          <div className="text-lg sm:text-xl font-bold text-amber-600 mt-0.5">
             95.0%
           </div>
         </div>
 
-        <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
           <div className="text-[11px] font-semibold text-slate-500 uppercase">
             Tren Pertumbuhan
           </div>
-          <div className="text-lg sm:text-xl font-black text-emerald-600 mt-0.5 flex items-center justify-center gap-1">
+          <div className="text-lg sm:text-xl font-bold text-emerald-600 mt-0.5 flex items-center justify-center gap-1">
             <TrendingUp className="w-4 h-4" />
             <span>+3.8%</span>
           </div>
