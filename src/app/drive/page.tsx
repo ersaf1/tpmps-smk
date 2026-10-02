@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import AppShell from '@/components/layout/AppShell';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/ToastFeedback';
 import { sintesaService, INITIAL_UNITS, INITIAL_STANDARDS } from '@/lib/services/sintesaDataService';
-import { BuktiDokumen, UnitKerja, StatusDokumen, UserProfile, KategoriDokumenMutu, KATEGORI_DOKUMEN_MUTU } from '@/types/sintesa';
+import { BuktiDokumen, UnitKerja, StatusDokumen, UserProfile, KategoriDokumenMutu } from '@/types/sintesa';
 import {
   Search,
   Folder,
@@ -18,11 +17,8 @@ import {
   FileCode,
   Image as ImageIcon,
   Star,
-  Clock,
   CheckCircle2,
   AlertCircle,
-  XCircle,
-  Filter,
   Grid,
   List as ListIcon,
   Info,
@@ -32,15 +28,16 @@ import {
   Plus,
   HardDrive,
   Share2,
-  ExternalLink,
-  ChevronDown,
   Building2,
   Sparkles,
   Eye,
   X,
   FileCheck,
   ShieldCheck,
-  Calendar
+  Calendar,
+  MoreVertical,
+  Check,
+  ArrowUpRight
 } from 'lucide-react';
 
 const DEFAULT_FOLDERS = [
@@ -63,7 +60,7 @@ export default function GoogleDriveUnitPage() {
   const [selectedUnitId, setSelectedUnitId] = useState<string>('u-01');
   const [isViewingAllUnits, setIsViewingAllUnits] = useState<boolean>(() => currentUser?.role === 'kepala_sekolah');
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'pdf' | 'excel' | 'word' | 'image'>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
@@ -79,9 +76,10 @@ export default function GoogleDriveUnitPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(true);
   const [previewDoc, setPreviewDoc] = useState<BuktiDokumen | null>(null);
 
-  // Modals
+  // Modals & Popovers
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
+  const [isNewMenuOpen, setIsNewMenuOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [targetDelete, setTargetDelete] = useState<BuktiDokumen | null>(null);
 
@@ -96,6 +94,8 @@ export default function GoogleDriveUnitPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
 
+  const newMenuRef = useRef<HTMLDivElement>(null);
+
   const loadData = () => {
     const user = sintesaService.getActiveUser();
     setCurrentUser(user);
@@ -104,7 +104,6 @@ export default function GoogleDriveUnitPage() {
     const loadedUnits = sintesaService.getUnits();
     setUnits(loadedUnits);
 
-    // If logged-in user is a unit (role === 'guru') and has unitId, default to their unit
     if (user && user.unitId && user.role === 'guru') {
       setSelectedUnitId(user.unitId);
       setIsViewingAllUnits(false);
@@ -117,6 +116,17 @@ export default function GoogleDriveUnitPage() {
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  // Close "+ Baru" menu on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (newMenuRef.current && !newMenuRef.current.contains(event.target as Node)) {
+        setIsNewMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const isKasek = useMemo(() => {
@@ -164,14 +174,14 @@ export default function GoogleDriveUnitPage() {
         { value: 'PM' as KategoriDokumenMutu, label: 'Level 2: Prosedur Mutu (PM)', desc: 'SOP & mekanisme pelaksanaan (TPMPS)' },
         { value: 'PK' as KategoriDokumenMutu, label: 'Level 3: Petunjuk Kerja (PK)', desc: 'Petunjuk teknis operasional kegiatan' },
         { value: 'CM' as KategoriDokumenMutu, label: 'Level 4: Catatan Mutu / Formulir (F)', desc: 'Bukti fisik rekaman mutu unit' },
-        { value: 'LAINNYA' as KategoriDokumenMutu, label: 'Dokumen Lainnya / Pendukung', desc: 'SK unit, sertifikat, portofolio & lampiran' },
+        { value: 'LAINNYA' as KategoriDokumenMutu, label: 'Dokumen Lainnya / Pendukung', desc: 'SK unit, sertifikat & lampiran' },
         { value: 'REKAP' as KategoriDokumenMutu, label: 'Rekapitulasi Capaian Unit', desc: 'Laporan ringkasan & capaian berkala' }
       ];
     }
     return [
       { value: 'PK' as KategoriDokumenMutu, label: 'Level 3: Petunjuk Kerja (PK)', desc: 'Petunjuk teknis operasional pelaksanaan unit' },
       { value: 'CM' as KategoriDokumenMutu, label: 'Level 4: Catatan Mutu / Formulir (F)', desc: 'Formulir bukti fisik rekaman pelaksanaan mutu' },
-      { value: 'LAINNYA' as KategoriDokumenMutu, label: 'Dokumen Lainnya / Pendukung', desc: 'SK unit, portofolio kerja, arsip & dokumen lain' },
+      { value: 'LAINNYA' as KategoriDokumenMutu, label: 'Dokumen Lainnya / Pendukung', desc: 'SK unit, portofolio kerja & dokumen lain' },
       { value: 'REKAP' as KategoriDokumenMutu, label: 'Rekapitulasi Capaian Unit', desc: 'Laporan ringkasan capaian mutu unit' }
     ];
   }, [isTPMPSUnit]);
@@ -194,7 +204,7 @@ export default function GoogleDriveUnitPage() {
     return [...DEFAULT_FOLDERS, ...custom];
   }, [selectedUnitId, customFolders]);
 
-  // Filtered Documents
+  // Filtered Documents for selected unit
   const unitDocuments = useMemo(() => {
     return documents.filter((d) => d.unitId === selectedUnitId);
   }, [documents, selectedUnitId]);
@@ -344,7 +354,7 @@ export default function GoogleDriveUnitPage() {
     }, 400);
   };
 
-  const getFileIcon = (type: string, className = 'w-6 h-6') => {
+  const getFileIcon = (type: string, className = 'w-5 h-5') => {
     switch (type) {
       case 'pdf':
         return <FileText className={`${className} text-rose-500`} />;
@@ -362,9 +372,9 @@ export default function GoogleDriveUnitPage() {
       case 'Terverifikasi':
         return 'bg-emerald-50 border-emerald-200 text-emerald-700';
       case 'Menunggu Review':
-        return 'bg-sky-50 border-sky-200 text-[#0077B6]';
+        return 'bg-blue-50 border-blue-200 text-[#0077B6]';
       case 'Perlu Revisi':
-        return 'bg-amber-50 border-amber-200 text-amber-700';
+        return 'bg-amber-50 border-amber-200 text-amber-800';
       case 'Ditolak':
         return 'bg-rose-50 border-rose-200 text-rose-700';
     }
@@ -373,35 +383,37 @@ export default function GoogleDriveUnitPage() {
   return (
     <AppShell
       title="Google Drive Unit Kerja"
-      subtitle="Pusat Repositori & Berkas Digital Terpadu Berbasis Unit TPMPS SMK Negeri 2 Magelang"
+      subtitle="Pusat Repositori & Bukti Fisik SPMI SMK Negeri 2 Magelang"
     >
       {/* -------------------------------------------------------------
-          TOP BAR: Google Drive Header Bar
+          1. GOOGLE DRIVE TOP COMMAND BAR (Soft, Defined & Clean)
       ------------------------------------------------------------- */}
-      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          {/* Left: Brand / Drive Identity */}
+      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-xs mb-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+          {/* Left: Brand & Active Unit Identity */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#0077B6] to-[#0284C7] flex items-center justify-center text-white shadow-md shadow-sky-500/20">
-              <HardDrive className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#0077B6] shrink-0">
+              <HardDrive className="w-5 h-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-lg sm:text-xl font-black tracking-tight text-slate-900">
-                  Google Drive Unit
-                </h1>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0077B6] border border-blue-200">
-                  {activeUnit.code}
+                <span className="text-base font-bold text-slate-900 tracking-tight">
+                  Drive {isViewingAllUnits ? '18 Unit Kerja' : activeUnit.name}
+                </span>
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-[#0077B6] border border-blue-200">
+                  {isViewingAllUnits ? '18 Unit' : activeUnit.code}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 truncate max-w-sm sm:max-w-md">
-                {activeUnit.name} &bull; PIC: {activeUnit.picName}
+              <p className="text-xs text-slate-500 truncate">
+                {isViewingAllUnits
+                  ? 'Koleksi folder resmi 18 unit kerja SPMI SMK Negeri 2 Magelang'
+                  : `PIC: ${activeUnit.picName} &bull; ${activeUnit.category}`}
               </p>
             </div>
           </div>
 
-          {/* Center: Drive Style Search Bar */}
-          <div className="flex-1 max-w-2xl relative">
+          {/* Center: Google Drive Pill Search Bar */}
+          <div className="flex-1 max-w-xl relative">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <Search className="w-4 h-4" />
@@ -410,14 +422,14 @@ export default function GoogleDriveUnitPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={`Telusuri di Drive ${activeUnit.name}...`}
-                className="w-full min-h-[44px] pl-10 pr-4 py-2 rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] focus:ring-2 focus:ring-blue-500/10 text-xs sm:text-sm text-slate-900 placeholder-slate-400 transition-all outline-hidden"
+                placeholder={isViewingAllUnits ? "Telusuri nama berkas, unit, atau kode..." : `Telusuri di Drive ${activeUnit.name}...`}
+                className="w-full h-10 pl-10 pr-9 rounded-full bg-slate-100 hover:bg-slate-200/60 focus:bg-white border border-transparent focus:border-[#0077B6] focus:ring-2 focus:ring-blue-500/10 text-xs sm:text-sm text-slate-900 placeholder-slate-400 transition-all outline-hidden"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -425,8 +437,8 @@ export default function GoogleDriveUnitPage() {
             </div>
           </div>
 
-          {/* Right: Actions (+ Baru, Grid/List, Info) */}
-          <div className="flex items-center gap-2.5">
+          {/* Right: Quick Action Buttons & View Controls */}
+          <div className="flex items-center gap-2 shrink-0">
             {!isKasek && (
               <>
                 <button
@@ -435,50 +447,49 @@ export default function GoogleDriveUnitPage() {
                     setUploadFolder(currentFolder || '02. Standar Isi & Kurikulum');
                     setIsUploadOpen(true);
                   }}
-                  className="btn-enterprise px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center gap-2 cursor-pointer transition-all"
-                  title="Upload Berkas ke Folder Unit"
+                  className="h-9 px-3.5 rounded-xl bg-[#0077B6] hover:bg-[#0284C7] text-white text-xs font-semibold shadow-xs flex items-center gap-2 cursor-pointer transition-colors"
                 >
                   <UploadCloud className="w-4 h-4" />
-                  <span>+ Upload Berkas</span>
+                  <span>Upload Berkas</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setIsNewFolderOpen(true)}
-                  className="btn-enterprise px-3.5 py-2.5 rounded-xl bg-white hover:bg-orange-50/70 border border-orange-300 text-orange-700 text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer shadow-2xs transition-colors"
-                  title="Buat Folder Baru di Unit Ini"
+                  className="h-9 px-3 rounded-xl bg-white hover:bg-orange-50 border border-orange-200 text-orange-600 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+                  title="Buat folder baru"
                 >
-                  <FolderPlus className="w-4 h-4 text-orange-500" />
+                  <FolderPlus className="w-4 h-4" />
                   <span className="hidden sm:inline">Folder Baru</span>
                 </button>
               </>
             )}
 
-            {/* View Mode Switch */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+            {/* View Mode Toggle (Grid / List) */}
+            <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={`p-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                  viewMode === 'list'
+                    ? 'bg-white text-[#0077B6] shadow-xs font-bold'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+                title="Tampilan Daftar (Google Drive)"
+              >
+                <ListIcon className="w-4 h-4" />
+              </button>
               <button
                 type="button"
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+                className={`p-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
                   viewMode === 'grid'
-                    ? 'bg-white text-[#0077B6] shadow-xs'
+                    ? 'bg-white text-[#0077B6] shadow-xs font-bold'
                     : 'text-slate-500 hover:text-slate-900'
                 }`}
                 title="Tampilan Kisi"
               >
                 <Grid className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className={`p-2 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
-                  viewMode === 'list'
-                    ? 'bg-white text-[#0077B6] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-                title="Tampilan Daftar"
-              >
-                <ListIcon className="w-4 h-4" />
               </button>
             </div>
 
@@ -486,12 +497,12 @@ export default function GoogleDriveUnitPage() {
             <button
               type="button"
               onClick={() => setIsDetailsOpen(!isDetailsOpen)}
-              className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+              className={`p-2 rounded-xl border transition-colors cursor-pointer ${
                 isDetailsOpen
                   ? 'bg-blue-50 border-blue-200 text-[#0077B6]'
                   : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-500'
               }`}
-              title="Rincian Berkas"
+              title="Panel Rincian Berkas"
             >
               <Info className="w-4 h-4" />
             </button>
@@ -500,101 +511,201 @@ export default function GoogleDriveUnitPage() {
       </div>
 
       {/* -------------------------------------------------------------
-          KEPALA SEKOLAH AUDIT MODE BANNER
+          2. KEPALA SEKOLAH AUDIT MODE BANNER (Clean, Soft & Defined)
       ------------------------------------------------------------- */}
       {isKasek && (
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50/80 border border-amber-300 rounded-3xl p-5 mb-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-700 shrink-0">
-              <ShieldCheck className="w-6 h-6" />
+        <div className="bg-white border border-orange-200 rounded-2xl p-4 mb-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-600 shrink-0">
+              <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm sm:text-base font-bold text-amber-950">
-                  Mode Pemeriksaan Kepala Sekolah (Read-Only)
+                <h2 className="text-sm font-bold text-slate-900">
+                  Mode Audit Eksekutif Kepala Sekolah (Read-Only)
                 </h2>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900 border border-amber-300 font-mono">
-                  Executive Audit
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 font-mono">
+                  Audit Eksklusif
                 </span>
               </div>
-              <p className="text-xs text-amber-800 mt-1 max-w-2xl leading-relaxed">
-                Sebagai Kepala Sekolah, Anda berwenang memeriksa seluruh folder dan berkas dari 18 unit kerja sekolah. Wewenang membuat periode dapat diakses di menu Periode SPMI.
+              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                Anda memiliki wewenang penuh untuk memeriksa seluruh folder dan berkas dari 18 unit kerja sekolah. Untuk membuat dan menetapkan periode SPMI baru, silakan gunakan menu Periode.
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Link
               href="/periode"
-              className="btn-enterprise px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs flex items-center gap-2 transition-colors"
+              className="h-9 px-3.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs"
             >
               <Calendar className="w-4 h-4" />
-              <span>Buat / Kelola Periode SPMI &rarr;</span>
+              <span>Kelola Periode SPMI &rarr;</span>
             </Link>
           </div>
         </div>
       )}
 
       {/* -------------------------------------------------------------
-          MAIN 2-COLUMN LAYOUT: Left Unit Switcher & Right Drive Explorer
+          3. MAIN LAYOUT: Left Unit & Drive Navigation + Right Explorer
       ------------------------------------------------------------- */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* =========================================================
-            LEFT COLUMN: UNIT SWITCHER & DRIVE NAVIGATION (3 Cols)
+            LEFT COLUMN: + BARU BUTTON & UNIT/FOLDER DIRECTORY (3 Cols)
         ========================================================= */}
-        <div className="lg:col-span-3 space-y-5">
-          {/* Unit Selector Box */}
-          <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-[#0077B6]" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-900">
-                  Daftar Unit Kerja
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-                  {units.length} Unit
-                </span>
-                {!isKasek && (
-                  <Link
-                    href="/unit"
-                    className="text-[10px] font-bold text-[#0077B6] hover:underline"
-                  >
-                    Kelola &rarr;
-                  </Link>
-                )}
-              </div>
-            </div>
+        <div className="lg:col-span-3 space-y-4">
+          {/* Google Drive Signature "+ Baru" Button with Dropdown (Non-Kasek) */}
+          {!isKasek && (
+            <div className="relative" ref={newMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsNewMenuOpen(!isNewMenuOpen)}
+                className="w-full bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 shadow-sm hover:shadow-md flex items-center gap-3.5 text-slate-800 text-sm font-bold cursor-pointer transition-all"
+              >
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#0077B6] flex items-center justify-center">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <span>Baru</span>
+              </button>
 
-            {/* Folder 18 Unit Kerja Root Toggle */}
+              {isNewMenuOpen && (
+                <div className="absolute top-full left-0 mt-1.5 w-60 bg-white rounded-xl border border-slate-200 shadow-lg py-1.5 z-30 animate-in fade-in duration-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsNewMenuOpen(false);
+                      setUploadFolder(currentFolder || '02. Standar Isi & Kurikulum');
+                      setIsUploadOpen(true);
+                    }}
+                    className="w-full text-left px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer"
+                  >
+                    <UploadCloud className="w-4 h-4 text-[#0077B6]" />
+                    <span>Upload Berkas</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsNewMenuOpen(false);
+                      setIsNewFolderOpen(true);
+                    }}
+                    className="w-full text-left px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer"
+                  >
+                    <FolderPlus className="w-4 h-4 text-orange-500" />
+                    <span>Folder Baru</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Drive Navigation Pills */}
+          <div className="bg-white rounded-2xl p-3 border border-slate-200 shadow-xs space-y-1">
             <button
               type="button"
               onClick={() => {
                 setIsViewingAllUnits(true);
                 setCurrentFolder(null);
                 setSelectedDoc(null);
+                setActiveTab('all');
               }}
-              className={`w-full text-left px-3.5 py-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
                 isViewingAllUnits
-                  ? 'bg-gradient-to-r from-[#0077B6] to-[#0284C7] text-white shadow-md shadow-sky-500/20'
-                  : 'bg-blue-50/80 hover:bg-blue-100/70 text-[#0077B6] border border-blue-200'
+                  ? 'bg-blue-50 text-[#0077B6] border border-blue-200'
+                  : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Folder className={`w-4 h-4 ${isViewingAllUnits ? 'text-white fill-white/40' : 'text-[#0077B6] fill-sky-200'}`} />
-                <span>Folder 18 Unit Kerja</span>
+                <Folder className={`w-4 h-4 ${isViewingAllUnits ? 'text-[#0077B6] fill-blue-100' : 'text-slate-400'}`} />
+                <span>Semua 18 Folder Unit</span>
               </div>
-              <span
-                className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                  isViewingAllUnits ? 'bg-white/20 text-white' : 'bg-white text-[#0077B6] border border-blue-200'
-                }`}
-              >
-                18 Folder
+              <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono font-semibold ${
+                isViewingAllUnits ? 'bg-blue-100 text-[#0077B6]' : 'bg-slate-100 text-slate-600'
+              }`}>
+                18 Unit
               </span>
             </button>
 
-            {/* Unit List */}
-            <div className="space-y-1.5 max-h-[360px] overflow-y-auto pr-1">
+            <button
+              type="button"
+              onClick={() => {
+                setIsViewingAllUnits(false);
+                setCurrentFolder(null);
+                setActiveTab('all');
+              }}
+              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
+                !isViewingAllUnits && activeTab === 'all' && !currentFolder
+                  ? 'bg-blue-50 text-[#0077B6] border border-blue-200'
+                  : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <HardDrive className="w-4 h-4 text-[#0077B6]" />
+                <span className="truncate">{activeUnit.name}</span>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono">
+                {unitDocuments.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('starred');
+                setIsViewingAllUnits(false);
+                setCurrentFolder(null);
+              }}
+              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
+                activeTab === 'starred'
+                  ? 'bg-amber-50 text-amber-900 border border-amber-200'
+                  : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                <span>Dokumen Berbintang</span>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-mono">
+                {unitDocuments.filter((d) => d.isStarred).length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('verified');
+                setIsViewingAllUnits(false);
+                setCurrentFolder(null);
+              }}
+              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
+                activeTab === 'verified'
+                  ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+                  : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Tervalidasi TPMPS</span>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-mono">
+                {unitDocuments.filter((d) => d.status === 'Terverifikasi').length}
+              </span>
+            </button>
+          </div>
+
+          {/* Unit Kerja Directory Box */}
+          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-[#0077B6]" />
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  Daftar 18 Unit Kerja
+                </span>
+              </div>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                {units.length} Unit
+              </span>
+            </div>
+
+            <div className="space-y-1 max-h-[300px] overflow-y-auto pr-1">
               {units.map((u, idx) => {
                 const isSelected = !isViewingAllUnits && u.id === selectedUnitId;
                 const unitNumber = idx + 1;
@@ -608,13 +719,13 @@ export default function GoogleDriveUnitPage() {
                       setCurrentFolder(null);
                       setSelectedDoc(null);
                     }}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all flex items-center justify-between group cursor-pointer ${
+                    className={`w-full text-left px-2.5 py-2 rounded-xl text-xs transition-colors flex items-center justify-between group cursor-pointer ${
                       isSelected
-                        ? 'bg-gradient-to-r from-[#0077B6] to-[#0284C7] text-white font-bold shadow-xs shadow-sky-500/20'
+                        ? 'bg-[#0077B6] text-white font-semibold shadow-xs'
                         : 'hover:bg-slate-50 text-slate-700'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
                       <span
                         className={`inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-mono font-bold shrink-0 ${
                           isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
@@ -623,18 +734,18 @@ export default function GoogleDriveUnitPage() {
                         {unitNumber}
                       </span>
                       <div className="truncate">
-                        <div className="truncate font-semibold">{u.name}</div>
+                        <div className="truncate">{u.name}</div>
                         <div
                           className={`text-[10px] truncate ${
                             isSelected ? 'text-white/80' : 'text-slate-400'
                           }`}
                         >
-                          {u.code} &bull; {u.category}
+                          {u.code}
                         </div>
                       </div>
                     </div>
                     {isSelected && (
-                      <CheckCircle2 className="w-4 h-4 text-white shrink-0 ml-2" />
+                      <Check className="w-3.5 h-3.5 text-white shrink-0 ml-1.5" />
                     )}
                   </button>
                 );
@@ -642,99 +753,29 @@ export default function GoogleDriveUnitPage() {
             </div>
           </div>
 
-          {/* Drive Navigation Filters */}
-          <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-2">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-1">
-              Navigasi Drive
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('all');
-                setCurrentFolder(null);
-              }}
-              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
-                activeTab === 'all' && !currentFolder
-                  ? 'bg-blue-50 text-[#0077B6] border border-blue-200 font-bold'
-                  : 'text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <HardDrive className="w-4 h-4 text-[#0077B6]" />
-                <span>Drive Unit Saya</span>
-              </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono">
-                {unitDocuments.length}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('starred');
-                setCurrentFolder(null);
-              }}
-              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
-                activeTab === 'starred'
-                  ? 'bg-amber-50 text-amber-800 border border-amber-200 font-bold'
-                  : 'text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                <span>Dokumen Berbintang</span>
-              </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-mono">
-                {unitDocuments.filter((d) => d.isStarred).length}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('verified');
-                setCurrentFolder(null);
-              }}
-              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors ${
-                activeTab === 'verified'
-                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold'
-                  : 'text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Tervalidasi TPMPS</span>
-              </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono">
-                {unitDocuments.filter((d) => d.status === 'Terverifikasi').length}
-              </span>
-            </button>
-          </div>
-
-          {/* Cloud Storage Quota Card */}
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-5 shadow-md space-y-3">
+          {/* Cloud Storage Usage Card (Clean, Soft & Defined) */}
+          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <HardDrive className="w-4 h-4 text-[#0284C7]" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                  Penyimpanan Unit
+                <HardDrive className="w-4 h-4 text-[#0077B6]" />
+                <span className="text-xs font-bold text-slate-800">
+                  Penyimpanan Mutu
                 </span>
               </div>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white/10 text-sky-300">
-                28%
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-blue-50 text-[#0077B6] border border-blue-200">
+                28% Terpakai
               </span>
             </div>
 
-            <div className="text-2xl font-black font-mono">
-              4.2 <span className="text-sm font-sans font-normal text-slate-400">GB dari 15 GB</span>
+            <div className="text-lg font-bold text-slate-900 font-mono">
+              4.2 <span className="text-xs font-normal text-slate-500 font-sans">GB dari 15 GB</span>
             </div>
 
-            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-[#0077B6] to-sky-400 rounded-full" style={{ width: '28%' }} />
+            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-full bg-[#0077B6] rounded-full" style={{ width: '28%' }} />
             </div>
 
-            <p className="text-[11px] text-slate-400 leading-relaxed pt-1 border-t border-white/10">
+            <p className="text-[11px] text-slate-500 leading-relaxed pt-1 border-t border-slate-100">
               Terintegrasi dengan Google Workspace for Education & Supabase Storage SMK Negeri 2 Magelang.
             </p>
           </div>
@@ -743,37 +784,37 @@ export default function GoogleDriveUnitPage() {
         {/* =========================================================
             RIGHT COLUMN: GOOGLE DRIVE EXPLORER & DETAILS (9 Cols)
         ========================================================= */}
-        <div className={`${isDetailsOpen ? 'lg:col-span-6 xl:col-span-6' : 'lg:col-span-9'} space-y-6 transition-all`}>
+        <div className={`${isDetailsOpen ? 'lg:col-span-6 xl:col-span-6' : 'lg:col-span-9'} space-y-5 transition-all`}>
           {isViewingAllUnits ? (
             /* =========================================================
-               VIEW 1: 18 UNIT KERJA AS VISUAL FOLDERS (Bukan Dropdown)
+               VIEW 1: REPOSITORI 18 UNIT KERJA (Folder Bentuk Visual)
             ========================================================= */
-            <div className="space-y-6">
-              <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs">
+            <div className="space-y-4">
+              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#0077B6] shrink-0">
-                      <Folder className="w-6 h-6 fill-sky-200" />
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#0077B6] shrink-0">
+                      <Folder className="w-5 h-5 fill-blue-100" />
                     </div>
                     <div>
-                      <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                      <h2 className="text-base font-bold text-slate-900 tracking-tight">
                         Folder Repositori 18 Unit Kerja
                       </h2>
                       <p className="text-xs text-slate-500">
                         {isKasek
-                          ? 'Klik folder unit kerja di bawah untuk memeriksa dan meninjau kelengkapan berkas bukti fisik.'
-                          : 'Klik folder unit kerja di bawah untuk membuka dan mengelola berkas bukti fisik.'}
+                          ? 'Pilih folder unit kerja untuk memeriksa berkas bukti fisik pemenuhan mutu.'
+                          : 'Pilih folder unit kerja di bawah untuk membuka dan mengunggah berkas.'}
                       </p>
                     </div>
                   </div>
-                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 text-[#0077B6] border border-blue-200 self-start sm:self-auto font-mono">
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-blue-50 text-[#0077B6] border border-blue-200 self-start sm:self-auto font-mono">
                     {units.length} Folder Unit
                   </span>
                 </div>
               </div>
 
-              {/* The 18 Unit Folders Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {/* Visual 18 Folders Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
                 {units.map((u, idx) => {
                   const unitDocs = documents.filter((d) => d.unitId === u.id);
                   const verifiedCount = unitDocs.filter((d) => d.status === 'Terverifikasi').length;
@@ -788,24 +829,24 @@ export default function GoogleDriveUnitPage() {
                         setCurrentFolder(null);
                         setSelectedDoc(null);
                       }}
-                      className="p-5 rounded-3xl bg-white border border-slate-200 hover:border-[#0077B6] hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden"
+                      className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-[#0077B6] hover:bg-slate-50/50 hover:shadow-sm transition-all cursor-pointer flex flex-col justify-between group"
                     >
                       <div>
                         <div className="flex items-start justify-between gap-2 mb-3">
-                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-sky-100/80 border border-blue-200 flex items-center justify-center text-[#0077B6] group-hover:scale-105 transition-transform shadow-xs">
-                            <Folder className="w-6 h-6 fill-sky-200" />
+                          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#0077B6] group-hover:scale-105 transition-transform">
+                            <Folder className="w-5 h-5 fill-blue-100" />
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                            <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
                               Unit {String(unitNumber).padStart(2, '0')}
                             </span>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-[#0077B6] border border-blue-200">
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-[#0077B6] border border-blue-200">
                               {u.code}
                             </span>
                           </div>
                         </div>
 
-                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#0077B6] transition-colors leading-snug line-clamp-2">
+                        <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0077B6] transition-colors line-clamp-2">
                           {u.name}
                         </h3>
                         <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">
@@ -813,13 +854,13 @@ export default function GoogleDriveUnitPage() {
                         </p>
                       </div>
 
-                      <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-slate-700">
                             {unitDocs.length} Berkas
                           </span>
                           {verifiedCount > 0 && (
-                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                               {verifiedCount} Sah
                             </span>
                           )}
@@ -835,14 +876,14 @@ export default function GoogleDriveUnitPage() {
             </div>
           ) : (
             /* =========================================================
-               VIEW 2: INSIDE UNIT (Sub-Folders & Documents)
+               VIEW 2: DALAM UNIT (Sub-Folders & Dokumen)
             ========================================================= */
-            <>
-              {/* Breadcrumbs & Filter Bar */}
-              <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div className="space-y-4">
+              {/* Breadcrumb Path & Filters */}
+              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   {/* Breadcrumb Navigation */}
-                  <nav className="flex items-center gap-2 text-xs font-semibold text-slate-600 flex-wrap">
+                  <nav className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 flex-wrap">
                     <button
                       type="button"
                       onClick={() => {
@@ -850,9 +891,9 @@ export default function GoogleDriveUnitPage() {
                         setCurrentFolder(null);
                         setActiveTab('all');
                       }}
-                      className="hover:text-[#0077B6] transition-colors cursor-pointer flex items-center gap-1 font-bold text-[#0077B6]"
+                      className="hover:text-[#0077B6] transition-colors cursor-pointer flex items-center gap-1 text-[#0077B6]"
                     >
-                      <Folder className="w-3.5 h-3.5 fill-sky-200" />
+                      <Folder className="w-3.5 h-3.5 fill-blue-100" />
                       <span>Semua 18 Unit</span>
                     </button>
                     <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
@@ -860,7 +901,7 @@ export default function GoogleDriveUnitPage() {
                       type="button"
                       onClick={() => setCurrentFolder(null)}
                       className={`hover:text-[#0077B6] transition-colors cursor-pointer ${
-                        !currentFolder ? 'font-bold text-slate-900' : ''
+                        !currentFolder ? 'text-slate-900 font-bold' : ''
                       }`}
                     >
                       {activeUnit.name}
@@ -868,381 +909,332 @@ export default function GoogleDriveUnitPage() {
                     {currentFolder && (
                       <>
                         <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="font-bold text-[#0077B6] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+                        <span className="text-[#0077B6] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 font-bold">
                           {currentFolder}
                         </span>
                       </>
                     )}
                   </nav>
 
-              {/* Filter Penempatan & Status */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <select
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-hidden focus:border-[#0077B6]"
-                  title="Filter Penempatan Dokumen Mutu"
-                >
-                  {availableCategoriesForUnit.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-hidden focus:border-[#0077B6]"
-                >
-                  <option value="ALL">Semua Status</option>
-                  <option value="Terverifikasi">Terverifikasi</option>
-                  <option value="Menunggu Review">Menunggu Review</option>
-                  <option value="Perlu Revisi">Perlu Revisi</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Quick Filter Chips */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-              {[
-                { label: 'Semua Format', val: 'ALL' },
-                { label: 'PDF Document', val: 'pdf' },
-                { label: 'Spreadsheet Excel', val: 'excel' },
-                { label: 'Word Document', val: 'word' },
-                { label: 'Foto / Gambar', val: 'image' }
-              ].map((chip) => (
-                <button
-                  key={chip.val}
-                  type="button"
-                  onClick={() => setFilterType(chip.val as any)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 cursor-pointer transition-all ${
-                    filterType === chip.val
-                      ? 'bg-slate-900 text-white shadow-2xs'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                  }`}
-                >
-                  {chip.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Quick Access Cards (Top Recent Files) */}
-          {!currentFolder && activeTab === 'all' && !searchQuery && quickAccessDocs.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-3 px-1">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Disarankan & Sering Diakses
-                  </h3>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {quickAccessDocs.map((doc) => (
-                  <div
-                    key={doc.id}
-                    onClick={() => setSelectedDoc(doc)}
-                    className={`p-4 rounded-2xl bg-white border transition-all cursor-pointer flex items-start gap-3.5 hover:shadow-md ${
-                      selectedDoc?.id === doc.id
-                        ? 'border-[#0077B6] ring-2 ring-blue-500/20 shadow-xs'
-                        : 'border-slate-200 hover:border-blue-300'
-                    }`}
-                  >
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 shrink-0">
-                      {getFileIcon(doc.fileType, 'w-6 h-6')}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[10px] font-mono font-bold text-[#0077B6] truncate">
-                          {doc.code}
-                        </span>
-                        <span
-                          className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${getStatusBadge(
-                            doc.status
-                          )}`}
-                        >
-                          {doc.status}
-                        </span>
-                      </div>
-                      <h4 className="text-xs font-bold text-slate-900 truncate mt-1">
-                        {doc.title}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 mt-1">
-                        {doc.fileSize} &bull; {doc.folder || 'Root'}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Folders Section */}
-          {!currentFolder && activeTab === 'all' && !searchQuery && (
-            <div>
-              <div className="flex items-center justify-between mb-3 px-1">
-                <div className="flex items-center gap-2">
-                  <Folder className="w-4 h-4 text-[#0077B6]" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Folder Standar & Unit ({unitFolders.length})
-                  </h3>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                {unitFolders.map((folderName) => {
-                  const count = folderCounts[folderName] || 0;
-                  return (
-                    <div
-                      key={folderName}
-                      onClick={() => setCurrentFolder(folderName)}
-                      className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-xs transition-all cursor-pointer flex items-center justify-between group"
+                  {/* Filter Status & Penempatan */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <select
+                      value={filterCategory}
+                      onChange={(e) => setFilterCategory(e.target.value)}
+                      className="px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-700 outline-hidden focus:border-[#0077B6]"
+                      title="Filter Penempatan Dokumen Mutu"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-blue-50 group-hover:bg-blue-100/70 border border-blue-100 flex items-center justify-center text-[#0077B6] transition-colors shrink-0">
-                          <Folder className="w-5 h-5 fill-sky-200" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-xs font-bold text-slate-900 group-hover:text-[#0077B6] transition-colors truncate">
-                            {folderName}
-                          </div>
-                          <div className="text-[10px] text-slate-500 font-medium">
-                            {count} Berkas Bukti
-                          </div>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+                      {availableCategoriesForUnit.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
 
-          {/* Files Section */}
-          <div>
-            <div className="flex items-center justify-between mb-3 px-1">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-[#0077B6]" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                  {currentFolder ? `Berkas dalam: ${currentFolder}` : 'Semua Berkas Unit'} ({displayedDocs.length})
-                </h3>
-              </div>
-            </div>
+                    <select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      className="px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-700 outline-hidden focus:border-[#0077B6]"
+                    >
+                      <option value="ALL">Semua Status</option>
+                      <option value="Terverifikasi">Terverifikasi</option>
+                      <option value="Menunggu Review">Menunggu Review</option>
+                      <option value="Perlu Revisi">Perlu Revisi</option>
+                    </select>
+                  </div>
+                </div>
 
-            {displayedDocs.length === 0 ? (
-              <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 text-slate-400 space-y-3">
-                <Folder className="w-12 h-12 text-slate-300 mx-auto" />
-                <p className="text-sm font-semibold">Tidak ada berkas di folder ini.</p>
-                <button
-                  type="button"
-                  onClick={() => setIsUploadOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-blue-50 text-[#0077B6] text-xs font-bold hover:bg-blue-100 transition-colors cursor-pointer"
-                >
-                  Upload Dokumen Sekarang
-                </button>
-              </div>
-            ) : viewMode === 'grid' ? (
-              /* GRID VIEW */
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                {displayedDocs.map((doc) => {
-                  const isSelected = selectedDoc?.id === doc.id;
-                  return (
-                    <div
-                      key={doc.id}
-                      onClick={() => setSelectedDoc(doc)}
-                      className={`bg-white rounded-2xl p-4 border transition-all cursor-pointer flex flex-col justify-between group hover:shadow-md ${
-                        isSelected
-                          ? 'border-[#0077B6] ring-2 ring-blue-500/20 shadow-xs'
-                          : 'border-slate-200 hover:border-blue-300'
+                {/* Quick Format Filter Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs pt-1 border-t border-slate-100">
+                  {[
+                    { label: 'Semua Format', val: 'ALL' },
+                    { label: 'PDF Document', val: 'pdf' },
+                    { label: 'Spreadsheet Excel', val: 'excel' },
+                    { label: 'Word Document', val: 'word' },
+                    { label: 'Foto / Gambar', val: 'image' }
+                  ].map((chip) => (
+                    <button
+                      key={chip.val}
+                      type="button"
+                      onClick={() => setFilterType(chip.val as any)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 cursor-pointer transition-colors ${
+                        filterType === chip.val
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
                       }`}
                     >
-                      <div>
-                        {/* Top: File Icon, Star, Status */}
-                        <div className="flex items-start justify-between gap-2 mb-3">
-                          <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform">
-                            {getFileIcon(doc.fileType, 'w-6 h-6')}
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={(e) => handleToggleStar(doc.id, e)}
-                              className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-amber-500 transition-colors"
-                              title={doc.isStarred ? 'Hapus bintang' : 'Beri bintang'}
-                            >
-                              <Star
-                                className={`w-4 h-4 ${
-                                  doc.isStarred
-                                    ? 'text-amber-500 fill-amber-500'
-                                    : 'text-slate-300'
-                                }`}
-                              />
-                            </button>
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Access Cards (Top 4 recent files) */}
+              {!currentFolder && activeTab === 'all' && !searchQuery && quickAccessDocs.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2.5 px-1">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Disarankan & Sering Diakses
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {quickAccessDocs.map((doc) => (
+                      <div
+                        key={doc.id}
+                        onClick={() => setSelectedDoc(doc)}
+                        className={`p-3.5 rounded-xl bg-white border transition-all cursor-pointer flex items-start gap-3 hover:shadow-xs ${
+                          selectedDoc?.id === doc.id
+                            ? 'border-[#0077B6] bg-blue-50/50'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 shrink-0">
+                          {getFileIcon(doc.fileType, 'w-5 h-5')}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-[10px] font-mono font-semibold text-[#0077B6] truncate">
+                              {doc.code}
+                            </span>
                             <span
-                              className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${getStatusBadge(
+                              className={`text-[9px] font-semibold px-2 py-0.5 rounded-full border ${getStatusBadge(
                                 doc.status
                               )}`}
                             >
                               {doc.status}
                             </span>
                           </div>
-                        </div>
-
-                        {/* Title & Code */}
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] font-mono font-bold text-[#0077B6]">
-                            {doc.code}
-                          </span>
-                          {doc.kategoriDokumen && (
-                            <span
-                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border ${
-                                doc.kategoriDokumen === 'MM'
-                                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                                  : doc.kategoriDokumen === 'PM'
-                                  ? 'bg-blue-50 text-[#0077B6] border-blue-200'
-                                  : doc.kategoriDokumen === 'PK'
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                  : doc.kategoriDokumen === 'CM'
-                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                  : doc.kategoriDokumen === 'LAINNYA'
-                                  ? 'bg-slate-100 text-slate-700 border-slate-300'
-                                  : 'bg-purple-50 text-purple-700 border-purple-200'
-                              }`}
-                            >
-                              {doc.kategoriDokumen === 'CM' ? 'CM (F)' : doc.kategoriDokumen === 'LAINNYA' ? 'LAINNYA' : doc.kategoriDokumen}
-                            </span>
-                          )}
-                        </div>
-                        <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-2 mt-1 leading-snug group-hover:text-[#0077B6] transition-colors">
-                          {doc.title}
-                        </h4>
-
-                        {/* Folder & Notes */}
-                        <p className="text-[11px] text-slate-500 mt-2 line-clamp-2 leading-relaxed">
-                          {doc.notes || 'Tidak ada catatan tambahan.'}
-                        </p>
-                      </div>
-
-                      {/* Footer Info & Quick Actions */}
-                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                        <span className="font-mono">{doc.fileSize}</span>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPreviewDoc(doc);
-                            }}
-                            className="p-1.5 rounded-lg hover:bg-blue-50 text-slate-400 hover:text-[#0077B6] transition-colors"
-                            title="Pratinjau"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          {!isKasek && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setTargetDelete(doc);
-                              }}
-                              className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
-                              title="Hapus Dokumen"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
+                          <h4 className="text-xs font-bold text-slate-900 truncate mt-1">
+                            {doc.title}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            {doc.fileSize} &bull; {doc.folder || 'Root'}
+                          </p>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Folders Section */}
+              {!currentFolder && activeTab === 'all' && !searchQuery && (
+                <div>
+                  <div className="flex items-center justify-between mb-2.5 px-1">
+                    <div className="flex items-center gap-2">
+                      <Folder className="w-4 h-4 text-[#0077B6]" />
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Folder ({unitFolders.length})
+                      </h3>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              /* LIST VIEW */
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
-                      <tr>
-                        <th className="py-3 px-4">Nama Berkas</th>
-                        <th className="py-3 px-3">Folder</th>
-                        <th className="py-3 px-3">Status</th>
-                        <th className="py-3 px-3">Ukuran</th>
-                        <th className="py-3 px-3">Diperbarui</th>
-                        <th className="py-3 px-4 text-right">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {displayedDocs.map((doc) => {
-                        const isSelected = selectedDoc?.id === doc.id;
-                        return (
-                          <tr
-                            key={doc.id}
-                            onClick={() => setSelectedDoc(doc)}
-                            className={`cursor-pointer transition-colors ${
-                              isSelected ? 'bg-blue-50/70' : 'hover:bg-slate-50'
-                            }`}
-                          >
-                            <td className="py-3 px-4">
-                              <div className="flex items-center gap-3">
-                                {getFileIcon(doc.fileType, 'w-5 h-5 shrink-0')}
-                                <div className="min-w-0">
-                                  <div className="font-bold text-slate-900 truncate max-w-xs sm:max-w-sm">
-                                    {doc.title}
-                                  </div>
-                                  <div className="text-[10px] font-mono text-[#0077B6] flex items-center gap-1.5 flex-wrap mt-0.5">
-                                    <span>{doc.code}</span>
-                                    {doc.kategoriDokumen && (
-                                      <span
-                                        className={`text-[9px] font-sans font-bold px-1.5 py-0.2 rounded-md border ${
-                                          doc.kategoriDokumen === 'MM'
-                                            ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                                            : doc.kategoriDokumen === 'PM'
-                                            ? 'bg-blue-50 text-[#0077B6] border-blue-200'
-                                            : doc.kategoriDokumen === 'PK'
-                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                            : doc.kategoriDokumen === 'CM'
-                                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                            : doc.kategoriDokumen === 'LAINNYA'
-                                            ? 'bg-slate-100 text-slate-700 border-slate-300'
-                                            : 'bg-purple-50 text-purple-700 border-purple-200'
-                                        }`}
-                                      >
-                                        {doc.kategoriDokumen === 'CM' ? 'CM (F)' : doc.kategoriDokumen === 'LAINNYA' ? 'LAINNYA' : doc.kategoriDokumen}
-                                      </span>
-                                    )}
-                                    <span>&bull; {doc.fileName}</span>
-                                  </div>
-                                </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
+                    {unitFolders.map((folderName) => {
+                      const count = folderCounts[folderName] || 0;
+                      return (
+                        <div
+                          key={folderName}
+                          onClick={() => setCurrentFolder(folderName)}
+                          className="p-3 rounded-xl bg-white border border-slate-200 hover:border-[#0077B6] hover:bg-slate-50 transition-colors cursor-pointer flex items-center justify-between group"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0077B6] shrink-0">
+                              <Folder className="w-4 h-4 fill-blue-100" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-xs font-semibold text-slate-900 group-hover:text-[#0077B6] transition-colors truncate">
+                                {folderName}
                               </div>
-                            </td>
-                            <td className="py-3 px-3 text-slate-600 truncate max-w-[140px]">
-                              {doc.folder || '-'}
-                            </td>
-                            <td className="py-3 px-3">
-                              <span
-                                className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${getStatusBadge(
-                                  doc.status
-                                )}`}
+                              <div className="text-[10px] text-slate-500 font-medium">
+                                {count} berkas
+                              </div>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Files Section */}
+              <div>
+                <div className="flex items-center justify-between mb-2.5 px-1">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-[#0077B6]" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                      {currentFolder ? `Berkas dalam: ${currentFolder}` : 'Semua Berkas'} ({displayedDocs.length})
+                    </h3>
+                  </div>
+                </div>
+
+                {displayedDocs.length === 0 ? (
+                  <div className="bg-white rounded-2xl p-10 text-center border border-slate-200 text-slate-400 space-y-2.5">
+                    <Folder className="w-10 h-10 text-slate-300 mx-auto" />
+                    <p className="text-sm font-semibold text-slate-700">Tidak ada berkas di folder ini.</p>
+                    <p className="text-xs text-slate-400">Unggah berkas bukti fisik untuk melengkapi folder mutu unit ini.</p>
+                    {!isKasek && (
+                      <button
+                        type="button"
+                        onClick={() => setIsUploadOpen(true)}
+                        className="mt-2 px-4 py-2 rounded-xl bg-[#0077B6] text-white text-xs font-semibold hover:bg-[#0284C7] transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                      >
+                        <UploadCloud className="w-4 h-4" />
+                        <span>Upload Berkas Sekarang</span>
+                      </button>
+                    )}
+                  </div>
+                ) : viewMode === 'list' ? (
+                  /* GOOGLE DRIVE SIGNATURE LIST VIEW */
+                  <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[10px]">
+                          <tr>
+                            <th className="py-3 px-4 font-bold">Nama Berkas</th>
+                            <th className="py-3 px-3 font-bold">Pemilik / Unit</th>
+                            <th className="py-3 px-3 font-bold">Penempatan</th>
+                            <th className="py-3 px-3 font-bold">Terakhir Diubah</th>
+                            <th className="py-3 px-3 font-bold">Ukuran</th>
+                            <th className="py-3 px-4 text-right font-bold">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {displayedDocs.map((doc) => {
+                            const isSelected = selectedDoc?.id === doc.id;
+                            return (
+                              <tr
+                                key={doc.id}
+                                onClick={() => setSelectedDoc(doc)}
+                                className={`cursor-pointer transition-colors ${
+                                  isSelected
+                                    ? 'bg-[#E8F0FE] text-blue-950 font-medium'
+                                    : 'hover:bg-slate-50 text-slate-800'
+                                }`}
                               >
-                                {doc.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 font-mono text-slate-500">
-                              {doc.fileSize}
-                            </td>
-                            <td className="py-3 px-3 text-slate-500 whitespace-nowrap">
-                              {doc.updatedAt.substring(0, 10)}
-                            </td>
-                            <td className="py-3 px-4 text-right whitespace-nowrap">
-                              <div className="flex items-center justify-end gap-1">
+                                <td className="py-2.5 px-4">
+                                  <div className="flex items-center gap-3">
+                                    {getFileIcon(doc.fileType, 'w-5 h-5 shrink-0')}
+                                    <div className="min-w-0">
+                                      <div className="font-semibold text-slate-900 truncate max-w-xs sm:max-w-sm">
+                                        {doc.title}
+                                      </div>
+                                      <div className="text-[10px] font-mono text-[#0077B6] flex items-center gap-1.5 flex-wrap">
+                                        <span>{doc.code}</span>
+                                        <span>&bull; {doc.fileName}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-2.5 px-3 text-slate-600 truncate max-w-[120px]">
+                                  {doc.unitName}
+                                </td>
+                                <td className="py-2.5 px-3">
+                                  {doc.kategoriDokumen && (
+                                    <span
+                                      className={`text-[9px] font-semibold px-2 py-0.5 rounded-md border ${
+                                        doc.kategoriDokumen === 'MM'
+                                          ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                          : doc.kategoriDokumen === 'PM'
+                                          ? 'bg-blue-50 text-[#0077B6] border-blue-200'
+                                          : doc.kategoriDokumen === 'PK'
+                                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                          : doc.kategoriDokumen === 'CM'
+                                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                          : doc.kategoriDokumen === 'LAINNYA'
+                                          ? 'bg-slate-100 text-slate-700 border-slate-200'
+                                          : 'bg-purple-50 text-purple-700 border-purple-200'
+                                      }`}
+                                    >
+                                      {doc.kategoriDokumen === 'CM' ? 'CM (F)' : doc.kategoriDokumen}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-2.5 px-3 text-slate-500 whitespace-nowrap">
+                                  {doc.updatedAt.substring(0, 10)}
+                                </td>
+                                <td className="py-2.5 px-3 font-mono text-slate-500">
+                                  {doc.fileSize}
+                                </td>
+                                <td className="py-2.5 px-4 text-right whitespace-nowrap">
+                                  <div className="flex items-center justify-end gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => handleToggleStar(doc.id, e)}
+                                      className="p-1.5 rounded-md text-slate-400 hover:text-amber-500 hover:bg-slate-100 cursor-pointer"
+                                      title={doc.isStarred ? 'Hapus bintang' : 'Beri bintang'}
+                                    >
+                                      <Star
+                                        className={`w-3.5 h-3.5 ${
+                                          doc.isStarred
+                                            ? 'text-amber-500 fill-amber-500'
+                                            : 'text-slate-400'
+                                        }`}
+                                      />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setPreviewDoc(doc);
+                                      }}
+                                      className="p-1.5 rounded-md text-slate-400 hover:text-[#0077B6] hover:bg-slate-100 cursor-pointer"
+                                      title="Pratinjau berkas"
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                    </button>
+                                    {!isKasek && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setTargetDelete(doc);
+                                        }}
+                                        className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
+                                        title="Hapus berkas"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  /* GRID VIEW */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
+                    {displayedDocs.map((doc) => {
+                      const isSelected = selectedDoc?.id === doc.id;
+                      return (
+                        <div
+                          key={doc.id}
+                          onClick={() => setSelectedDoc(doc)}
+                          className={`bg-white rounded-2xl p-4 border transition-all cursor-pointer flex flex-col justify-between group hover:shadow-xs ${
+                            isSelected
+                              ? 'border-[#0077B6] bg-blue-50/40'
+                              : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-start justify-between gap-2 mb-3">
+                              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform">
+                                {getFileIcon(doc.fileType, 'w-5 h-5')}
+                              </div>
+                              <div className="flex items-center gap-1.5">
                                 <button
                                   type="button"
                                   onClick={(e) => handleToggleStar(doc.id, e)}
-                                  className="p-1 rounded-md text-slate-400 hover:text-amber-500"
+                                  className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-amber-500 transition-colors"
+                                  title={doc.isStarred ? 'Hapus bintang' : 'Beri bintang'}
                                 >
                                   <Star
                                     className={`w-4 h-4 ${
@@ -1252,41 +1244,85 @@ export default function GoogleDriveUnitPage() {
                                     }`}
                                   />
                                 </button>
+                                <span
+                                  className={`text-[9px] font-semibold px-2 py-0.5 rounded-full border ${getStatusBadge(
+                                    doc.status
+                                  )}`}
+                                >
+                                  {doc.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-mono font-semibold text-[#0077B6]">
+                                {doc.code}
+                              </span>
+                              {doc.kategoriDokumen && (
+                                <span
+                                  className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md border ${
+                                    doc.kategoriDokumen === 'MM'
+                                      ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                      : doc.kategoriDokumen === 'PM'
+                                      ? 'bg-blue-50 text-[#0077B6] border-blue-200'
+                                      : doc.kategoriDokumen === 'PK'
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                      : doc.kategoriDokumen === 'CM'
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                      : doc.kategoriDokumen === 'LAINNYA'
+                                      ? 'bg-slate-100 text-slate-700 border-slate-200'
+                                      : 'bg-purple-50 text-purple-700 border-purple-200'
+                                  }`}
+                                >
+                                  {doc.kategoriDokumen === 'CM' ? 'CM (F)' : doc.kategoriDokumen}
+                                </span>
+                              )}
+                            </div>
+                            <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-2 mt-1 leading-snug group-hover:text-[#0077B6] transition-colors">
+                              {doc.title}
+                            </h4>
+
+                            <p className="text-[11px] text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">
+                              {doc.notes || 'Tidak ada catatan khusus.'}
+                            </p>
+                          </div>
+
+                          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                            <span className="font-mono">{doc.fileSize}</span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPreviewDoc(doc);
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-[#0077B6] transition-colors"
+                                title="Pratinjau"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+                              {!isKasek && (
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setPreviewDoc(doc);
+                                    setTargetDelete(doc);
                                   }}
-                                  className="p-1 rounded-md text-slate-400 hover:text-[#0077B6]"
+                                  className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                                  title="Hapus berkas"
                                 >
-                                  <Eye className="w-4 h-4" />
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
-                                {!isKasek && (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setTargetDelete(doc);
-                                    }}
-                                    className="p-1 rounded-md text-slate-400 hover:text-rose-600"
-                                    title="Hapus Dokumen"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-            </>
+            </div>
           )}
         </div>
 
@@ -1295,7 +1331,7 @@ export default function GoogleDriveUnitPage() {
         ========================================================= */}
         {isDetailsOpen && (
           <div className="lg:col-span-3 space-y-4">
-            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-5 sticky top-24">
+            <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-4 sticky top-20">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
                   <Info className="w-4 h-4 text-[#0077B6]" />
@@ -1314,9 +1350,9 @@ export default function GoogleDriveUnitPage() {
 
               {selectedDoc ? (
                 <div className="space-y-4 text-xs">
-                  {/* Big Preview / Header */}
-                  <div className="p-6 rounded-2xl bg-gradient-to-b from-slate-50 to-blue-50/40 border border-slate-200 flex flex-col items-center text-center">
-                    {getFileIcon(selectedDoc.fileType, 'w-12 h-12 mb-3')}
+                  {/* File Preview Thumbnail */}
+                  <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center text-center">
+                    {getFileIcon(selectedDoc.fileType, 'w-10 h-10 mb-2')}
                     <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-2">
                       {selectedDoc.title}
                     </h4>
@@ -1324,7 +1360,7 @@ export default function GoogleDriveUnitPage() {
                       {selectedDoc.fileName}
                     </span>
                     <span
-                      className={`mt-2 text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${getStatusBadge(
+                      className={`mt-2 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border ${getStatusBadge(
                         selectedDoc.status
                       )}`}
                     >
@@ -1333,71 +1369,62 @@ export default function GoogleDriveUnitPage() {
                   </div>
 
                   {/* Metadata Table */}
-                  <div className="space-y-2.5 divide-y divide-slate-100">
-                    <div className="flex justify-between pt-2">
+                  <div className="space-y-2 divide-y divide-slate-100">
+                    <div className="flex justify-between pt-1.5">
                       <span className="text-slate-500">Kode Bukti:</span>
                       <span className="font-mono font-bold text-slate-900">{selectedDoc.code}</span>
                     </div>
 
-                    <div className="flex justify-between pt-2">
-                      <span className="text-slate-500">Penempatan Mutu:</span>
+                    <div className="flex justify-between pt-1.5">
+                      <span className="text-slate-500">Penempatan:</span>
                       <span className="font-semibold text-slate-900 text-right">
                         {selectedDoc.kategoriDokumen
                           ? selectedDoc.kategoriDokumen === 'CM'
-                            ? 'Catatan Mutu (F)'
+                            ? 'Catatan Mutu (CM / F)'
                             : selectedDoc.kategoriDokumen === 'LAINNYA'
-                            ? 'Dokumen Lainnya'
+                            ? 'Dokumen Pendukung'
                             : selectedDoc.kategoriDokumen
                           : 'Dokumen Unit'}
                       </span>
                     </div>
 
-                    <div className="flex justify-between pt-2">
-                      <span className="text-slate-500">Unit Pengunggah:</span>
-                      <span className="font-semibold text-slate-900 text-right truncate max-w-[150px]">
+                    <div className="flex justify-between pt-1.5">
+                      <span className="text-slate-500">Unit Kerja:</span>
+                      <span className="font-semibold text-slate-900 text-right truncate max-w-[140px]">
                         {selectedDoc.unitName}
                       </span>
                     </div>
 
-                    <div className="flex justify-between pt-2">
+                    <div className="flex justify-between pt-1.5">
                       <span className="text-slate-500">Standar SNP:</span>
-                      <span className="font-semibold text-[#0077B6] text-right truncate max-w-[150px]">
+                      <span className="font-semibold text-[#0077B6] text-right truncate max-w-[140px]">
                         {selectedDoc.standardName || 'SNP Terkait'}
                       </span>
                     </div>
 
-                    <div className="flex justify-between pt-2">
-                      <span className="text-slate-500">Lokasi Folder:</span>
-                      <span className="font-medium text-slate-800">{selectedDoc.folder || 'Utama'}</span>
+                    <div className="flex justify-between pt-1.5">
+                      <span className="text-slate-500">Folder:</span>
+                      <span className="font-medium text-slate-800 text-right truncate max-w-[140px]">{selectedDoc.folder || 'Root'}</span>
                     </div>
 
-                    <div className="flex justify-between pt-2">
-                      <span className="text-slate-500">Ukuran & Versi:</span>
+                    <div className="flex justify-between pt-1.5">
+                      <span className="text-slate-500">Ukuran:</span>
                       <span className="font-mono font-medium text-slate-800">
-                        {selectedDoc.fileSize} &bull; {selectedDoc.version}
+                        {selectedDoc.fileSize}
                       </span>
                     </div>
 
-                    <div className="flex justify-between pt-2">
+                    <div className="flex justify-between pt-1.5">
                       <span className="text-slate-500">Diunggah Oleh:</span>
-                      <span className="font-medium text-slate-800">{selectedDoc.uploadedByName || '-'}</span>
+                      <span className="font-medium text-slate-800 text-right truncate max-w-[140px]">{selectedDoc.uploadedByName || '-'}</span>
                     </div>
 
-                    <div className="flex justify-between pt-2">
+                    <div className="flex justify-between pt-1.5">
                       <span className="text-slate-500">Waktu Upload:</span>
                       <span className="text-slate-800 font-mono text-[11px]">
                         {selectedDoc.createdAt.substring(0, 16).replace('T', ' ')}
                       </span>
                     </div>
-
-                    {selectedDoc.verifiedByName && (
-                      <div className="flex justify-between pt-2">
-                        <span className="text-slate-500">Diverifikasi:</span>
-                        <span className="font-semibold text-emerald-700 text-right truncate max-w-[150px]">
-                          {selectedDoc.verifiedByName}
-                        </span>
-                      </div>
-                    )}
                   </div>
 
                   {/* Notes Box */}
@@ -1411,11 +1438,11 @@ export default function GoogleDriveUnitPage() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="space-y-2 pt-2">
+                  <div className="space-y-2 pt-1">
                     <button
                       type="button"
                       onClick={() => setPreviewDoc(selectedDoc)}
-                      className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-all"
+                      className="w-full py-2.5 rounded-xl bg-[#0077B6] hover:bg-[#0284C7] text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-colors"
                     >
                       <Eye className="w-4 h-4" />
                       <span>Pratinjau Layar Penuh</span>
@@ -1423,7 +1450,7 @@ export default function GoogleDriveUnitPage() {
 
                     <Link
                       href={`/dokumen/${selectedDoc.id}`}
-                      className="w-full py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                      className="w-full py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors"
                     >
                       <FileCheck className="w-4 h-4 text-[#0077B6]" />
                       <span>Halaman Validasi TPMPS</span>
@@ -1442,9 +1469,9 @@ export default function GoogleDriveUnitPage() {
                   </div>
                 </div>
               ) : (
-                <div className="py-12 text-center text-slate-400 space-y-2">
+                <div className="py-10 text-center text-slate-400 space-y-2">
                   <Info className="w-8 h-8 mx-auto text-slate-300" />
-                  <p className="text-xs">Pilih salah satu berkas di sebelah kiri untuk melihat rincian lengkap.</p>
+                  <p className="text-xs">Pilih salah satu berkas di sebelah kiri untuk melihat rincian.</p>
                 </div>
               )}
             </div>
@@ -1453,19 +1480,19 @@ export default function GoogleDriveUnitPage() {
       </div>
 
       {/* -------------------------------------------------------------
-          MODAL: UPLOAD FILE BARU KE GOOGLE DRIVE UNIT
+          MODAL: UPLOAD BERKAS KE GOOGLE DRIVE UNIT
       ------------------------------------------------------------- */}
       {isUploadOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 border border-slate-200 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 border border-slate-200 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#0077B6]">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#0077B6]">
                   <UploadCloud className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">
-                    Upload Berkas ke Drive Unit
+                    Upload Berkas ke Drive
                   </h3>
                   <p className="text-xs text-slate-500">
                     Unit: <span className="font-semibold text-[#0077B6]">{activeUnit.name}</span>
@@ -1482,15 +1509,15 @@ export default function GoogleDriveUnitPage() {
             </div>
 
             <form onSubmit={handleUploadSubmit} className="space-y-4 text-xs">
-              {/* Drag & Drop Simulation */}
-              <div className="p-6 rounded-2xl border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50/60 text-center space-y-2 cursor-pointer transition-colors">
-                <UploadCloud className="w-8 h-8 text-[#0077B6] mx-auto" />
-                <p className="font-bold text-slate-700">Tarik dan lepas berkas ke sini, atau klik untuk memilih</p>
-                <p className="text-[11px] text-slate-400">Mendukung format PDF, XLSX, DOCX, JPG (Maks. 25 MB)</p>
+              {/* Clean Solid Dropzone */}
+              <div className="p-5 rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 text-center space-y-1.5 cursor-pointer transition-colors">
+                <UploadCloud className="w-7 h-7 text-[#0077B6] mx-auto" />
+                <p className="font-bold text-slate-800">Pilih berkas dari perangkat Anda</p>
+                <p className="text-[11px] text-slate-500">Format yang didukung: PDF, Excel (.xlsx), Word (.docx), Foto (Maks. 25 MB)</p>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
                   Judul Dokumen Bukti *
                 </label>
                 <input
@@ -1499,13 +1526,13 @@ export default function GoogleDriveUnitPage() {
                   value={uploadTitle}
                   onChange={(e) => setUploadTitle(e.target.value)}
                   placeholder="Contoh: Laporan Penyelarasan Kurikulum dengan IDUKA 2025"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus:border-[#0077B6] focus:ring-2 focus:ring-blue-500/10 text-xs text-slate-900 outline-hidden transition-all"
                 />
               </div>
 
-              {/* Penempatan Dokumen Mutu Sesuai Unit */}
+              {/* Penempatan Dokumen Mutu */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5 flex items-center justify-between">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center justify-between">
                   <span>Penempatan Dokumen Mutu *</span>
                   <span className="text-[10px] text-slate-500 font-medium">
                     {isTPMPSUnit ? 'Wewenang Penuh TPMPS' : 'Penempatan Khusus Unit Kerja'}
@@ -1519,14 +1546,14 @@ export default function GoogleDriveUnitPage() {
                         key={opt.value}
                         type="button"
                         onClick={() => setUploadKategori(opt.value)}
-                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        className={`p-2.5 rounded-xl border text-left transition-colors cursor-pointer ${
                           isSelected
-                            ? 'border-[#0077B6] bg-sky-50/80 ring-1 ring-sky-500/30'
-                            : 'border-slate-200 bg-slate-50/60 hover:bg-white text-slate-700'
+                            ? 'border-[#0077B6] bg-blue-50 text-[#0077B6]'
+                            : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs font-bold text-[#0077B6]">
+                          <span className="font-mono text-xs font-bold">
                             {opt.value === 'CM' ? 'CM (F)' : opt.value}
                           </span>
                           {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-[#0077B6]" />}
@@ -1539,18 +1566,18 @@ export default function GoogleDriveUnitPage() {
                 </div>
               </div>
 
-              {/* Visual Folder Selector (Bukan Dropdown) */}
+              {/* Interactive Visual Folder Picker (Bukan Dropdown) */}
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                    <Folder className="w-3.5 h-3.5 text-[#0077B6] fill-sky-200" />
-                    <span>Pilih Folder Penyimpanan *</span>
+                    <Folder className="w-3.5 h-3.5 text-[#0077B6]" />
+                    <span>Pilih Folder Tujuan Penyimpanan *</span>
                   </label>
                   <span className="text-[10px] text-slate-500 font-semibold">
-                    {unitFolders.length} Folder Tersedia
+                    {unitFolders.length} Folder
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1.5 border border-slate-200 rounded-2xl bg-slate-50/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-44 overflow-y-auto p-1 border border-slate-200 rounded-xl bg-slate-50">
                   {unitFolders.map((f) => {
                     const isSelected = uploadFolder === f;
                     const count = folderCounts[f] || 0;
@@ -1559,37 +1586,37 @@ export default function GoogleDriveUnitPage() {
                         key={f}
                         type="button"
                         onClick={() => setUploadFolder(f)}
-                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between group ${
+                        className={`p-2 rounded-xl border text-left transition-colors cursor-pointer flex items-center justify-between group ${
                           isSelected
-                            ? 'border-[#0077B6] bg-blue-50/90 ring-2 ring-blue-500/20 shadow-xs'
-                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                            ? 'border-[#0077B6] bg-blue-50 text-[#0077B6]'
+                            : 'border-slate-200 bg-white hover:bg-slate-50'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0">
                           <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                               isSelected
                                 ? 'bg-blue-100 text-[#0077B6]'
                                 : 'bg-slate-100 text-slate-500 group-hover:text-[#0077B6]'
                             }`}
                           >
-                            <Folder className={`w-4 h-4 ${isSelected ? 'fill-sky-300' : ''}`} />
+                            <Folder className={`w-3.5 h-3.5 ${isSelected ? 'fill-blue-200' : ''}`} />
                           </div>
                           <div className="min-w-0">
                             <div
-                              className={`text-xs font-bold truncate ${
+                              className={`text-xs font-semibold truncate ${
                                 isSelected ? 'text-[#0077B6]' : 'text-slate-800'
                               }`}
                             >
                               {f}
                             </div>
                             <div className="text-[10px] text-slate-400 font-medium">
-                              {count} berkas tersimpan
+                              {count} berkas
                             </div>
                           </div>
                         </div>
                         {isSelected && (
-                          <CheckCircle2 className="w-4 h-4 text-[#0077B6] shrink-0 ml-1.5" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#0077B6] shrink-0 ml-1.5" />
                         )}
                       </button>
                     );
@@ -1599,13 +1626,13 @@ export default function GoogleDriveUnitPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
                     Standar SNP Terkait
                   </label>
                   <select
                     value={uploadStandardId}
                     onChange={(e) => setUploadStandardId(Number(e.target.value))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
                   >
                     {INITIAL_STANDARDS.map((s) => (
                       <option key={s.id} value={s.id}>
@@ -1616,13 +1643,13 @@ export default function GoogleDriveUnitPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
                     Format Berkas
                   </label>
                   <select
                     value={uploadFileType}
                     onChange={(e) => setUploadFileType(e.target.value as any)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
                   >
                     <option value="pdf">PDF Document (.pdf)</option>
                     <option value="excel">Excel Spreadsheet (.xlsx)</option>
@@ -1633,7 +1660,7 @@ export default function GoogleDriveUnitPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
                   Nama File (Opsional)
                 </label>
                 <input
@@ -1641,51 +1668,51 @@ export default function GoogleDriveUnitPage() {
                   value={uploadFileName}
                   onChange={(e) => setUploadFileName(e.target.value)}
                   placeholder="nama_berkas.pdf"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
                   Catatan / Keterangan Dokumen
                 </label>
                 <textarea
                   rows={2}
                   value={uploadNotes}
                   onChange={(e) => setUploadNotes(e.target.value)}
-                  placeholder="Keterangan singkat tentang isi dokumen bukti ini..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
+                  placeholder="Keterangan singkat tentang isi berkas bukti..."
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
                 />
               </div>
 
               {/* Progress Bar when uploading */}
               {isUploading && (
                 <div className="space-y-1.5">
-                  <div className="flex justify-between text-[11px] font-bold text-slate-600">
+                  <div className="flex justify-between text-[11px] font-semibold text-slate-600">
                     <span>Mengunggah ke Cloud Storage...</span>
                     <span>{uploadProgress}%</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-[#0077B6] to-[#0284C7] transition-all duration-300 rounded-full"
+                      className="h-full bg-[#0077B6] transition-all duration-300 rounded-full"
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsUploadOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isUploading}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white font-bold flex items-center gap-2 shadow-md shadow-sky-500/20 cursor-pointer disabled:opacity-60"
+                  className="px-5 py-2 rounded-xl bg-[#0077B6] hover:bg-[#0284C7] text-white font-semibold flex items-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   <UploadCloud className="w-4 h-4" />
                   <span>{isUploading ? 'Sedang Mengunggah...' : 'Upload Dokumen'}</span>
@@ -1700,11 +1727,13 @@ export default function GoogleDriveUnitPage() {
           MODAL: BUAT FOLDER BARU
       ------------------------------------------------------------- */}
       {isNewFolderOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 border border-slate-200 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 border border-slate-200 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
-                <FolderPlus className="w-5 h-5 text-[#0077B6]" />
+                <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-600">
+                  <FolderPlus className="w-5 h-5" />
+                </div>
                 <h3 className="text-base font-bold text-slate-900">Folder Baru</h3>
               </div>
               <button
@@ -1718,7 +1747,7 @@ export default function GoogleDriveUnitPage() {
 
             <form onSubmit={handleCreateFolder} className="space-y-4 text-xs">
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
                   Nama Folder
                 </label>
                 <input
@@ -1727,21 +1756,21 @@ export default function GoogleDriveUnitPage() {
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
                   placeholder="Contoh: Rapat Pleno Kurikulum 2025"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-300 focus:border-[#0077B6] text-xs text-slate-900 outline-hidden"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-2">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsNewFolderOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#0077B6] hover:bg-[#0284C7] text-white font-bold cursor-pointer transition-colors"
+                  className="px-5 py-2 rounded-xl bg-[#0077B6] hover:bg-[#0284C7] text-white font-semibold cursor-pointer transition-colors"
                 >
                   Buat Folder
                 </button>
@@ -1755,14 +1784,14 @@ export default function GoogleDriveUnitPage() {
           MODAL: PREVIEW BERKAS LAYAR PENUH (Lightbox)
       ------------------------------------------------------------- */}
       {previewDoc && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-150">
             {/* Header */}
-            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between gap-4 bg-slate-50">
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between gap-4 bg-slate-50">
               <div className="flex items-center gap-3 min-w-0">
-                {getFileIcon(previewDoc.fileType, 'w-7 h-7 shrink-0')}
+                {getFileIcon(previewDoc.fileType, 'w-6 h-6 shrink-0')}
                 <div className="min-w-0">
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">
+                  <h3 className="text-sm font-bold text-slate-900 truncate">
                     {previewDoc.title}
                   </h3>
                   <p className="text-xs text-slate-500 font-mono">
@@ -1772,7 +1801,7 @@ export default function GoogleDriveUnitPage() {
               </div>
               <div className="flex items-center gap-2">
                 <span
-                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${getStatusBadge(
+                  className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${getStatusBadge(
                     previewDoc.status
                   )}`}
                 >
@@ -1781,7 +1810,7 @@ export default function GoogleDriveUnitPage() {
                 <button
                   type="button"
                   onClick={() => setPreviewDoc(null)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 transition-colors"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1789,35 +1818,35 @@ export default function GoogleDriveUnitPage() {
             </div>
 
             {/* Document Body Simulation */}
-            <div className="flex-1 overflow-y-auto p-6 sm:p-10 bg-slate-100 flex items-center justify-center">
-              <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl w-full border border-slate-200 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 sm:p-8 bg-slate-100 flex items-center justify-center">
+              <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 max-w-2xl w-full border border-slate-200 space-y-5">
                 {/* Official Header */}
-                <div className="border-b-2 border-slate-900 pb-4 text-center space-y-1">
-                  <div className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                <div className="border-b-2 border-slate-900 pb-3 text-center space-y-0.5">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                     PEMERINTAH PROVINSI JAWA TENGAH &bull; DINAS PENDIDIKAN DAN KEBUDAYAAN
                   </div>
-                  <h2 className="text-lg font-black text-slate-900 tracking-tight">
+                  <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                     SMK NEGERI 2 MAGELANG
                   </h2>
-                  <p className="text-[11px] text-slate-600">
+                  <p className="text-[10px] text-slate-600">
                     Jl. Perintis Kemerdekaan No. 9, Kota Magelang, Jawa Tengah 56115
                   </p>
                 </div>
 
                 {/* Document Body */}
-                <div className="space-y-4 text-xs text-slate-700 leading-relaxed">
-                  <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200/80 space-y-1.5">
+                <div className="space-y-3.5 text-xs text-slate-700 leading-relaxed">
+                  <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 space-y-1">
                     <div className="font-bold text-[#0077B6] uppercase tracking-wider text-[10px]">
                       Identitas Bukti Mutu Standar Nasional Pendidikan
                     </div>
-                    <div className="text-sm font-black text-slate-900">
+                    <div className="text-sm font-bold text-slate-900">
                       {previewDoc.title}
                     </div>
                     <div className="text-slate-600">
-                      Unit Kerja Pelaksana: <span className="font-bold text-slate-900">{previewDoc.unitName}</span>
+                      Unit Kerja: <span className="font-bold text-slate-900">{previewDoc.unitName}</span>
                     </div>
                     <div className="text-slate-600">
-                      Standar Mutu SNP: <span className="font-bold text-[#0077B6]">{previewDoc.standardName}</span>
+                      Standar Mutu: <span className="font-bold text-[#0077B6]">{previewDoc.standardName}</span>
                     </div>
                   </div>
 
@@ -1825,7 +1854,7 @@ export default function GoogleDriveUnitPage() {
                     Dokumen ini merupakan arsip resmi penjaminan mutu yang telah diunggah ke Google Drive Repositori Mutu SMK Negeri 2 Magelang untuk mendukung siklus Penjaminan Mutu Internal (SPMI) berbasis PPEPP.
                   </p>
 
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                     <span className="font-bold text-slate-900 block">Keterangan / Catatan Verifikasi:</span>
                     <p className="text-slate-600 italic">
                       &ldquo;{previewDoc.notes || 'Dokumen telah sesuai dengan instrumen pemenuhan standar mutu.'}&rdquo;
@@ -1834,17 +1863,17 @@ export default function GoogleDriveUnitPage() {
                 </div>
 
                 {/* Signature Simulation */}
-                <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
                   <div>
                     <p className="font-semibold">Pengunggah Dokumen:</p>
-                    <p className="font-bold text-slate-900 mt-6">{previewDoc.uploadedByName || 'PIC Unit Kerja'}</p>
+                    <p className="font-bold text-slate-900 mt-5">{previewDoc.uploadedByName || 'PIC Unit Kerja'}</p>
                     <p className="text-[10px] text-slate-500">{previewDoc.unitName}</p>
                   </div>
 
                   {previewDoc.verifiedByName && (
                     <div className="text-right">
                       <p className="font-semibold text-emerald-700">Verifikator TPMPS:</p>
-                      <p className="font-bold text-slate-900 mt-6">{previewDoc.verifiedByName}</p>
+                      <p className="font-bold text-slate-900 mt-5">{previewDoc.verifiedByName}</p>
                       <p className="text-[10px] text-slate-500">Tim Penjaminan Mutu Sekolah</p>
                     </div>
                   )}
@@ -1853,7 +1882,7 @@ export default function GoogleDriveUnitPage() {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between">
+            <div className="p-3.5 border-t border-slate-200 bg-white flex items-center justify-between">
               <span className="text-xs text-slate-500 font-mono">
                 Keamanan: Supabase Storage &bull; Hash SHA-256 Validated
               </span>
@@ -1863,7 +1892,7 @@ export default function GoogleDriveUnitPage() {
                   onClick={() => {
                     showToast(`Tautan berkas "${previewDoc.title}" disalin ke clipboard!`, 'info');
                   }}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer"
                 >
                   <Share2 className="w-3.5 h-3.5" />
                   <span>Salin Tautan</span>
@@ -1873,7 +1902,7 @@ export default function GoogleDriveUnitPage() {
                   onClick={() => {
                     showToast(`Mengunduh berkas "${previewDoc.fileName}"...`, 'success');
                   }}
-                  className="px-4 py-2 rounded-xl bg-[#0077B6] hover:bg-[#0284C7] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-1.5 rounded-xl bg-[#0077B6] hover:bg-[#0284C7] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Unduh Berkas</span>

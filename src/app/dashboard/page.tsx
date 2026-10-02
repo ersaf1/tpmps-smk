@@ -64,7 +64,7 @@ export default function DashboardPage() {
       {/* 8 SNP Progress Overview & Live Audit Trail Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: 8 Standar Mutu Progress Bars */}
-        <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xl flex flex-col justify-between">
+        <div className="lg:col-span-7 bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">

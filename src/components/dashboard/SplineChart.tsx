@@ -51,7 +51,7 @@ export default function SplineChart() {
   const areaPath = `${splinePath} L ${points[points.length - 1].x},${height - paddingY} L ${points[0].x},${height - paddingY} Z`;
 
   return (
-    <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xs relative overflow-hidden flex flex-col justify-between">
+    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs relative overflow-hidden flex flex-col justify-between">
       {/* Top Header Card */}
       <div className="flex items-center justify-between mb-4">
         <div>

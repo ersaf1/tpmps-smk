@@ -54,9 +54,7 @@ export default function DynamicWelcomeBanner({
   const alert = getActionAlert();
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-white p-6 sm:p-8 border border-slate-200 shadow-sm mb-8">
-      {/* Soft Blue Ambient Gradient */}
-      <div className="absolute top-0 right-0 w-80 h-80 bg-blue-50/60 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative overflow-hidden rounded-2xl bg-white p-5 sm:p-6 border border-slate-200 shadow-xs mb-6">
 
       <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         {/* Left Side: Greeting */}
@@ -95,7 +93,7 @@ export default function DynamicWelcomeBanner({
         <div className="shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <Link
             href={alert.ctaHref}
-            className="btn-enterprise px-6 py-3 rounded-2xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-110 text-white text-sm font-bold shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer group"
+            className="btn-enterprise px-5 py-2.5 rounded-xl bg-[#0077B6] hover:bg-[#0284C7] text-white text-xs sm:text-sm font-bold shadow-xs flex items-center justify-center gap-2 transition-colors cursor-pointer group"
           >
             <span>{alert.ctaText}</span>
             <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />

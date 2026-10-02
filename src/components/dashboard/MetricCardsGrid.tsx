@@ -68,13 +68,13 @@ export default function MetricCardsGrid({
           <Link
             key={m.title}
             href={m.href}
-            className="bg-white rounded-3xl p-6 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer"
+            className="bg-white rounded-2xl p-5 border border-slate-200 hover:border-blue-300 hover:shadow-xs transition-all flex flex-col justify-between group cursor-pointer"
           >
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 {m.title}
               </span>
-              <div className={`p-2.5 rounded-2xl border ${m.accent} transition-transform group-hover:scale-105`}>
+              <div className={`p-2 rounded-xl border ${m.accent} transition-transform group-hover:scale-105`}>
                 <Icon className="w-5 h-5" />
               </div>
             </div>

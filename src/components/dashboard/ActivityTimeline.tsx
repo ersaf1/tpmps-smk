@@ -25,7 +25,7 @@ export default function ActivityTimeline({ logs }: ActivityTimelineProps) {
   };
 
   return (
-    <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xs flex flex-col justify-between">
+    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
@@ -52,7 +52,7 @@ export default function ActivityTimeline({ logs }: ActivityTimelineProps) {
           return (
             <div
               key={log.id}
-              className="p-3.5 rounded-2xl bg-slate-50 hover:bg-sky-50/50 border border-slate-200/80 transition-all flex items-start gap-3.5"
+              className="p-3 rounded-xl bg-slate-50 hover:bg-sky-50/50 border border-slate-200/80 transition-all flex items-start gap-3.5"
             >
               <div className={`p-2.5 rounded-xl border shrink-0 mt-0.5 ${bg} ${color}`}>
                 <Icon className="w-4 h-4" />

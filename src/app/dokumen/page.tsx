@@ -169,7 +169,7 @@ export default function DokumenListPage() {
           SPMI HIERARCHY BANNER (Manual Mutu 2024)
           MM -> PM -> PK -> F / CM -> REKAP
       ------------------------------------------------------------- */}
-      <div className="bg-white rounded-3xl p-5 mb-6 border border-slate-200 shadow-xs space-y-3">
+      <div className="bg-white rounded-2xl p-4 sm:p-5 mb-5 border border-slate-200 shadow-xs space-y-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0077B6] border border-blue-200">
@@ -188,28 +188,28 @@ export default function DokumenListPage() {
           <button
             type="button"
             onClick={() => setSelectedCategory('ALL')}
-            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+            className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
               selectedCategory === 'ALL'
                 ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
                 : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
             }`}
           >
-            <div className="font-mono text-[10px] font-bold opacity-75">SEMUA</div>
-            <div className="font-black text-sm mt-0.5">Semua Dokumen</div>
-            <p className="text-[10px] opacity-75 mt-0.5">{documents.length} Berkas</p>
+            <div className="font-mono text-[10px] font-bold text-slate-400">SEMUA</div>
+            <div className="font-bold text-sm mt-0.5">Semua Dokumen</div>
+            <p className="text-[10px] text-slate-400 mt-0.5">{documents.length} Berkas</p>
           </button>
 
           <button
             type="button"
             onClick={() => setSelectedCategory('MM')}
-            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+            className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
               selectedCategory === 'MM'
-                ? 'border-indigo-600 bg-indigo-50/90 ring-2 ring-indigo-500/20'
-                : 'border-slate-200 bg-slate-50 hover:bg-white'
+                ? 'border-indigo-600 bg-indigo-50 text-indigo-950 font-medium'
+                : 'border-slate-200 bg-slate-50 hover:bg-white text-slate-700'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono font-black text-indigo-700">MM</span>
+              <span className="font-mono font-bold text-indigo-700">MM</span>
               <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">L-1</span>
             </div>
             <div className="font-bold text-slate-900 mt-0.5">Manual Mutu</div>
@@ -219,14 +219,14 @@ export default function DokumenListPage() {
           <button
             type="button"
             onClick={() => setSelectedCategory('PM')}
-            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+            className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
               selectedCategory === 'PM'
-                ? 'border-[#0077B6] bg-blue-50/90 ring-2 ring-blue-500/20'
-                : 'border-slate-200 bg-slate-50 hover:bg-white'
+                ? 'border-[#0077B6] bg-blue-50 text-blue-950 font-medium'
+                : 'border-slate-200 bg-slate-50 hover:bg-white text-slate-700'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono font-black text-[#0077B6]">PM</span>
+              <span className="font-mono font-bold text-[#0077B6]">PM</span>
               <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-[#0077B6] font-bold">L-2</span>
             </div>
             <div className="font-bold text-slate-900 mt-0.5">Prosedur Mutu</div>
@@ -236,31 +236,31 @@ export default function DokumenListPage() {
           <button
             type="button"
             onClick={() => setSelectedCategory('PK')}
-            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+            className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
               selectedCategory === 'PK'
-                ? 'border-emerald-600 bg-emerald-50/90 ring-2 ring-emerald-500/20'
-                : 'border-slate-200 bg-slate-50 hover:bg-white'
+                ? 'border-emerald-600 bg-emerald-50 text-emerald-950 font-medium'
+                : 'border-slate-200 bg-slate-50 hover:bg-white text-slate-700'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono font-black text-emerald-700">PK</span>
+              <span className="font-mono font-bold text-emerald-700">PK</span>
               <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">L-3</span>
             </div>
             <div className="font-bold text-slate-900 mt-0.5">Petunjuk Kerja</div>
-            <p className="text-[10px] text-slate-500 mt-0.5">Unit Biasa</p>
+            <p className="text-[10px] text-slate-500 mt-0.5">Unit Kerja</p>
           </button>
 
           <button
             type="button"
             onClick={() => setSelectedCategory('CM')}
-            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+            className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
               selectedCategory === 'CM'
-                ? 'border-amber-500 bg-amber-50/90 ring-2 ring-amber-500/20'
-                : 'border-slate-200 bg-slate-50 hover:bg-white'
+                ? 'border-amber-500 bg-amber-50 text-amber-950 font-medium'
+                : 'border-slate-200 bg-slate-50 hover:bg-white text-slate-700'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono font-black text-amber-700">CM (F)</span>
+              <span className="font-mono font-bold text-amber-700">CM (F)</span>
               <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">L-4</span>
             </div>
             <div className="font-bold text-slate-900 mt-0.5">Catatan Mutu</div>
@@ -270,14 +270,14 @@ export default function DokumenListPage() {
           <button
             type="button"
             onClick={() => setSelectedCategory('LAINNYA')}
-            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+            className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
               selectedCategory === 'LAINNYA'
-                ? 'border-slate-700 bg-slate-100 ring-2 ring-slate-400/20 shadow-xs'
-                : 'border-slate-200 bg-slate-50 hover:bg-white'
+                ? 'border-slate-400 bg-slate-100 text-slate-900 font-medium'
+                : 'border-slate-200 bg-slate-50 hover:bg-white text-slate-700'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono font-black text-slate-700">LAIN</span>
+              <span className="font-mono font-bold text-slate-700">LAIN</span>
               <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-bold">Lainnya</span>
             </div>
             <div className="font-bold text-slate-900 mt-0.5">Dokumen Lainnya</div>
@@ -287,14 +287,14 @@ export default function DokumenListPage() {
           <button
             type="button"
             onClick={() => setSelectedCategory('REKAP')}
-            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+            className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
               selectedCategory === 'REKAP'
-                ? 'border-purple-600 bg-purple-50/90 ring-2 ring-purple-500/20'
-                : 'border-slate-200 bg-slate-50 hover:bg-white'
+                ? 'border-purple-600 bg-purple-50 text-purple-950 font-medium'
+                : 'border-slate-200 bg-slate-50 hover:bg-white text-slate-700'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono font-black text-purple-700">REKAP</span>
+              <span className="font-mono font-bold text-purple-700">REKAP</span>
               <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 font-bold">Rekap</span>
             </div>
             <div className="font-bold text-slate-900 mt-0.5">Rekapitulasi</div>
@@ -304,7 +304,7 @@ export default function DokumenListPage() {
       </div>
 
       {/* Filter & Search */}
-      <div className="bg-white rounded-3xl p-5 mb-6 border border-slate-200 shadow-xs">
+      <div className="bg-white rounded-2xl p-4 sm:p-5 mb-5 border border-slate-200 shadow-xs">
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
           <div className="sm:col-span-5 relative">
             <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
@@ -376,14 +376,14 @@ export default function DokumenListPage() {
       {/* Grid of Documents */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {filteredDocs.length === 0 ? (
-          <div className="col-span-full bg-white rounded-3xl p-12 text-center text-slate-400 border border-slate-200">
+          <div className="col-span-full bg-white rounded-2xl p-12 text-center text-slate-400 border border-slate-200">
             Tidak ada dokumen yang sesuai kriteria.
           </div>
         ) : (
           filteredDocs.map((doc) => (
             <div
               key={doc.id}
-              className="bg-white rounded-3xl p-5 border border-slate-200 hover:border-sky-300 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+              className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 hover:border-sky-300 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
             >
               <div>
                 <div className="flex items-start justify-between gap-3 mb-3">

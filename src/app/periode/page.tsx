@@ -140,14 +140,14 @@ export default function PeriodeManagementPage() {
       {/* -------------------------------------------------------------
           TOP BAR: Active Periode Banner & Role Authority Notice
       ------------------------------------------------------------- */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs mb-6 space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0077B6] to-[#0284C7] flex items-center justify-center text-white shadow-md shadow-sky-500/20 shrink-0">
-              <Calendar className="w-7 h-7" />
+      <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs mb-5 space-y-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="flex items-start gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-[#0077B6] flex items-center justify-center text-white shadow-xs shrink-0">
+              <Calendar className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0077B6] border border-blue-200">
                   KEWENANGAN KEPALA SEKOLAH
                 </span>
@@ -169,7 +169,7 @@ export default function PeriodeManagementPage() {
               <button
                 type="button"
                 onClick={handleOpenAdd}
-                className="btn-enterprise px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0077B6] to-[#0284C7] hover:brightness-105 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-500/20 flex items-center gap-2 cursor-pointer transition-all"
+                className="btn-enterprise px-4 py-2.5 rounded-xl bg-[#0077B6] hover:bg-[#0284C7] text-white text-xs sm:text-sm font-bold shadow-xs flex items-center gap-2 cursor-pointer transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 <span>+ Buat Periode Baru</span>
@@ -185,10 +185,10 @@ export default function PeriodeManagementPage() {
 
         {/* Highlight Card: Periode Aktif Saat Ini */}
         {activePeriode && (
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50/70 via-sky-50/40 to-slate-50 border border-blue-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="p-4 sm:p-5 rounded-xl bg-blue-50/50 border border-blue-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-xs">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-xs">
                   <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                   PERIODE AKTIF SAAT INI
                 </span>
@@ -208,7 +208,7 @@ export default function PeriodeManagementPage() {
               </p>
             </div>
 
-            <div className="bg-white p-3.5 rounded-xl border border-slate-200 text-xs space-y-1 text-slate-600 shadow-2xs">
+            <div className="bg-white p-3 rounded-xl border border-slate-200 text-xs space-y-1 text-slate-600 shadow-2xs">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                 Ditetapkan Secara Resmi Oleh:
               </span>
@@ -240,15 +240,15 @@ export default function PeriodeManagementPage() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {periodes.map((p) => {
             const isActive = p.isActive;
             return (
               <div
                 key={p.id}
-                className={`bg-white rounded-3xl p-5 border transition-all flex flex-col justify-between group shadow-xs ${
+                className={`bg-white rounded-2xl p-5 border transition-all flex flex-col justify-between group shadow-xs ${
                   isActive
-                    ? 'border-[#0077B6] ring-2 ring-blue-500/15 shadow-md'
+                    ? 'border-[#0077B6] bg-blue-50/20'
                     : 'border-slate-200 hover:border-slate-300'
                 }`}
               >
@@ -348,8 +348,8 @@ export default function PeriodeManagementPage() {
           MODAL: FORM BUAT PERIODE MUTU BARU (KHUSUS KEPALA SEKOLAH)
       ------------------------------------------------------------- */}
       {isAddOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 border border-slate-200 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 border border-slate-200 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#0077B6]">

@@ -27,7 +27,7 @@ export default function DonutDistributionChart() {
   const circumference = 2 * Math.PI * radius;
 
   return (
-    <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xs flex flex-col justify-between">
+    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
