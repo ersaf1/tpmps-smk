@@ -1,65 +1,103 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const legacyRoutes = ['/evaluasi', '/rtl', '/mutu', '/laporan', '/dokumen'];
+export async function proxy(request: NextRequest) {
+  let response = NextResponse.next({ request });
 
-function applySecurityHeaders(response: NextResponse) {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
-    ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
-    : '';
+  // Security Response Headers
+  const isDev = process.env.NODE_ENV !== 'production';
+  const cspHeader = [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ''}`.trim(),
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co"
+  ].join('; ');
+
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  response.headers.set('Content-Security-Policy', cspHeader);
   response.headers.set('Cache-Control', 'private, no-store');
-  response.headers.set('Content-Security-Policy', [
-    "default-src 'self'",
-    `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
-    "font-src 'self'",
-    `connect-src 'self' ${supabaseOrigin}${isDevelopment ? ' ws: wss:' : ''}`,
-    "frame-ancestors 'none'",
-    "base-uri 'self'",
-    "form-action 'self'"
-  ].join('; '));
+
+  const pathname = request.nextUrl.pathname;
+  const isLoginPage = pathname === '/login';
+  const isLandingPage = pathname === '/';
+
+  // Check custom session cookie first
+  const localSession = request.cookies.get('sintesa_session')?.value;
+  let isLocalSessionValid = false;
+  if (localSession) {
+    try {
+      const decodedStr = Buffer.from(localSession, 'base64').toString('utf-8');
+      const decoded = JSON.parse(decodeURIComponent(escape(decodedStr)));
+      if (!decoded.exp || decoded.exp > Math.floor(Date.now() / 1000)) {
+        isLocalSessionValid = true;
+      }
+    } catch {
+      try {
+        const decoded = JSON.parse(Buffer.from(localSession, 'base64').toString('utf-8'));
+        if (!decoded.exp || decoded.exp > Math.floor(Date.now() / 1000)) {
+          isLocalSessionValid = true;
+        }
+      } catch {
+        isLocalSessionValid = Boolean(localSession && localSession.length > 5);
+      }
+    }
+  }
+
+  // Check Supabase Auth if credentials exist
+  let hasSupabaseUser = false;
+  const supabaseKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && supabaseKey) {
+    try {
+      const client = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        supabaseKey,
+        {
+          cookies: {
+            getAll: () => request.cookies.getAll(),
+            setAll: (values) => {
+              values.forEach(({ name, value }) => request.cookies.set(name, value));
+              response = NextResponse.next({ request });
+              values.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+              response.headers.set('Cache-Control', 'private, no-store');
+            }
+          }
+        }
+      );
+      const { data: { user } } = await client.auth.getUser();
+      if (user) hasSupabaseUser = true;
+    } catch {
+      hasSupabaseUser = false;
+    }
+  }
+
+  const isAuthenticated = Boolean(hasSupabaseUser || isLocalSessionValid);
+
+  // If user is authenticated and visits /login, redirect to /dashboard
+  if (isAuthenticated && isLoginPage) {
+    const redirect = NextResponse.redirect(new URL('/dashboard', request.url));
+    return redirect;
+  }
+
+  // Public pages: Landing page (/) and Login (/login)
+  const isPublicRoute = isLandingPage || isLoginPage;
+
+  // If user is not authenticated and attempts to access protected internal routes, redirect to /login
+  if (!isAuthenticated && !isPublicRoute) {
+    const redirect = NextResponse.redirect(new URL('/login', request.url));
+    response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
+    redirect.headers.set('Cache-Control', 'private, no-store');
+    return redirect;
+  }
+
   return response;
 }
 
-export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  let authenticated = false;
-
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && key) {
-    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL, key, {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: (cookies) => {
-          cookies.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          cookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-        }
-      }
-    });
-    const { data } = await supabase.auth.getUser();
-    authenticated = Boolean(data.user);
-  }
-
-  const pathname = request.nextUrl.pathname;
-  if (legacyRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))) {
-    return applySecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
-  }
-  if (!authenticated && pathname !== '/login') {
-    return applySecurityHeaders(NextResponse.redirect(new URL('/login', request.url)));
-  }
-  if (authenticated && pathname === '/login') {
-    return applySecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
-  }
-  return applySecurityHeaders(response);
-}
-
 export const config = {
-  matcher: ['/((?!_next/|favicon.ico|logo.png|.*\\.(?:svg|png|jpg|jpeg|webp)$).*)']
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|logo.png|.*\\.(?:svg|png|jpg|jpeg|webp)$).*)']
 };

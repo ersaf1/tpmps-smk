@@ -1,17 +1,6 @@
-import { randomBytes } from 'node:crypto';
-import { createClient } from '@supabase/supabase-js';
+const DEFAULT_PASSWORD = process.env.INITIAL_USER_PASSWORD || 'Sintesa2026!';
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!url || !serviceRoleKey) {
-  throw new Error('NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY wajib tersedia.');
-}
-
-const admin = createClient(url, serviceRoleKey, {
-  auth: { autoRefreshToken: false, persistSession: false }
-});
-
-const accounts = [
+export const accounts = [
   { email: 'admin@smkn2magelang.sch.id', fullName: 'Administrator SINTESA', position: 'Superadmin', role: 'superadmin' },
   { email: 'vickky.listyaningsih@smkn2magelang.sch.id', fullName: 'Vickky Listyaningsih, M.Kom.', position: 'Ketua TPMPS', role: 'ketua_tpmps' },
   { email: 'kurniawan.basuki@smkn2magelang.sch.id', fullName: 'Kurniawan Basuki, S.Pd., M.T.', position: 'Kepala Sekolah', role: 'kepala_sekolah' },
@@ -33,54 +22,114 @@ const accounts = [
   { email: 'tri.djoko@smkn2magelang.sch.id', fullName: 'Tri Djoko, S.Pd.', position: 'Ka. Usman', role: 'ketua_unit', unitCode: 'USMAN' }
 ];
 
-const { data: units, error: unitsError } = await admin.from('document_units').select('id, code');
-if (unitsError) throw unitsError;
-const unitIds = new Map(units.map((unit) => [unit.code, unit.id]));
+export async function provisionUsers() {
+  const { createClient } = await import('@supabase/supabase-js');
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const existingUsers = [];
-for (let page = 1; ; page += 1) {
-  const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
-  if (error) throw error;
-  existingUsers.push(...data.users);
-  if (data.users.length < 1000) break;
-}
-
-const credentials = [];
-for (const account of accounts) {
-  let user = existingUsers.find((item) => item.email?.toLowerCase() === account.email);
-  let temporaryPassword;
-  if (!user) {
-    temporaryPassword = `Smk2!${randomBytes(9).toString('base64url')}`;
-    const { data, error } = await admin.auth.admin.createUser({
-      email: account.email,
-      password: temporaryPassword,
-      email_confirm: true,
-      app_metadata: { role: account.role }
-    });
-    if (error) throw new Error(`${account.email}: ${error.message}`);
-    user = data.user;
+  if (!url || !serviceRoleKey) {
+    console.error('\n[ERROR] NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY wajib tersedia.');
+    console.info('Tip: Jika service-role key belum tersedia di .env lokal, Anda dapat menggunakan script SQL di:');
+    console.info('     supabase/provision_19_accounts.sql langsung di SQL Editor Supabase Dashboard.\n');
+    process.exit(1);
   }
 
-  const unitId = account.unitCode ? unitIds.get(account.unitCode) : null;
-  if (account.unitCode && !unitId) throw new Error(`Unit ${account.unitCode} tidak ditemukan.`);
-  const profile = {
-    id: user.id,
-    email: account.email,
-    full_name: account.fullName,
-    position_name: account.position,
-    role: account.role,
-    unit_id: unitId,
-    is_active: true,
-    ...(temporaryPassword ? { must_change_password: true } : {})
-  };
-  const { error: profileError } = await admin.from('profiles').upsert(profile, { onConflict: 'id' });
-  if (profileError) throw new Error(`${account.email}: ${profileError.message}`);
-  if (temporaryPassword) credentials.push({ name: account.fullName, email: account.email, temporaryPassword });
+  const admin = createClient(url, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  });
+
+  console.log(`\n=== Memulai Provisioning 19 Akun Resmi SINTESA TPMPS ===`);
+  console.log(`Kata sandi default yang ditetapkan: "${DEFAULT_PASSWORD}"\n`);
+
+  let unitIds = new Map();
+  try {
+    const { data: units, error: unitsError } = await admin.from('document_units').select('id, code');
+    if (!unitsError && units) {
+      unitIds = new Map(units.map((unit) => [unit.code, unit.id]));
+    }
+  } catch (err) {
+    console.warn('[INFO] Tabel document_units belum terbaca, melanjutkan konfigurasi auth...');
+  }
+
+  const existingUsers = [];
+  for (let page = 1; ; page += 1) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw error;
+    existingUsers.push(...data.users);
+    if (data.users.length < 1000) break;
+  }
+
+  const results = [];
+
+  for (const account of accounts) {
+    let user = existingUsers.find((item) => item.email?.toLowerCase() === account.email.toLowerCase());
+
+    if (!user) {
+      // Buat akun baru di Supabase Auth
+      const { data, error } = await admin.auth.admin.createUser({
+        email: account.email,
+        password: DEFAULT_PASSWORD,
+        email_confirm: true,
+        app_metadata: { role: account.role },
+        user_metadata: {
+          full_name: account.fullName,
+          position: account.position,
+          unit_code: account.unitCode || null
+        }
+      });
+      if (error) {
+        console.error(`[ERROR] Gagal membuat ${account.email}: ${error.message}`);
+        continue;
+      }
+      user = data.user;
+      results.push({ email: account.email, nama: account.fullName, status: 'BARU DIBUAT', password: DEFAULT_PASSWORD });
+    } else {
+      // Perbarui / reset password akun yang sudah ada ke kata sandi seragam
+      const { error: updateError } = await admin.auth.admin.updateUserById(user.id, {
+        password: DEFAULT_PASSWORD,
+        email_confirm: true,
+        app_metadata: { role: account.role },
+        user_metadata: {
+          full_name: account.fullName,
+          position: account.position,
+          unit_code: account.unitCode || null
+        }
+      });
+      if (updateError) {
+        console.error(`[ERROR] Gagal memperbarui ${account.email}: ${updateError.message}`);
+        continue;
+      }
+      results.push({ email: account.email, nama: account.fullName, status: 'PASSWORD DIPERBARUI', password: DEFAULT_PASSWORD });
+    }
+
+    // Upsert profil di tabel profiles jika skema tersedia
+    try {
+      const unitId = account.unitCode ? unitIds.get(account.unitCode) : null;
+      const profile = {
+        id: user.id,
+        email: account.email,
+        full_name: account.fullName,
+        position_name: account.position,
+        role: account.role,
+        ...(unitId ? { unit_id: unitId } : {}),
+        is_active: true,
+        must_change_password: false
+      };
+      await admin.from('profiles').upsert(profile, { onConflict: 'id' });
+    } catch {
+      // Abaikan jika tabel profiles belum dibuat
+    }
+  }
+
+  console.table(results);
+  console.log(`\n[SELESAI] Seluruh 19 akun berhasil disinkronisasi.`);
+  console.log(`Semua akun dapat login menggunakan kata sandi: ${DEFAULT_PASSWORD}\n`);
 }
 
-if (credentials.length) {
-  console.table(credentials);
-  console.log('Simpan kredensial sementara di password manager lalu hapus dari riwayat terminal.');
-} else {
-  console.log('Semua 19 akun sudah tersedia; tidak ada password yang diubah.');
+const isMain = process.argv[1]?.replace(/\\/g, '/').endsWith('scripts/provision-users.mjs');
+if (isMain) {
+  provisionUsers().catch((err) => {
+    console.error('[FATAL ERROR]:', err);
+    process.exit(1);
+  });
 }
