@@ -43,3 +43,8 @@ next-env.d.ts
 
 # local edge debug profile
 .edge-debug-profile/
+**/node_modules/
+**/.next/
+**/dist/
+/artifacts/
+/supabase/.temp/

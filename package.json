@@ -1,37 +1,28 @@
 {
-  "name": "tpmps-smk",
-  "version": "0.1.0",
+  "name": "tpmps-workspace",
   "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "test": "node scripts/test-app.mjs",
-    "setup:production": "node --env-file=.env scripts/setup-production.mjs",
-    "seed:demo": "node --env-file=.env scripts/seed-demo-archive.mjs"
-  },
-  "dependencies": {
-    "@supabase/ssr": "0.12.7",
-    "@supabase/supabase-js": "^2.49.1",
-    "@types/pg": "^8.23.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^1.47.0",
-    "next": "16.3.5",
-    "pg": "^8.23.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "tailwind-merge": "^3.7.0"
+    "dev": "node scripts/dev.mjs",
+    "build": "npm run build --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "lint": "eslint apps scripts tests",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node scripts/browser-check.mjs",
+    "bootstrap": "node --env-file=.env scripts/bootstrap.mjs",
+    "db:migrate": "node --env-file=.env scripts/migrate.mjs",
+    "check:connection": "node --env-file=.env scripts/check-connection.mjs"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.5",
-    "postgres": "3.4.7",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@eslint/js": "10.0.1",
+    "eslint": "10.0.3",
+    "typescript-eslint": "8.57.1",
+    "typescript": "5.9.3",
+    "@types/node": "25.5.0",
+    "@playwright/test": "1.58.2",
+    "@electric-sql/pglite": "0.3.14",
+    "pg": "8.20.0"
   }
 }
