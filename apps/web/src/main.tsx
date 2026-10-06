@@ -51,6 +51,7 @@ import { Admin } from "./Admin";
 import { Modal } from "./Modal";
 import { Upload } from "./Upload";
 import { Thumbnail } from "./Thumbnail";
+import { LandingPage } from "./landing/LandingPage";
 import "./styles.css";
 import "./reference-layout.css";
 type Action = {
@@ -67,6 +68,14 @@ function App() {
   const [theme, setTheme] = useState(
     document.documentElement.dataset.theme || "dark",
   );
+  const [currentPath, setCurrentPath] = useState(
+    () => window.location.pathname,
+  );
+  useEffect(() => {
+    const onPop = () => setCurrentPath(window.location.pathname);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
   const [session, setSession] = useState<Session | null>(null);
   const [initial, setInitial] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -356,7 +365,20 @@ function App() {
     </button>
   );
   if (initial) return <div className="loading-screen">Memuat sesi…</div>;
-  if (!session)
+  if (!session) {
+    if (currentPath !== "/login" && !currentPath.startsWith("/login")) {
+      return (
+        <LandingPage
+          theme={theme as "dark" | "light"}
+          onToggleTheme={toggleTheme}
+          onNavigateLogin={() => {
+            window.history.pushState({}, "", "/login");
+            setCurrentPath("/login");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        />
+      );
+    }
     return (
       <div className="login-page">
         <div className="login-top">
@@ -366,7 +388,21 @@ function App() {
               TPMPS<span className="brand-sub">Arsip mutu sekolah</span>
             </span>
           </div>
-          {themeButton}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button
+              type="button"
+              className="icon-button"
+              style={{ width: "auto", padding: "0 12px", fontSize: 13 }}
+              onClick={() => {
+                window.history.pushState({}, "", "/");
+                setCurrentPath("/");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              ← Beranda SINTESA
+            </button>
+            {themeButton}
+          </div>
         </div>
         <div className="login-layout">
           <section className="login-intro">
@@ -452,6 +488,7 @@ function App() {
         </footer>
       </div>
     );
+  }
   if (!profile)
     return (
       <div className="loading-screen">

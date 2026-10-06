@@ -103,6 +103,27 @@ for (const width of [1440, 390]) {
     return route.fulfill({ json: value });
   });
   await page.goto(base);
+  await page.getByRole("heading", { name: /Dokumen mutu tertata/i }).waitFor();
+  for (const theme of ["dark", "light"]) {
+    if (theme === "light")
+      await page.getByRole("button", { name: "Aktifkan tema terang" }).click();
+    await page.waitForTimeout(500);
+    await page.screenshot({
+      path: `artifacts/landing-${width}-${theme}.png`,
+      fullPage: true,
+    });
+    assert(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+      `landing overflow ${width} ${theme}`,
+    );
+  }
+  await page.getByRole("button", { name: "Aktifkan tema gelap" }).click();
+  await page.waitForTimeout(200);
+
+  // Navigate to login
+  await page.getByRole("button", { name: "Masuk Sistem" }).first().click();
   await page.getByRole("heading", { name: "Sistem Informasi TPMPS" }).waitFor();
   for (const theme of ["dark", "light"]) {
     if (theme === "light")
