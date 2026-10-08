@@ -38,25 +38,31 @@ export async function authorize(request: Request) {
     throw new HttpError(403, "Hanya superadmin aktif");
   return { client, profile };
 }
+export function hasAdminSecret(): boolean {
+  return !!(
+    process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
 export function adminClient() {
   const { url } = configuration();
   const secret =
     process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!secret)
-    throw new HttpError(503, "Secret Supabase server belum dikonfigurasi");
+  if (!secret) return null;
   return createClient(url, secret, {
-    db:{schema:'tpmps'},
+    db: { schema: "tpmps" },
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
 export function failure(error: unknown) {
+  console.error("API Error caught:", error);
+  const message =
+    error instanceof HttpError
+      ? error.message
+      : error instanceof Error
+        ? error.message
+        : "Operasi gagal. Periksa konfigurasi atau coba kembali.";
   return Response.json(
-    {
-      error:
-        error instanceof HttpError
-          ? error.message
-          : "Operasi gagal. Periksa konfigurasi atau coba kembali.",
-    },
+    { error: message },
     { status: error instanceof HttpError ? error.status : 500 },
   );
 }

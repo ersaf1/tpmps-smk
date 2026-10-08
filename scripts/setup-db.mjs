@@ -50,8 +50,12 @@ async function run() {
   }
 
   // 4. Populate tpmps.profiles from public.profiles and auth.users
+  await client.query(`
+    ALTER TABLE tpmps.profiles ADD COLUMN IF NOT EXISTS email text;
+  `);
+
   const profilesResult = await client.query(`
-    INSERT INTO tpmps.profiles (id, full_name, role, unit_id, active)
+    INSERT INTO tpmps.profiles (id, full_name, role, unit_id, active, email)
     SELECT
       p.id,
       p.full_name,
@@ -66,14 +70,16 @@ async function run() {
         WHEN p.role::text IN ('admin', 'superadmin', 'kepala_sekolah', 'ketua_tpmps') THEN NULL
         ELSE p.unit_id
       END AS unit_id,
-      p.is_active AS active
+      p.is_active AS active,
+      u.email
     FROM public.profiles p
-    WHERE EXISTS (SELECT 1 FROM auth.users u WHERE u.id = p.id)
+    JOIN auth.users u ON u.id = p.id
     ON CONFLICT (id) DO UPDATE SET
       full_name = EXCLUDED.full_name,
       role = EXCLUDED.role,
       unit_id = EXCLUDED.unit_id,
-      active = EXCLUDED.active
+      active = EXCLUDED.active,
+      email = COALESCE(EXCLUDED.email, tpmps.profiles.email)
     RETURNING id, full_name, role;
   `);
   console.log(`Inserted/Updated ${profilesResult.rowCount} profiles.`);

@@ -7,18 +7,21 @@ export const db = createClient(
   publicKey || "unconfigured",
   {db:{schema:'tpmps'}},
 );
-export async function api(path: string, body: unknown, method = "POST") {
+export async function api(path: string, body?: unknown, method = "POST") {
   const { data } = await db.auth.getSession();
+  const options: RequestInit = {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${data.session?.access_token || ""}`,
+    },
+  };
+  if (body !== undefined) {
+    options.body = JSON.stringify(body);
+  }
   const response = await fetch(
     `${import.meta.env.VITE_API_URL || ""}/api/${path}`,
-    {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${data.session?.access_token || ""}`,
-      },
-      body: JSON.stringify(body),
-    },
+    options,
   );
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || "Permintaan gagal");

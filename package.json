@@ -16,13 +16,14 @@
     "check:connection": "node --env-file=.env scripts/check-connection.mjs"
   },
   "devDependencies": {
-    "@eslint/js": "10.0.1",
-    "eslint": "10.0.3",
-    "typescript-eslint": "8.57.1",
-    "typescript": "5.9.3",
-    "@types/node": "25.5.0",
-    "@playwright/test": "1.58.2",
     "@electric-sql/pglite": "0.3.14",
-    "pg": "8.20.0"
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.58.2",
+    "@types/node": "25.5.0",
+    "@types/pg": "^8.23.1",
+    "eslint": "10.0.3",
+    "pg": "8.20.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.57.1"
   }
 }

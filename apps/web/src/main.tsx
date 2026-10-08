@@ -1780,6 +1780,7 @@ function App() {
                 periods={periods}
                 reload={reload}
                 report={report}
+                currentUserId={profile.id}
               />
             )}
           {page === "profile" && (
