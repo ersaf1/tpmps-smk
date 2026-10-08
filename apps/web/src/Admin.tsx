@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { ArrowLeft, Plus, Pencil } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Pencil,
+  ShieldCheck,
+  Award,
+  BookOpen,
+  Building2,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { api, db } from "./client";
 import {
   roles,
@@ -8,6 +18,7 @@ import {
   type Unit,
   type Period,
 } from "./domain";
+import { SelectDropdown } from "./SelectDropdown";
 type RecordRow = Record<string, any>;
 export function Admin({
   section,
@@ -102,35 +113,55 @@ export function Admin({
             <>
               <label>
                 Peran
-                <select
+                <SelectDropdown
                   name="role"
                   value={edit.role || "kepala_sekolah"}
-                  onChange={(e) => setEdit({ ...edit, role: e.target.value })}
-                >
-                  {Object.entries(roles).map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setEdit({ ...edit, role: val })}
+                  options={[
+                    {
+                      value: "superadmin",
+                      label: roles.superadmin,
+                      icon: <ShieldCheck size={16} style={{ color: "var(--accent, #016EC4)" }} />,
+                      description: "Hak akses penuh seluruh sistem dan konfigurasi",
+                    },
+                    {
+                      value: "kepala_sekolah",
+                      label: roles.kepala_sekolah,
+                      icon: <Award size={16} style={{ color: "#d97706" }} />,
+                      description: "Memantau capaian mutu dan membaca seluruh berkas",
+                    },
+                    {
+                      value: "ketua_tpmps",
+                      label: roles.ketua_tpmps,
+                      icon: <BookOpen size={16} style={{ color: "#2563eb" }} />,
+                      description: "Koordinator penjaminan mutu dan struktur folder",
+                    },
+                    {
+                      value: "kepala_unit",
+                      label: roles.kepala_unit,
+                      icon: <Building2 size={16} style={{ color: "#059669" }} />,
+                      description: "Mengunggah dan mengelola berkas unit kerja",
+                    },
+                  ]}
+                />
               </label>
               {edit.role === "kepala_unit" && (
                 <label>
                   Unit penugasan
-                  <select
+                  <SelectDropdown
                     name="unit_id"
-                    defaultValue={edit.unit_id || ""}
+                    value={edit.unit_id || ""}
+                    onChange={(val) => setEdit({ ...edit, unit_id: val })}
+                    placeholder="Pilih unit kerja aktif"
                     required
-                  >
-                    <option value="">Pilih unit aktif</option>
-                    {units
+                    options={units
                       .filter((u) => u.active)
-                      .map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.name}
-                        </option>
-                      ))}
-                  </select>
+                      .map((u) => ({
+                        value: u.id,
+                        label: u.name,
+                        icon: <Building2 size={15} style={{ color: "var(--muted)" }} />,
+                      }))}
+                  />
                 </label>
               )}
               {!edit.id && (
@@ -186,13 +217,25 @@ export function Admin({
           ) : (
             <label>
               Status
-              <select
+              <SelectDropdown
                 name="active"
-                defaultValue={String(edit.active !== false)}
-              >
-                <option value="true">Aktif</option>
-                <option value="false">Nonaktif</option>
-              </select>
+                value={String(edit.active !== false)}
+                onChange={(val) => setEdit({ ...edit, active: val === "true" })}
+                options={[
+                  {
+                    value: "true",
+                    label: "Aktif",
+                    icon: <CheckCircle2 size={16} style={{ color: "#16a34a" }} />,
+                    description: "Dapat digunakan untuk operasional sistem",
+                  },
+                  {
+                    value: "false",
+                    label: "Nonaktif",
+                    icon: <XCircle size={16} style={{ color: "#dc2626" }} />,
+                    description: "Akses dibatasi sementara / arsip",
+                  },
+                ]}
+              />
             </label>
           )}
           <p className="note">

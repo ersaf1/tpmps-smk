@@ -1769,3 +1769,196 @@
 .footer-back-to-top:focus-visible {
   outline: 2px solid var(--otto-blue);
 }
+
+/* ==========================================================================
+   SINTESA HERO SHOWCASE (OFFICIAL SMKN 2 TEMPLATE VISUAL)
+   ========================================================================== */
+.sintesa-hero-showcase {
+  background: var(--otto-surface);
+  border: 1px solid var(--otto-border-strong);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 20px 45px -12px rgba(1, 110, 196, 0.15), var(--otto-card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.sintesa-hero-showcase::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #016ec4 0%, #fca601 50%, #016ec4 100%);
+}
+
+.showcase-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.showcase-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: rgba(1, 110, 196, 0.1);
+  border: 1px solid rgba(1, 110, 196, 0.2);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #016ec4;
+}
+
+.badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #016ec4;
+  box-shadow: 0 0 8px #016ec4;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.showcase-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fca601;
+}
+
+.showcase-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.showcase-crest-wrap {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 12px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(1, 110, 196, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.showcase-logo {
+  width: 68px;
+  height: 68px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+}
+
+.showcase-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #016ec4 0%, #0284c7 50%, #fca601 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.showcase-subtitle {
+  margin: 6px 0 0 0;
+  font-size: 13px;
+  color: var(--otto-text-muted);
+  max-width: 380px;
+  line-height: 1.4;
+}
+
+.showcase-motto {
+  margin-top: 10px;
+  display: inline-block;
+  padding: 3px 12px;
+  background: rgba(252, 166, 1, 0.12);
+  border: 1px solid rgba(252, 166, 1, 0.25);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #fca601;
+}
+
+.showcase-standards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.standard-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--otto-bg-subtle);
+  border: 1px solid var(--otto-border);
+  border-radius: 8px;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.standard-chip:hover {
+  border-color: rgba(1, 110, 196, 0.4);
+  background: rgba(1, 110, 196, 0.04);
+}
+
+.standard-code {
+  font-weight: 700;
+  font-size: 11px;
+  color: #016ec4;
+  background: rgba(1, 110, 196, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.standard-name {
+  font-weight: 500;
+  color: var(--otto-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.showcase-footer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  border-top: 1px solid var(--otto-border);
+  padding-top: 14px;
+}
+
+.stat-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px;
+  background: var(--otto-bg-subtle);
+  border-radius: 8px;
+  border: 1px solid var(--otto-border);
+}
+
+.stat-pill strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #016ec4;
+}
+
+.stat-pill span {
+  font-size: 11px;
+  color: var(--otto-text-muted);
+}
+

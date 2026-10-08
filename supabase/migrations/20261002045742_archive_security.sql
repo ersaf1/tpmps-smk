@@ -99,7 +99,7 @@ create policy files_update on tpmps.files for update to authenticated using(tpmp
 create policy files_delete on tpmps.files for delete to authenticated using(tpmps_private.can_write(space_id) and status='pending');
 
 insert into storage.buckets(id,name,public,file_size_limit) values('tpmps-documents','tpmps-documents',false,50000000);
-create function tpmps_private.object_read(object_name text) returns boolean language sql stable security definer set search_path='' as $$ select exists(select 1 from tpmps.files where object_key=object_name and status='ready' and tpmps_private.can_read(space_id)) $$;
+create function tpmps_private.object_read(object_name text) returns boolean language sql stable security definer set search_path='' as $$ select exists(select 1 from tpmps.files where object_key=object_name and ((status='ready' and tpmps_private.can_read(space_id)) or (status='pending' and uploaded_by=auth.uid() and tpmps_private.can_write(space_id)))) $$;
 create function tpmps_private.object_write(object_name text, inserting boolean) returns boolean language sql volatile security definer set search_path='' as $$ select exists(select 1 from tpmps.files where object_key=object_name and tpmps_private.can_write(space_id) and (not inserting or (status='pending' and uploaded_by=auth.uid()))) $$;
 create policy tpmps_object_read on storage.objects for select to authenticated using(bucket_id='tpmps-documents' and tpmps_private.object_read(name));
 create policy tpmps_object_insert on storage.objects for insert to authenticated with check(bucket_id='tpmps-documents' and tpmps_private.object_write(name,true));

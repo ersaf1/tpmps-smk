@@ -67,9 +67,71 @@ export const Hero: React.FC<HeroProps> = ({ theme, onNavigateLogin }) => {
           </div>
         </div>
 
-        {/* Right Column: 3D Centerpiece with Otto-style Radar & Floating Badges */}
+        {/* Right Column: 3D Centerpiece kept in DOM but hidden as requested */}
         <div className="otto-hero-visual">
-          <Folder3D theme={theme} />
+          <div style={{ display: "none" }} aria-hidden="true">
+            <Folder3D theme={theme} />
+          </div>
+
+          <div className="sintesa-hero-showcase">
+            <div className="showcase-header">
+              <div className="showcase-badge">
+                <span className="badge-dot" />
+                <span>SINTESA MASTER TEMPLATE</span>
+              </div>
+              <span className="showcase-tag">SMK N 2 MAGELANG</span>
+            </div>
+
+            <div className="showcase-center">
+              <div className="showcase-crest-wrap">
+                <img
+                  src="/school-logo.png"
+                  alt="Logo SMK Negeri 2 Magelang"
+                  className="showcase-logo"
+                />
+              </div>
+              <h2 className="showcase-title">SINTESA TPMPS</h2>
+              <p className="showcase-subtitle">
+                Penjaminan Mutu Internal Berbasis 8 Standar Nasional Pendidikan
+              </p>
+              <div className="showcase-motto">
+                <span>SWADAYA BHINA RAHARJA</span>
+              </div>
+            </div>
+
+            <div className="showcase-standards-grid">
+              {[
+                { code: "SNP 1", name: "Standar Kelulusan" },
+                { code: "SNP 2", name: "Standar Isi" },
+                { code: "SNP 3", name: "Standar Proses" },
+                { code: "SNP 4", name: "Standar Penilaian" },
+                { code: "SNP 5", name: "Standar PTK" },
+                { code: "SNP 6", name: "Standar Sarpras" },
+                { code: "SNP 7", name: "Standar Pengelolaan" },
+                { code: "SNP 8", name: "Standar Pembiayaan" },
+              ].map((s) => (
+                <div key={s.code} className="standard-chip">
+                  <span className="standard-code">{s.code}</span>
+                  <span className="standard-name">{s.name}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="showcase-footer">
+              <div className="stat-pill">
+                <strong>16 Unit</strong>
+                <span>Pelaksana</span>
+              </div>
+              <div className="stat-pill">
+                <strong>PPEPP</strong>
+                <span>Siklus Mutu</span>
+              </div>
+              <div className="stat-pill">
+                <strong>100%</strong>
+                <span>Sahih & RLS</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

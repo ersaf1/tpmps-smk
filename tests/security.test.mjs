@@ -170,7 +170,7 @@ test("PostgreSQL migration, RLS, archive and Storage invariants", async (t) => {
     );
     await as(
       "head",
-      `insert into storage.objects(bucket_id,name,metadata) values('tpmps-documents',$1,'{"size":50000000}')`,
+      `insert into storage.objects(bucket_id,name,metadata) values('tpmps-documents',$1,'{"size":50000000}') returning *`,
       [file.object_key],
     );
     assert.equal(

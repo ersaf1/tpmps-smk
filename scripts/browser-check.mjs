@@ -7,7 +7,8 @@ const base = process.env.TEST_BASE_URL || "http://127.0.0.1:5180";
 const server=process.env.TEST_BASE_URL?null:spawn(process.execPath,['node_modules/vite/bin/vite.js','apps/web','--host','127.0.0.1','--port','5180','--strictPort'],{stdio:'ignore',env:{...process.env,VITE_SUPABASE_URL:'https://tpmps-browser-test.supabase.co',VITE_SUPABASE_PUBLISHABLE_KEY:'test-publishable-key'}});
 process.on('exit',()=>server?.kill());
 for(let attempt=0;attempt<60;attempt++){try{const response=await fetch(base);if(response.ok)break;}catch{/* server starting */}await new Promise(resolve=>setTimeout(resolve,250));}
-const browser = await chromium.launch({ channel: "msedge" });
+const launchOptions = process.env.CI || process.platform !== "win32" ? {} : { channel: "msedge" };
+const browser = await chromium.launch(launchOptions);
 // Fixtures exist only in this test transport, never in the application or database.
 const user = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -176,6 +177,44 @@ for (const width of [1440, 390]) {
     path: `artifacts/files-${width}-dark.png`,
     fullPage: true,
   });
+
+  // Verify and capture custom file filter dropdown popover
+  const filterDropdownBtn = page.getByRole("button", { name: "Filter jenis file" });
+  if (await filterDropdownBtn.isVisible()) {
+    await filterDropdownBtn.click();
+    await page.waitForTimeout(200);
+    await page.screenshot({
+      path: `artifacts/dropdown-filter-${width}-dark.png`,
+    });
+    // Test keyboard accessibility: Escape closes dropdown
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(100);
+  }
+
+  // Verify and capture sort dropdown popover
+  const sortDropdownBtn = page.getByRole("button", { name: "Urutkan berkas" });
+  if (await sortDropdownBtn.isVisible()) {
+    await sortDropdownBtn.click();
+    await page.waitForTimeout(200);
+    await page.screenshot({
+      path: `artifacts/dropdown-sort-${width}-dark.png`,
+    });
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(100);
+  }
+
+  // Verify and capture period picker dropdown popover
+  const periodDropdownBtn = page.locator(".sintesa-period-btn").first();
+  if (await periodDropdownBtn.isVisible()) {
+    await periodDropdownBtn.click();
+    await page.waitForTimeout(200);
+    await page.screenshot({
+      path: `artifacts/dropdown-period-${width}-dark.png`,
+    });
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(100);
+  }
+
   await page.getByRole("button", { name: "Tampilan daftar" }).click();
   await page.screenshot({
     path: `artifacts/list-${width}-dark.png`,
@@ -194,7 +233,37 @@ for (const width of [1440, 390]) {
     fullPage: true,
   });
   await page.getByRole("button", { name: "Tutup dialog", exact: true }).click();
+
+  // Test light mode dropdown
   await page.getByRole("button", { name: "Aktifkan tema terang" }).click();
+  await page.waitForTimeout(200);
+  if (await filterDropdownBtn.isVisible()) {
+    await filterDropdownBtn.click();
+    await page.waitForTimeout(200);
+    await page.screenshot({
+      path: `artifacts/dropdown-filter-${width}-light.png`,
+    });
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(100);
+  }
+
+  // Test admin custom dropdowns (Superadmin view)
+  if (width === 1440) {
+    await page.getByRole("button", { name: "Kelola Pengguna" }).click();
+    await page.getByRole("button", { name: /Tambah pengguna/i }).click();
+    await page.waitForTimeout(200);
+    const roleDropdownBtn = page.locator(".admin-form .sintesa-dropdown-btn").first();
+    if (await roleDropdownBtn.isVisible()) {
+      await roleDropdownBtn.click();
+      await page.waitForTimeout(200);
+      await page.screenshot({
+        path: "artifacts/dropdown-admin-role-1440-dark.png",
+      });
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(100);
+    }
+  }
+
   await page.reload();
   await page.getByRole("heading", { name: "Dashboard", exact: true }).waitFor();
   assert.equal(

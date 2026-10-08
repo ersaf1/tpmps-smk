@@ -8,9 +8,9 @@
   }
   .page-files .filter-row {
     float: right;
-    width: 155px;
-    margin: 0 0 0 24px;
-    padding: 20px 0 20px 23px;
+    width: 215px;
+    margin: 0 0 0 20px;
+    padding: 20px 0 20px 18px;
     min-height: 560px;
     border-left: 1px solid var(--border);
     display: flex;
@@ -18,18 +18,27 @@
     align-items: flex-start;
   }
   .page-files .filter-row:before {
-    content: "Filter";
-    font-size: 16px;
-    font-weight: 550;
-    margin-bottom: 15px;
+    content: "Filter Berkas";
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  .page-files .filter-row .sintesa-select-wrap {
+    width: 100%;
   }
   .page-files .filter-row select {
-    width: 132px;
+    width: 100%;
     font-size: 12px;
+    min-height: 38px;
+    border-radius: 8px;
+    padding: 0 26px 0 10px;
+    background-position: right 8px center;
   }
   .page-files .folder-grid,
   .page-files .table-wrap {
-    width: calc(100% - 180px);
+    width: calc(100% - 235px);
   }
   .page-files .folder-card {
     padding: 14px;

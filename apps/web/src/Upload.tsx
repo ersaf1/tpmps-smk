@@ -87,13 +87,24 @@ export function Upload({
             });
         };
         xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) resolve();
-          else
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            let detail: string;
+            try {
+              const parsed = JSON.parse(xhr.responseText);
+              detail = parsed.message || parsed.error || "";
+            } catch {
+              detail = xhr.responseText || "";
+            }
             reject(
               new Error(
-                "Unggah ditolak. Periksa koneksi, izin, dan status periode.",
+                detail
+                  ? `Unggah ditolak: ${detail}`
+                  : "Unggah ditolak. Periksa koneksi, izin, dan status periode.",
               ),
             );
+          }
         };
         xhr.onerror = () =>
           reject(new Error("Koneksi terputus. Coba lagi dengan aman."));
