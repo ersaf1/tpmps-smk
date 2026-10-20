@@ -93,6 +93,11 @@ tbody tr:hover { background:var(--hover); }
 .file-name { font-size:12px; max-width:360px; }
 .row-actions { gap:3px; }
 .row-actions button { min-width:44px; min-height:44px; border-radius:8px; }
+.folder-card { display:flex; flex-direction:column; justify-content:space-between; }
+.folder-card .folder-open { width:100%; flex:1; }
+.folder-card .row-actions { width:100%; display:flex; align-items:center; justify-content:flex-end; gap:4px; margin-top:auto; padding-top:10px; border-top:1px solid var(--border); }
+.folder-card .row-actions button { min-width:32px; min-height:32px; width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:6px; background:transparent; border:1px solid transparent; color:var(--muted); transition:all .15s ease; }
+.folder-card .row-actions button:hover { background:var(--hover); color:var(--text); border-color:var(--border); }
 .toolbar-actions { flex-wrap:wrap; padding:0; }
 .toolbar-actions button,.select-control select { font-size:12px; }
 .filter-row { float:none; width:100%; min-height:0; border:0; padding:0; margin:0 0 18px; display:flex; flex-wrap:wrap; gap:10px; }
