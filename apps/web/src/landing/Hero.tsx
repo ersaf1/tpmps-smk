@@ -1,6 +1,6 @@
 import React from "react";
-import { ArrowUpRight, Compass, ChevronDown } from "lucide-react";
-import { Folder3D } from "./Folder3D";
+import { ArrowUpRight, Compass, ChevronDown, CheckCircle2 } from "lucide-react";
+import { HeroShowcase } from "./HeroShowcase";
 
 interface HeroProps {
   theme: "dark" | "light";
@@ -29,60 +29,86 @@ export const Hero: React.FC<HeroProps> = ({ theme, onNavigateLogin }) => {
   return (
     <section className="otto-hero-section">
       <div className="otto-hero-container">
-        {/* Left Column: Editorial Headline & Actions */}
-        <div className="otto-hero-content">
-          <div className="otto-hero-eyebrow">
-            <span className="eyebrow-accent-bullet" />
-            <span className="eyebrow-text">SISTEM INFORMASI TPMPS SMK</span>
+        {/* Unified Section 01 Header */}
+        <div className="otto-section-meta hero-section-meta">
+          <div className="section-index-badge">
+            <span className="section-index-num">01</span>
+            <span className="section-index-sep">/</span>
+            <span className="section-index-name">RUANG DOKUMEN TPMPS</span>
           </div>
-
-          <h1 className="otto-hero-headline">
-            <span>Dokumen mutu tertata.</span>
-            <span className="headline-second-line">Penjaminan mutu terjaga.</span>
-          </h1>
-
-          <p className="otto-hero-description">
-            Kelola dan telusuri dokumen mutu sekolah dalam satu sistem, dengan
-            akses sesuai peran dan arsip yang tersusun berdasarkan periode.
-          </p>
-
-          <div className="otto-hero-actions">
-            <button
-              type="button"
-              className="otto-btn-primary"
-              onClick={onNavigateLogin}
-            >
-              <span>Masuk Sistem</span>
-              <ArrowUpRight size={18} strokeWidth={2.4} />
-            </button>
-
-            <a
-              href="#fitur"
-              className="otto-btn-secondary"
-              onClick={handleExploreFeatures}
-            >
-              <Compass size={17} strokeWidth={2} />
-              <span>Jelajahi Fitur</span>
-            </a>
-          </div>
+          <div className="section-meta-line" />
         </div>
 
-        {/* Right Column: 3D Centerpiece with Otto-style Radar & Floating Badges */}
-        <div className="otto-hero-visual">
-          <Folder3D theme={theme} />
+        {/* Hero Main Grid: Left Copy & Right Interactive Showcase */}
+        <div className="otto-hero-grid">
+          {/* Left Column: Editorial Headline & Actions */}
+          <div className="otto-hero-content">
+            <div className="otto-hero-eyebrow">
+              <span className="eyebrow-accent-bullet" />
+              <span className="eyebrow-text">SMK NEGERI 2 MAGELANG</span>
+            </div>
+
+            <h1 className="otto-hero-headline">
+              <span>Sistem Penjaminan Mutu</span>
+              <span className="headline-second-line">Pendidikan Sekolah</span>
+            </h1>
+
+            <p className="otto-hero-description">
+              Pusat pengelolaan dokumen mutu, manual prosedur, instrumen evaluasi,
+              dan arsip digital SPMI SMKN 2 Magelang berbasis tata kelola terpadu.
+            </p>
+
+            <div className="otto-hero-actions">
+              <button
+                type="button"
+                className="otto-btn-primary"
+                onClick={onNavigateLogin}
+              >
+                <span>Masuk Portal TPMPS</span>
+                <ArrowUpRight size={18} strokeWidth={2.4} />
+              </button>
+
+              <a
+                href="#fitur"
+                className="otto-btn-secondary"
+                onClick={handleExploreFeatures}
+              >
+                <Compass size={17} strokeWidth={2} />
+                <span>Struktur Instrumen</span>
+              </a>
+            </div>
+
+            {/* Quick reassurance tags */}
+            <div className="otto-hero-trust-row">
+              <span className="trust-pill">
+                <CheckCircle2 size={13} className="trust-icon" />
+                <span>Dokumen MM, PM, CM, PK</span>
+              </span>
+              <span className="trust-pill">
+                <CheckCircle2 size={13} className="trust-icon" />
+                <span>Kapasitas Unggah 50 MB per Berkas</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Right Column: High-end Interactive Document Showcase (No 3D) */}
+          <div className="otto-hero-visual">
+            <HeroShowcase theme={theme} />
+          </div>
         </div>
       </div>
 
-      {/* Bottom Editorial Bar (Signature Otto Detail) */}
+      {/* Hero Bottom Navigation & Highlights Strip */}
       <div className="otto-hero-bottombar">
-        <div className="bottombar-left">
-          <span className="bottombar-index">01 / RUANG DOKUMEN TPMPS</span>
-        </div>
-
-        <div className="bottombar-center" aria-hidden="true">
-          <span className="track-dash is-active" />
-          <span className="track-dash" />
-          <span className="track-dash" />
+        <div className="bottombar-highlights">
+          <span className="bottombar-tag">STANDAR TATA KELOLA</span>
+          <span className="bottombar-item">Manual Mutu (MM)</span>
+          <span className="bottombar-dot">·</span>
+          <span className="bottombar-item">Prosedur Mutu (PM)</span>
+          <span className="bottombar-dot">·</span>
+          <span className="bottombar-item">Catatan Mutu (CM)</span>
+          <span className="bottombar-dot">·</span>
+          <span className="bottombar-item">Petunjuk Kerja (PK)</span>
         </div>
 
         <div className="bottombar-right">
@@ -91,7 +117,7 @@ export const Hero: React.FC<HeroProps> = ({ theme, onNavigateLogin }) => {
             className="bottombar-scroll-link"
             onClick={handleScrollToAbout}
           >
-            <span>GULIR KE BAWAH</span>
+            <span>PELAJARI SISTEM</span>
             <ChevronDown size={14} />
           </a>
         </div>

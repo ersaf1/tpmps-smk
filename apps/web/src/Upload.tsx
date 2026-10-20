@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
-import { UploadCloud, FileText, CheckCircle2, RefreshCw } from "lucide-react";
+import { UploadCloud, CheckCircle2, RefreshCw } from "lucide-react";
+import { FileIcon } from "./FileIcon";
 import { db, supabaseUrl, publicKey } from "./client";
 import { MAX_BYTES, bytes } from "./domain";
 type Item = {
@@ -15,10 +16,14 @@ export function Upload({
   spaceId,
   folderId,
   done,
+  onClose,
+  report,
 }: {
   spaceId: string;
   folderId: string;
   done: () => Promise<void>;
+  onClose?: () => void;
+  report?: (message: string) => void;
 }) {
   const [items, setItems] = useState<Item[]>([]);
   const processing = useRef(false);
@@ -103,26 +108,50 @@ export function Upload({
         xhr.send(item.file);
       });
       update(item.id, { state: "done", progress: 100 });
+      return true;
     } catch (error) {
       update(item.id, {
         state: "error",
         error: error instanceof Error ? error.message : "Unggah gagal",
       });
+      return false;
     }
   }
   async function add(files: FileList | null) {
     if (!files || processing.current) return;
+    const fileArray = Array.from(files);
+    const oversized = fileArray.find((f) => f.size > MAX_BYTES);
+    if (oversized) {
+      if (picker.current) picker.current.value = "";
+      if (onClose) onClose();
+      if (report) {
+        report(
+          `Ukuran file "${oversized.name}" melebihi batas 50 MB (${bytes(oversized.size)}). Unggah dibatalkan.`,
+        );
+      }
+      return;
+    }
     processing.current = true;
-    const added = Array.from(files).map((file) => ({
+    const added: Item[] = fileArray.map((file) => ({
       id: crypto.randomUUID(),
       file,
       progress: 0,
-      state: "waiting" as const,
+      state: "waiting",
     }));
     setItems((old) => [...old, ...added]);
-    for (const item of added) await send(item);
+    let allOk = true;
+    for (const item of added) {
+      const ok = await send(item);
+      if (!ok) allOk = false;
+    }
     processing.current = false;
     await done();
+    if (allOk && added.length > 0) {
+      setTimeout(() => {
+        if (onClose) onClose();
+        if (report) report("Dokumen berhasil diunggah!");
+      }, 500);
+    }
   }
   return (
     <>
@@ -163,7 +192,7 @@ export function Upload({
       <div className="upload-list">
         {items.map((item) => (
           <div key={item.id} className="upload-item">
-            <FileText />
+            <FileIcon name={item.file.name} mime={item.file.type} size={24} />
             <div>
               <strong>{item.file.name}</strong>
               <small>
@@ -190,6 +219,12 @@ export function Upload({
                     await send(item);
                     processing.current = false;
                     await done();
+                    if (item.state === "done") {
+                      setTimeout(() => {
+                        if (onClose) onClose();
+                        if (report) report("Dokumen berhasil diunggah!");
+                      }, 500);
+                    }
                   }}
                 >
                   <RefreshCw size={17} />

@@ -2,15 +2,15 @@
 :root {
   font-family: "DM Sans", Arial, sans-serif;
   color-scheme: dark;
-  --bg: #181a1f;
-  --panel: #252930;
-  --control: #2c2d32;
-  --hover: #34353b;
-  --border: #37383e;
-  --text: #f2f2f4;
-  --muted: #a4a5af;
+  --bg: #091827;
+  --panel: #122338;
+  --control: #193047;
+  --hover: #203c56;
+  --border: #2a4057;
+  --text: #edf4fc;
+  --muted: #a8b9ce;
   --blue: #016ec4;
-  --orange: #fca601;
+  --orange: #f9a800;
   --selected: #233c53;
   --danger: #ec8585;
   font-size: 14px;
@@ -19,13 +19,13 @@
 }
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #f5f6f8;
+  --bg: #f5f8fc;
   --panel: #fff;
-  --control: #f0f1f4;
-  --hover: #e6e8ed;
-  --border: #e0e2e8;
-  --text: #252832;
-  --muted: #626977;
+  --control: #f0f5fa;
+  --hover: #e8f0f8;
+  --border: #e1eaf3;
+  --text: #14263d;
+  --muted: #63748b;
   --selected: #e3eff9;
   --danger: #b92e38;
 }
@@ -1079,17 +1079,6 @@ progress {
   color: var(--muted);
   margin: 25px 0 0;
 }
-::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 5px;
-}
 @media (min-width: 1600px) {
   .sidebar {
     width: 18%;
@@ -1314,4 +1303,422 @@ progress {
   .dropzone {
     padding: 25px 12px;
   }
+}
+
+/* ==========================================================================
+   PASSWORD TOGGLE & AUTH ENHANCEMENTS
+   ========================================================================== */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 42px !important;
+}
+.toggle-password-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.toggle-password-btn:hover {
+  color: var(--text);
+  background: rgba(125, 125, 125, 0.15);
+}
+
+/* ==========================================================================
+   ENHANCED FILTER DROPDOWNS
+   ========================================================================== */
+.select-control {
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 0 12px !important;
+  box-shadow: 0 3px 12px #00000008;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.select-control:focus-within {
+  border-color: var(--blue) !important;
+  box-shadow: 0 0 0 2px rgba(1, 110, 196, 0.2);
+}
+.select-control select {
+  font-weight: 600;
+  cursor: pointer;
+}
+.select-control > svg { color: var(--muted); }
+.select-control:hover { border-color: #7096b3 !important; }
+:is(.filter-row, .select-control, .period-picker) select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%237b9ab5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 38px;
+  transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+.select-control select { background-color: transparent; }
+.filter-row select {
+  background-color: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 10px 38px 10px 14px !important;
+  min-width: 190px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.filter-row select:focus {
+  border-color: var(--blue) !important;
+  box-shadow: 0 0 0 2px rgba(1, 110, 196, 0.2);
+}
+.period-picker select {
+  background-color: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 10px 38px 10px 12px !important;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.period-picker select:focus {
+  border-color: var(--blue) !important;
+}
+:is(.filter-row, .period-picker) select:hover { border-color: #7096b3 !important; }
+/* Style the actual option menu where customizable native selects are supported. */
+@supports (appearance: base-select) {
+  :is(.filter-row, .select-control, .period-picker) select,
+  :is(.filter-row, .select-control, .period-picker) select::picker(select) { appearance: base-select; }
+  :is(.filter-row, .select-control, .period-picker) select {
+    background-image: none;
+    padding-right: 12px !important;
+    align-items: center;
+    gap: 18px;
+  }
+  :is(.filter-row, .select-control, .period-picker) select::picker-icon {
+    color: var(--muted);
+    transition: rotate .18s ease;
+    font-size: 12px;
+  }
+  :is(.filter-row, .select-control, .period-picker) select:open::picker-icon { rotate: 180deg; }
+  :is(.filter-row, .select-control, .period-picker) select::picker(select) {
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px;
+    margin-top: 8px;
+    box-shadow: 0 12px 36px #00000030, 0 2px 6px #0000000c;
+    min-width: min(220px, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+    max-height: min(320px, 55dvh);
+    overflow-y: auto;
+  }
+  :is(.filter-row, .select-control, .period-picker) option {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 11px 12px;
+    min-height: 44px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text);
+  }
+  :is(.filter-row, .select-control, .period-picker) option:hover,
+  :is(.filter-row, .select-control, .period-picker) option:focus { background: var(--hover); outline: none; }
+  :is(.filter-row, .select-control, .period-picker) option:checked { background: var(--selected); font-weight: 700; }
+  :is(.filter-row, .select-control, .period-picker) option::checkmark { order: 1; margin-left: auto; color: #329bea; }
+  :is(.filter-row, .select-control, .period-picker) option:disabled { color: var(--muted); cursor: default; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.filter-row, .select-control, .period-picker) select::picker-icon { transition: none; }
+}
+
+/* ==========================================================================
+   PENJAMINAN MUTU (TPMPS) SIDEBAR NAV
+   ========================================================================== */
+.tpmps-nav {
+  margin-bottom: 16px;
+}
+.tpmps-root-btn {
+  font-weight: 600 !important;
+  color: #53b4f4 !important;
+}
+.tpmps-badge-icon {
+  color: var(--blue);
+}
+.tpmps-subnav {
+  display: flex;
+  flex-direction: column;
+  padding-left: 18px;
+  margin-top: 4px;
+  gap: 3px;
+  border-left: 2px solid rgba(1, 110, 196, 0.25);
+  margin-left: 16px;
+}
+.tpmps-subnav .subnav {
+  padding: 7px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tpmps-subnav .subnav:hover {
+  background: rgba(1, 110, 196, 0.1);
+  color: var(--text);
+}
+.tpmps-subnav .subnav.space-selected {
+  background: var(--selected) !important;
+  color: var(--text) !important;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   DASHBOARD SPMI MUTU (MM & PM) CARDS
+   ========================================================================== */
+.tpmps-dashboard-section {
+  margin: 28px 0;
+  background: rgba(1, 110, 196, 0.03);
+  border: 1px solid rgba(1, 110, 196, 0.18);
+  border-radius: 12px;
+  padding: 20px;
+}
+.mutu-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+.mutu-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.mutu-card:hover {
+  border-color: rgba(1, 110, 196, 0.5);
+  box-shadow: 0 4px 16px rgba(1, 110, 196, 0.08);
+  transform: translateY(-2px);
+}
+.mutu-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.mutu-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mutu-icon-box.mm {
+  background: rgba(1, 110, 196, 0.12);
+  color: #016ec4;
+}
+.mutu-icon-box.pm {
+  background: rgba(252, 166, 1, 0.12);
+  color: #fca601;
+}
+.mutu-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 3px 0;
+}
+.mutu-count {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.mutu-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+.mutu-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--text);
+}
+.btn-compact {
+  padding: 8px 14px !important;
+  font-size: 13px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   FOLDER NESTED STATISTICS & "BAKSO BERANAK" BADGES
+   ========================================================================== */
+.folder-meta-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin: 6px 0 2px 0;
+}
+.folder-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  max-width: 100%;
+  line-height: 1.3;
+}
+.folder-badge.subfolders {
+  color: #016ec4;
+  background: rgba(1, 110, 196, 0.08);
+  border: 1px solid rgba(1, 110, 196, 0.2);
+}
+[data-theme="dark"] .folder-badge.subfolders {
+  color: #53b4f4;
+  background: rgba(1, 110, 196, 0.16);
+  border-color: rgba(83, 180, 244, 0.25);
+}
+.folder-badge.files {
+  color: #b46b02;
+  background: rgba(252, 166, 1, 0.1);
+  border: 1px solid rgba(252, 166, 1, 0.22);
+}
+[data-theme="dark"] .folder-badge.files {
+  color: #fca601;
+  background: rgba(252, 166, 1, 0.15);
+  border-color: rgba(252, 166, 1, 0.3);
+}
+.folder-date {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 4px;
+}
+.folder-table-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.stat-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.stat-pill.folder-pill {
+  color: #016ec4;
+  background: rgba(1, 110, 196, 0.08);
+  border: 1px solid rgba(1, 110, 196, 0.2);
+}
+[data-theme="dark"] .stat-pill.folder-pill {
+  color: #53b4f4;
+  background: rgba(1, 110, 196, 0.16);
+  border-color: rgba(83, 180, 244, 0.25);
+}
+.stat-pill.file-pill {
+  color: #b46b02;
+  background: rgba(252, 166, 1, 0.1);
+  border: 1px solid rgba(252, 166, 1, 0.22);
+}
+[data-theme="dark"] .stat-pill.file-pill {
+  color: #fca601;
+  background: rgba(252, 166, 1, 0.15);
+  border-color: rgba(252, 166, 1, 0.3);
+}
+.space-overview-card {
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.space-overview-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(1, 110, 196, 0.45);
+  box-shadow: 0 4px 14px rgba(1, 110, 196, 0.1);
+}
+.space-card-icon {
+  margin-bottom: 6px;
+}
+.space-footer {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  color: var(--muted);
+  font-size: 11px;
+}
+.folder-title-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--text);
+  font-weight: 500;
+}
+.folder-title-btn:hover {
+  color: var(--blue);
 }

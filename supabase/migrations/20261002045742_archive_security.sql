@@ -38,7 +38,9 @@ create function tpmps_private.document_guard() returns trigger language plpgsql 
  perform 1 from tpmps.document_spaces where id=sid for update;
  if not (TG_OP='INSERT' and TG_TABLE_NAME='folders' and pg_trigger_depth()>1) and not tpmps_private.can_write(sid) then raise exception 'Ruang tidak dapat ditulis atau periode tidak aktif'; end if;
  if TG_OP='DELETE' then
-   if TG_TABLE_NAME='files' and pg_trigger_depth()=1 and old.status='ready' then raise exception 'Hapus melalui Storage agar metadata tetap sinkron'; end if;
+   if TG_TABLE_NAME='files' then
+     if pg_trigger_depth()=1 and old.status='ready' then raise exception 'Hapus melalui Storage agar metadata tetap sinkron'; end if;
+   end if;
    return old;
  end if;
  if TG_OP='INSERT' then new.created_at:=clock_timestamp(); end if;

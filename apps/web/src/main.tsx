@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   LayoutDashboard,
@@ -19,8 +19,8 @@ import {
   UploadCloud,
   Download,
   FileText,
-  Image,
   ArrowUpDown,
+  ArrowLeft,
   Menu,
   HardDrive,
   ShieldCheck,
@@ -31,6 +31,10 @@ import {
   X,
   User,
   RefreshCw,
+  Eye,
+  EyeOff,
+  BookOpen,
+  FileCheck,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { db, configured, allRows } from "./client";
@@ -39,7 +43,6 @@ import {
   bytes,
   canWrite,
   periodStatus,
-  safePreview,
   type Profile,
   type Unit,
   type Period,
@@ -49,15 +52,18 @@ import {
 } from "./domain";
 import { Admin } from "./Admin";
 import { Modal } from "./Modal";
+const FileViewer = lazy(() => import("./FileViewer").then(module => ({ default: module.FileViewer })));
 import { Upload } from "./Upload";
 import { Thumbnail } from "./Thumbnail";
-import { LandingPage } from "./landing/LandingPage";
+import { FileIcon } from "./FileIcon";
+import { warmPreview } from './preview-loaders';
+const LandingPage = lazy(() => import("./landing/LandingPage").then(module => ({ default: module.LandingPage })));
 import "./styles.css";
 import "./reference-layout.css";
+import "./motion.css";
 type Action = {
-  kind: "folder" | "upload" | "rename" | "move" | "delete" | "preview";
+  kind: "folder" | "upload" | "rename" | "move" | "delete";
   target?: FolderRow | Doc;
-  url?: string;
 };
 const date = (value: string) =>
   new Intl.DateTimeFormat("id-ID", {
@@ -99,7 +105,12 @@ function App() {
     [notice, setNotice] = useState("");
   const [action, setAction] = useState<Action | null>(null),
     [busy, setBusy] = useState(false),
-    [clock, setClock] = useState(new Date());
+    [clock, setClock] = useState(new Date()),
+    [showPassword, setShowPassword] = useState(false),
+    [loginError, setLoginError] = useState(""),
+    [loginBusy, setLoginBusy] = useState(false),
+    [previewFile, setPreviewFile] = useState<Doc | null>(null);
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem("sintesa-sidebar") === "collapsed");
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
@@ -117,18 +128,20 @@ function App() {
     );
     return () => data.subscription.unsubscribe();
   }, []);
-  async function reload() {
+  async function reload(forcedUserId?: string) {
     setLoading(true);
     setError("");
     try {
       const { data: user } = await db.auth.getUser();
-      if (!user.user) throw new Error("Sesi berakhir. Silakan login kembali.");
+      const targetUserId = forcedUserId || user.user?.id;
+      if (!targetUserId) throw new Error("Sesi berakhir. Silakan login kembali.");
       const { data: p, error: pe } = await db
         .from("profiles")
         .select("*")
-        .eq("id", user.user.id)
+        .eq("id", targetUserId)
         .single();
-      if (pe || !p?.active) {
+      if (pe) throw pe;
+      if (!p?.active) {
         setProfile(null);
         throw new Error(
           "Akun belum memiliki profil aktif. Hubungi superadmin.",
@@ -145,18 +158,28 @@ function App() {
       ]);
       if (now.error) throw now.error;
       const { data: currentSession } = await db.auth.getSession();
-      if (currentSession.session?.user.id !== p.id) return;
+      if (currentSession.session?.user.id && currentSession.session.user.id !== p.id) return;
       setProfile(p);
       setClock(new Date(now.data));
-      setPeriods(ps.sort((a, b) => b.starts_on.localeCompare(a.starts_on)));
+      const sortedPeriods = ps.sort((a, b) => b.starts_on.localeCompare(a.starts_on));
+      setPeriods(sortedPeriods);
       setUnits(us);
       setSpaces(ss);
       setFolders(fs);
       setFiles(ds);
       setProfiles(pr);
-      setPeriodId((old) =>
-        ps.some((p) => p.id === old) ? old : ps[0]?.id || "",
-      );
+      const activePid = sortedPeriods[0]?.id || "";
+      const chosenPid = sortedPeriods.some((x) => x.id === periodId) ? periodId : activePid;
+      setPeriodId(chosenPid);
+
+      const periodSpaceList = ss.filter((s) => s.period_id === chosenPid);
+      let targetSpace = periodSpaceList.find((s) => s.unit_id === null);
+      if (p.role === "kepala_unit" && p.unit_id) {
+        targetSpace = periodSpaceList.find((s) => s.unit_id === p.unit_id) || targetSpace;
+      }
+      if (targetSpace) {
+        setSpaceId((old) => (periodSpaceList.some((s) => s.id === old) ? old : targetSpace!.id));
+      }
     } catch (e) {
       setError(
         e instanceof Error
@@ -185,16 +208,16 @@ function App() {
     setFolderId(null);
   }, [periodId]);
   useEffect(() => {
-    setSpaceId((old) =>
-      spaces.some((s) => s.id === old && s.period_id === periodId)
-        ? old
-        : spaces.find((s) => s.period_id === periodId)?.id || "",
-    );
-  }, [periodId, spaces]);
-  useEffect(() => {
-    if (!action?.url) return;
-    return () => URL.revokeObjectURL(action.url!);
-  }, [action]);
+    setSpaceId((old) => {
+      const periodSpaceList = spaces.filter((s) => s.period_id === periodId);
+      if (old && periodSpaceList.some((s) => s.id === old)) return old;
+      let preferred = periodSpaceList.find((s) => s.unit_id === null);
+      if (profile?.role === "kepala_unit" && profile.unit_id) {
+        preferred = periodSpaceList.find((s) => s.unit_id === profile.unit_id) || preferred;
+      }
+      return preferred?.id || periodSpaceList[0]?.id || "";
+    });
+  }, [periodId, spaces, profile?.role, profile?.unit_id]);
   const period = periods.find((p) => p.id === periodId),
     space = spaces.find((s) => s.id === spaceId);
   const status = period ? periodStatus(period, clock) : "";
@@ -203,6 +226,17 @@ function App() {
     canWrite(profile, space, period, clock) &&
     (!space?.unit_id || units.some((u) => u.id === space.unit_id && u.active));
   const periodSpaces = spaces.filter((s) => s.period_id === periodId);
+  const tpmpsSpace = periodSpaces.find((s) => s.unit_id === null);
+  const unitSpaces = periodSpaces.filter((s) => s.unit_id !== null);
+  const tpmpsFolders = tpmpsSpace
+    ? folders.filter((f) => f.space_id === tpmpsSpace.id && !f.parent_id)
+    : [];
+  const mmFolder = tpmpsFolders.find(
+    (f) => f.name.includes("MM") || f.name.toLowerCase().includes("manual mutu"),
+  );
+  const pmFolder = tpmpsFolders.find(
+    (f) => f.name.includes("PM") || f.name.toLowerCase().includes("prosedur mutu"),
+  );
   const periodFiles = files.filter(
     (f) =>
       f.status === "ready" && periodSpaces.some((s) => s.id === f.space_id),
@@ -248,50 +282,156 @@ function App() {
     parent = folders.find((f) => f.id === parent?.parent_id);
   }
   function navigate(next: string) {
+    setPreviewFile(null);
     setPage(next);
     setDrawer(false);
     setQuery("");
+    document.querySelector(".main-shell")?.scrollTo({ top: 0, behavior: "instant" });
+  }
+  useEffect(() => {
+    setPreviewFile(null);
+  }, [session?.user.id]);
+  useEffect(() => {
+    if (!drawer) return;
+    const sidebar = document.querySelector<HTMLElement>(".sidebar");
+    const opener = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    sidebar?.querySelector<HTMLElement>("button")?.focus();
+    function handleKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setDrawer(false);
+      if (event.key !== "Tab" || !sidebar) return;
+      const controls = Array.from(sidebar.querySelectorAll<HTMLElement>("button, select, a[href]"))
+        .filter(node => node.getClientRects().length > 0);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = previousOverflow;
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
+    };
+  }, [drawer]);
+  function getFolderStats(fid: string) {
+    const descendantFolderIds = new Set<string>();
+    const queue = [fid];
+    while (queue.length > 0) {
+      const currentId = queue.shift()!;
+      const children = folders.filter((f) => f.parent_id === currentId);
+      for (const child of children) {
+        if (!descendantFolderIds.has(child.id)) {
+          descendantFolderIds.add(child.id);
+          queue.push(child.id);
+        }
+      }
+    }
+    const directFolders = folders.filter((f) => f.parent_id === fid).length;
+    const totalSubfolders = descendantFolderIds.size;
+    const directFiles = files.filter(
+      (d) => d.folder_id === fid && d.status === "ready",
+    );
+    const allNestedFiles = files.filter(
+      (d) =>
+        (d.folder_id === fid || descendantFolderIds.has(d.folder_id)) &&
+        d.status === "ready",
+    );
+    const totalSizeBytes = allNestedFiles.reduce((acc, f) => acc + f.size, 0);
+
+    return {
+      directFolders,
+      totalSubfolders,
+      directFilesCount: directFiles.length,
+      totalFilesCount: allNestedFiles.length,
+      totalSizeBytes,
+    };
   }
   async function login(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setBusy(true);
-    setError("");
+    setLoginBusy(true);
+    setLoginError("");
     const form = new FormData(event.currentTarget);
+    const email = String(form.get("email")).trim();
+    const password = String(form.get("password"));
     try {
-      const { error } = await db.auth.signInWithPassword({
-        email: String(form.get("email")),
-        password: String(form.get("password")),
+      const { data, error: signInErr } = await db.auth.signInWithPassword({
+        email,
+        password,
       });
-      if (error) throw error;
-    } catch {
-      setError("Login gagal. Periksa email, kata sandi, dan koneksi Supabase.");
+      if (signInErr) throw signInErr;
+      if (data.session) {
+        setSession(data.session);
+        await reload(data.session.user.id);
+        window.history.pushState({}, "", "/");
+        setCurrentPath("/");
+      }
+    } catch (err: any) {
+      setLoginError(
+        err?.message ||
+          "Gagal masuk. Periksa email, kata sandi, dan koneksi Anda.",
+      );
     } finally {
-      setBusy(false);
+      setLoginBusy(false);
     }
   }
   async function openFile(file: Doc, download = false) {
-    try {
-      const { data, error } = await db.storage
-        .from("tpmps-documents")
-        .download(file.object_key);
-      if (error) throw error;
-      const url = URL.createObjectURL(
-        new Blob([data], {
-          type: safePreview(file.mime_type)
-            ? file.mime_type
-            : "application/octet-stream",
-        }),
-      );
-      if (download) {
+    if (download) {
+      try {
+        setBusy(true);
+        // Prioritaskan signed download URL langsung agar browser mengunduh secara native
+        const { data: signed, error: signErr } = await db.storage
+          .from("tpmps-documents")
+          .createSignedUrl(file.object_key, 300, { download: file.name });
+        if (!signErr && signed?.signedUrl) {
+          const anchor = document.createElement("a");
+          anchor.style.display = "none";
+          anchor.href = signed.signedUrl;
+          anchor.target = "_blank";
+          anchor.rel = "noopener noreferrer";
+          anchor.setAttribute("download", file.name);
+          document.body.appendChild(anchor);
+          anchor.click();
+          setTimeout(() => {
+            if (document.body.contains(anchor)) {
+              document.body.removeChild(anchor);
+            }
+          }, 1000);
+          return;
+        }
+
+        // Fallback: unduh blob jika createSignedUrl gagal
+        const { data, error } = await db.storage
+          .from("tpmps-documents")
+          .download(file.object_key);
+        if (error) throw error;
+        const url = URL.createObjectURL(
+          new Blob([data], {
+            type: file.mime_type || "application/octet-stream",
+          }),
+        );
         const anchor = document.createElement("a");
+        anchor.style.display = "none";
         anchor.href = url;
-        anchor.download = file.name;
+        anchor.setAttribute("download", file.name);
+        document.body.appendChild(anchor);
         anchor.click();
-        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      } else setAction({ kind: "preview", target: file, url });
-    } catch {
-      report("File gagal dibuka. Periksa akses, koneksi, atau status file.");
+        setTimeout(() => {
+          if (document.body.contains(anchor)) {
+            document.body.removeChild(anchor);
+          }
+          URL.revokeObjectURL(url);
+        }, 60_000);
+      } catch (e) {
+        report(e instanceof Error ? e.message : "Gagal mengunduh berkas.");
+      } finally {
+        setBusy(false);
+      }
+      return;
     }
+
+    warmPreview(file.name, file.mime_type);
+    setPreviewFile(file);
   }
   async function mutate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -368,7 +508,7 @@ function App() {
   if (!session) {
     if (currentPath !== "/login" && !currentPath.startsWith("/login")) {
       return (
-        <LandingPage
+        <Suspense fallback={<div className="loading-screen" role="status">Memuat SINTESA…</div>}><LandingPage
           theme={theme as "dark" | "light"}
           onToggleTheme={toggleTheme}
           onNavigateLogin={() => {
@@ -376,7 +516,7 @@ function App() {
             setCurrentPath("/login");
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}
-        />
+        /></Suspense>
       );
     }
     return (
@@ -385,43 +525,43 @@ function App() {
           <div className="brand">
             <img src="/school-logo.png" alt="Logo sekolah" />
             <span>
-              TPMPS<span className="brand-sub">Arsip mutu sekolah</span>
+              SINTESA<span className="brand-sub">SMK Negeri 2 Magelang</span>
             </span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <button
               type="button"
               className="icon-button"
-              style={{ width: "auto", padding: "0 12px", fontSize: 13 }}
+              style={{ width: "auto", padding: "0 12px", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6 }}
               onClick={() => {
                 window.history.pushState({}, "", "/");
                 setCurrentPath("/");
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
             >
-              ← Beranda SINTESA
+              <ArrowLeft size={16} />
+              Beranda SINTESA
             </button>
             {themeButton}
           </div>
         </div>
         <div className="login-layout">
           <section className="login-intro">
-            <div className="eyebrow">RUANG DOKUMEN SEKOLAH</div>
+            <div className="eyebrow">SISTEM PENJAMINAN MUTU INTERNAL</div>
             <h1>
-              Dokumen tertata.
+              SMK Negeri 2 Magelang
               <br />
-              Mutu terjaga.
+              Portal Dokumen Mutu
             </h1>
             <p>
-              Satu tempat untuk menyimpan, menemukan, dan menjaga arsip mutu
-              sekolah dari setiap periode.
+              Masuk untuk mengunggah, mencari, dan memeriksa dokumen mutu sekolah.
             </p>
             <div className="archive-art" aria-hidden="true">
               <div className="art-card">
                 <Folder size={60} strokeWidth={1} />
                 <div>
-                  <strong>Arsip mutu</strong>
-                  <span>Manual · Prosedur · Catatan · Petunjuk</span>
+                  <strong>Dokumen SPMI</strong>
+                  <span>Manual Mutu, Prosedur Mutu, Catatan Mutu, Petunjuk Kerja</span>
                 </div>
                 <ShieldCheck size={25} />
               </div>
@@ -429,19 +569,19 @@ function App() {
               <div className="art-mini">
                 <span>
                   <LockKeyhole size={18} />
-                  Akses sesuai peran
+                  Akses Terverifikasi
                 </span>
                 <span>
                   <CalendarDays size={18} />
-                  Arsip per periode
+                  Arsip Berbasis Periode
                 </span>
               </div>
             </div>
           </section>
           <section className="login-card">
-            <span className="eyebrow">SELAMAT DATANG</span>
-            <h2>Sistem Informasi TPMPS</h2>
-            <p className="muted">Masuk dengan akun yang diberikan sekolah.</p>
+            <span className="eyebrow">AKSES SINTESA</span>
+            <h2>Masuk ke Sistem TPMPS</h2>
+            <p className="muted">Gunakan email dan kata sandi akun sekolah.</p>
             <form onSubmit={login}>
               <label>
                 Email
@@ -455,25 +595,39 @@ function App() {
               </label>
               <label>
                 Kata sandi
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Masukkan kata sandi"
-                  autoComplete="current-password"
-                  required
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="Masukkan kata sandi"
+                    autoComplete="current-password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="toggle-password-btn"
+                    aria-label={
+                      showPassword
+                        ? "Sembunyikan kata sandi"
+                        : "Tampilkan kata sandi"
+                    }
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </label>
-              {(!configured || error) && (
+              {(!configured || loginError) && (
                 <p className="error" role="alert">
-                  {error ||
+                  {loginError ||
                     "Supabase belum dikonfigurasi. Lengkapi environment untuk login."}
                 </p>
               )}
               <button
                 className="primary login-submit"
-                disabled={busy || !configured}
+                disabled={loginBusy || !configured}
               >
-                {busy ? "Memeriksa akun…" : "Masuk"}
+                {loginBusy ? "Memeriksa akun…" : "Masuk"}
                 <ChevronRight size={18} />
               </button>
             </form>
@@ -489,20 +643,49 @@ function App() {
       </div>
     );
   }
-  if (!profile)
+  if (!profile) {
+    if (loading || !error) {
+      return (
+        <div className="loading-screen">
+          <div className="loading-brand">
+            <img
+              src="/school-logo.png"
+              alt="Logo sekolah"
+              style={{
+                width: 56,
+                height: 56,
+                objectFit: "contain",
+                marginBottom: 16,
+              }}
+            />
+            <h2 style={{ fontSize: 18, fontWeight: 600 }}>
+              Menyiapkan ruang dokumen mutu…
+            </h2>
+            <p className="muted" style={{ fontSize: 13, marginTop: 4 }}>
+              Memuat profil dan arsip periode aktif
+            </p>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="loading-screen">
-        <h2>{loading ? "Memuat profil…" : "Akun belum dapat digunakan"}</h2>
+        <h2>Akun belum dapat digunakan</h2>
         <p className="error">{error}</p>
-        <button onClick={() => void reload()}>Coba lagi</button>
-        <button onClick={() => void db.auth.signOut()}>Keluar</button>
+        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+          <button className="primary" onClick={() => void reload()}>
+            Coba lagi
+          </button>
+          <button onClick={() => void db.auth.signOut()}>Keluar</button>
+        </div>
       </div>
     );
+  }
   const actions = (target: FolderRow | Doc) => (
     <div className="row-actions">
       {"object_key" in target && (
         <button
-          aria-label={`Download ${target.name}`}
+          aria-label={`Unduh ${target.name}`}
           onClick={() => void openFile(target, true)}
         >
           <Download size={16} />
@@ -533,7 +716,7 @@ function App() {
     </div>
   );
   const fileTable = (rows: Doc[]) => (
-    <div className="table-wrap">
+    <div className="table-wrap" tabIndex={0} role="region" aria-label="Daftar dokumen">
       <table>
         <thead>
           <tr>
@@ -551,14 +734,12 @@ function App() {
               <td>
                 <button
                   className="file-name text-button"
+                  onPointerEnter={() => warmPreview(file.name, file.mime_type)}
+                  onFocus={() => warmPreview(file.name, file.mime_type)}
                   onClick={() => void openFile(file)}
                 >
                   <span className="file-icon">
-                    {file.mime_type.startsWith("image/") ? (
-                      <Image size={20} />
-                    ) : (
-                      <FileText size={20} />
-                    )}
+                    <FileIcon name={file.name} mime={file.mime_type} />
                   </span>
                   {file.name}
                 </button>
@@ -573,7 +754,7 @@ function App() {
               <td>
                 {page === "dashboard" ? (
                   <button
-                    aria-label={`Download ${file.name}`}
+                    aria-label={`Unduh ${file.name}`}
                     onClick={() => void openFile(file, true)}
                   >
                     <Download size={16} />
@@ -596,7 +777,7 @@ function App() {
     </div>
   );
   return (
-    <div className="app-shell">
+    <div className={`app-shell${collapsed ? " sidebar-collapsed" : ""}`}>
       {drawer && (
         <button
           className="drawer-backdrop"
@@ -604,11 +785,11 @@ function App() {
           onClick={() => setDrawer(false)}
         />
       )}
-      <aside className={drawer ? "sidebar open" : "sidebar"}>
+      <aside id="workspace-navigation" aria-label="Navigasi utama" className={drawer ? "sidebar open" : "sidebar"}>
         <div className="brand">
           <img src="/school-logo.png" alt="Logo sekolah" />
           <span>
-            TPMPS<span className="brand-sub">Arsip mutu sekolah</span>
+            SINTESA<span className="brand-sub">SMK Negeri 2 Magelang</span>
           </span>
           <button
             className="mobile-close"
@@ -618,25 +799,25 @@ function App() {
             <X size={18} />
           </button>
         </div>
-        <div className="nav-label">WORKSPACE</div>
+        <div className="nav-label">RUANG KERJA</div>
         <nav>
           <button
-            className={page === "dashboard" ? "selected" : ""}
+            aria-label="Ringkasan TPMPS" title="Ringkasan TPMPS" className={page === "dashboard" ? "selected" : ""}
             onClick={() => navigate("dashboard")}
           >
             <LayoutDashboard />
-            Dashboard
+            Ringkasan TPMPS
           </button>
           <button
-            className={page === "files" ? "selected" : ""}
+            aria-label="Dokumen" title="Dokumen" className={page === "files" ? "selected" : ""}
             onClick={() => navigate("files")}
           >
             <FolderOpen />
-            File Manager
+            Dokumen
           </button>
           {profile.role !== "kepala_unit" && (
             <button
-              className={page === "spaces" ? "selected" : ""}
+              aria-label="Dokumen seluruh unit" title="Dokumen seluruh unit" className={page === "spaces" ? "selected" : ""}
               onClick={() => navigate("spaces")}
             >
               <Building2 />
@@ -644,9 +825,45 @@ function App() {
             </button>
           )}
         </nav>
-        <div className="nav-label">RUANG DOKUMEN</div>
+        {tpmpsSpace && (
+          <>
+            <div className="nav-label">PENJAMINAN MUTU (TPMPS)</div>
+            <nav className="space-nav tpmps-nav">
+              <button
+                className={`tpmps-root-btn ${page === "files" && spaceId === tpmpsSpace.id && !folderId ? "space-selected" : ""}`}
+                onClick={() => {
+                  setSpaceId(tpmpsSpace.id);
+                  setFolderId(null);
+                  navigate("files");
+                }}
+              >
+                <ShieldCheck size={18} className="tpmps-badge-icon" />
+                <span>Dokumen Mutu Sekolah</span>
+                <ChevronRight size={14} />
+              </button>
+              <div className="tpmps-subnav">
+                {tpmpsFolders.map((f) => (
+                  <button
+                    key={f.id}
+                    className={`subnav ${page === "files" && spaceId === tpmpsSpace.id && folderId === f.id ? "space-selected" : ""}`}
+                    onClick={() => {
+                      setSpaceId(tpmpsSpace.id);
+                      setFolderId(f.id);
+                      setQuery("");
+                      navigate("files");
+                    }}
+                  >
+                    <Folder size={14} />
+                    <span>{f.name}</span>
+                  </button>
+                ))}
+              </div>
+            </nav>
+          </>
+        )}
+        <div className="nav-label">RUANG UNIT KERJA ({unitSpaces.length})</div>
         <nav className="space-nav">
-          {periodSpaces.map((s) => (
+          {unitSpaces.map((s) => (
             <React.Fragment key={s.id}>
               <button
                 className={
@@ -658,7 +875,7 @@ function App() {
                   navigate("files");
                 }}
               >
-                <Folder size={18} />
+                <Building2 size={16} />
                 <span>{s.name}</span>
                 <ChevronRight size={14} />
               </button>
@@ -694,7 +911,7 @@ function App() {
               ].map(([id, label, Icon]) => (
                 <button
                   key={String(id)}
-                  className={page === id ? "selected" : ""}
+                  aria-label={String(label)} title={String(label)} className={page === id ? "selected" : ""}
                   onClick={() => navigate(String(id))}
                 >
                   <Icon size={19} />
@@ -720,9 +937,15 @@ function App() {
       </aside>
       <div className="main-shell">
         <header className="topbar">
+          <button className="desktop-collapse icon-button" aria-label={collapsed ? "Perluas navigasi" : "Ringkas navigasi"} title={collapsed ? "Perluas navigasi" : "Ringkas navigasi"} aria-expanded={!collapsed} aria-controls="workspace-navigation" onClick={() => {
+            setCollapsed(!collapsed);
+            localStorage.setItem("sintesa-sidebar", collapsed ? "expanded" : "collapsed");
+          }}><Menu size={20} /></button>
           <button
             className="mobile-menu"
             aria-label="Buka menu"
+            aria-expanded={drawer}
+            aria-controls="workspace-navigation"
             onClick={() => setDrawer(true)}
           >
             <Menu />
@@ -758,19 +981,21 @@ function App() {
             </button>
           </div>
         </header>
-        <main className={`page-${page}`}>
+        <main key={page} className={`page-${page}`}>
           <div className="context-row">
             <span>
-              Workspace <ChevronRight size={13} />{" "}
+              SINTESA <ChevronRight size={13} />{" "}
               {page === "dashboard"
-                ? "Dashboard"
+                ? "Ringkasan TPMPS"
                 : page === "files"
-                  ? "File Manager"
+                  ? "Dokumen"
                   : page === "spaces"
                     ? "Seluruh unit"
                     : page === "profile"
                       ? "Profil"
-                      : "Administrasi"}
+                      : page === "preview"
+                        ? "Pratinjau Dokumen"
+                        : "Administrasi"}
             </span>
             <div className="period-picker">
               <CalendarDays size={16} />
@@ -796,13 +1021,13 @@ function App() {
           {status === "Selesai" && (
             <div className="archive-banner">
               <LockKeyhole size={17} />
-              Periode selesai — hanya baca
+              Periode selesai (arsip hanya baca)
             </div>
           )}
           {status === "Belum dimulai" && (
             <div className="archive-banner">
               <CalendarDays size={17} />
-              Periode belum dimulai — dokumen hanya dapat dibaca
+              Periode belum dimulai (dokumen hanya dapat dibaca)
             </div>
           )}
           {error && (
@@ -827,10 +1052,9 @@ function App() {
             <>
               <div className="section-heading">
                 <div>
-                  <h1>Dashboard</h1>
+                  <h1>Ringkasan TPMPS</h1>
                   <p className="muted">
-                    Selamat datang, {profile.full_name}. Berikut arsip mutu
-                    sekolah Anda.
+                    Dokumen dan aktivitas penjaminan mutu pada periode terpilih.
                   </p>
                 </div>
                 <button
@@ -871,6 +1095,126 @@ function App() {
                   </div>
                 ))}
               </div>
+              {tpmpsSpace && (
+                <div className="tpmps-dashboard-section">
+                  <div className="section-heading small" style={{ marginBottom: 12 }}>
+                    <div>
+                      <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <ShieldCheck size={20} color="#016ec4" />
+                        Dokumen Mutu Sekolah (SPMI)
+                      </h2>
+                      <span className="muted">
+                        Manual Mutu (MM) dan Prosedur Mutu (PM) untuk penjaminan mutu sekolah
+                      </span>
+                    </div>
+                    {profile.role === "ketua_tpmps" ? (
+                      <span className="badge active">
+                        Ketua TPMPS · Kelola dokumen
+                      </span>
+                    ) : profile.role === "kepala_sekolah" ? (
+                      <span className="badge" style={{ background: "rgba(252,166,1,0.15)", color: "var(--accent-text)" }}>
+                        Akses kepala sekolah · Hanya lihat
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="mutu-cards-grid">
+                    <div className="mutu-card">
+                      <div className="mutu-card-header">
+                        <div className="mutu-icon-box mm">
+                          <BookOpen size={24} />
+                        </div>
+                        <div>
+                          <h3>MM: Manual Mutu</h3>
+                          <span className="mutu-count">
+                            {mmFolder
+                              ? files.filter((f) => f.folder_id === mmFolder.id && f.status === "ready").length
+                              : 0}{" "}
+                            berkas dokumen
+                          </span>
+                        </div>
+                      </div>
+                      <p className="mutu-desc">
+                        Pedoman dan kebijakan mutu utama standar implementasi SPMI di SMK Negeri 2 Magelang.
+                      </p>
+                      <div className="mutu-actions">
+                        <button
+                          className="btn-outline"
+                          onClick={() => {
+                            if (mmFolder && tpmpsSpace) {
+                              setSpaceId(tpmpsSpace.id);
+                              setFolderId(mmFolder.id);
+                              navigate("files");
+                            }
+                          }}
+                        >
+                          <FolderOpen size={16} />
+                          Buka Folder MM
+                        </button>
+                        {writable && tpmpsSpace && mmFolder && (
+                          <button
+                            className="primary btn-compact"
+                            onClick={() => {
+                              setSpaceId(tpmpsSpace.id);
+                              setFolderId(mmFolder.id);
+                              setAction({ kind: "upload" });
+                            }}
+                          >
+                            <UploadCloud size={16} />
+                            Unggah MM
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mutu-card">
+                      <div className="mutu-card-header">
+                        <div className="mutu-icon-box pm">
+                          <FileCheck size={24} />
+                        </div>
+                        <div>
+                          <h3>PM: Prosedur Mutu</h3>
+                          <span className="mutu-count">
+                            {pmFolder
+                              ? files.filter((f) => f.folder_id === pmFolder.id && f.status === "ready").length
+                              : 0}{" "}
+                            berkas dokumen
+                          </span>
+                        </div>
+                      </div>
+                      <p className="mutu-desc">
+                        Standar Operasional Prosedur (SOP) dan mekanisme penjaminan mutu antar unit kerja sekolah.
+                      </p>
+                      <div className="mutu-actions">
+                        <button
+                          className="btn-outline"
+                          onClick={() => {
+                            if (pmFolder && tpmpsSpace) {
+                              setSpaceId(tpmpsSpace.id);
+                              setFolderId(pmFolder.id);
+                              navigate("files");
+                            }
+                          }}
+                        >
+                          <FolderOpen size={16} />
+                          Buka Folder PM
+                        </button>
+                        {writable && tpmpsSpace && pmFolder && (
+                          <button
+                            className="primary btn-compact"
+                            onClick={() => {
+                              setSpaceId(tpmpsSpace.id);
+                              setFolderId(pmFolder.id);
+                              setAction({ kind: "upload" });
+                            }}
+                          >
+                            <UploadCloud size={16} />
+                            Unggah PM
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               {!periodSpaces.length && (
                 <div className="empty compact">
                   Belum ada ruang dokumen. Superadmin dapat menambahkan periode
@@ -911,30 +1255,54 @@ function App() {
                 <div>
                   <h1>Dokumen seluruh unit</h1>
                   <p className="muted">
-                    Telusuri arsip berdasarkan ruang pemilik dokumen.
+                    Daftar ruang dokumen unit kerja dan tim penjaminan mutu sekolah.
                   </p>
                 </div>
               </div>
               <div className="folder-grid">
-                {periodSpaces.map((s) => (
-                  <button
-                    className="folder-card"
-                    key={s.id}
-                    onClick={() => {
-                      setSpaceId(s.id);
-                      setFolderId(null);
-                      navigate("files");
-                    }}
-                  >
-                    <Folder size={48} strokeWidth={1.2} />
-                    <strong>{s.name}</strong>
-                    <small>
-                      {periodFiles.filter((f) => f.space_id === s.id).length}{" "}
-                      dokumen
-                      <ChevronRight size={14} />
-                    </small>
-                  </button>
-                ))}
+                {periodSpaces.map((s) => {
+                  const sFiles = periodFiles.filter((f) => f.space_id === s.id);
+                  const sFolders = folders.filter((f) => f.space_id === s.id);
+                  const rootFolders = sFolders.filter((f) => !f.parent_id);
+                  const totalSize = sFiles.reduce((acc, f) => acc + f.size, 0);
+                  return (
+                    <button
+                      className="folder-card space-overview-card"
+                      key={s.id}
+                      title={`${s.name}\n• Folder: ${rootFolders.length} utama (${sFolders.length} total bertingkat)\n• Berkas file: ${sFiles.length} berkas\n• Total ukuran: ${bytes(totalSize)}`}
+                      onClick={() => {
+                        setSpaceId(s.id);
+                        setFolderId(null);
+                        navigate("files");
+                      }}
+                    >
+                      <div className="space-card-icon">
+                        {s.unit_id === null ? (
+                          <ShieldCheck size={44} color="#016ec4" />
+                        ) : (
+                          <Building2 size={44} />
+                        )}
+                      </div>
+                      <strong>{s.name}</strong>
+                      <div className="folder-meta-badges">
+                        <span className="folder-badge subfolders">
+                          <Folder size={13} strokeWidth={2} />
+                          <span>
+                            {rootFolders.length} folder utama ({sFolders.length} total bertingkat)
+                          </span>
+                        </span>
+                        <span className="folder-badge files">
+                          <FileText size={13} strokeWidth={2} />
+                          <span>{sFiles.length} berkas file</span>
+                        </span>
+                      </div>
+                      <small className="space-footer">
+                        Total {bytes(totalSize)}
+                        <ChevronRight size={14} />
+                      </small>
+                    </button>
+                  );
+                })}
               </div>
             </>
           )}
@@ -943,11 +1311,45 @@ function App() {
               <div className="section-heading">
                 <div>
                   <h1>
-                    {currentFolder?.name || space?.name || "File Manager"}
+                    {currentFolder?.name || space?.name || "Dokumen"}
                   </h1>
                   <p className="muted">
-                    {shownFolders.length} folder · {shownFiles.length} file
-                    {!writable ? " · Hanya baca" : ""}
+                    {currentFolder ? (
+                      (() => {
+                        const curStats = getFolderStats(currentFolder.id);
+                        return (
+                          <>
+                            {shownFolders.length} subfolder langsung
+                            {curStats.totalSubfolders > shownFolders.length
+                              ? ` (${curStats.totalSubfolders} total bertingkat)`
+                              : ""}
+                            {" · "}
+                            {shownFiles.length} berkas langsung
+                            {curStats.totalFilesCount > shownFiles.length
+                              ? ` (${curStats.totalFilesCount} total berkas bertingkat)`
+                              : ""}
+                            {curStats.totalSizeBytes > 0 ? ` · ${bytes(curStats.totalSizeBytes)}` : ""}
+                            {!writable ? " · Hanya baca" : ""}
+                          </>
+                        );
+                      })()
+                    ) : (
+                      <>
+                        {shownFolders.length} folder utama
+                        {folders.filter((f) => f.space_id === spaceId).length > shownFolders.length
+                          ? ` (${folders.filter((f) => f.space_id === spaceId).length} total bertingkat)`
+                          : ""}
+                        {" · "}
+                        {periodFiles.filter((f) => f.space_id === spaceId).length} berkas file (
+                        {bytes(
+                          periodFiles
+                            .filter((f) => f.space_id === spaceId)
+                            .reduce((s, f) => s + f.size, 0),
+                        )}
+                        )
+                        {!writable ? " · Hanya baca" : ""}
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
@@ -1041,30 +1443,50 @@ function App() {
               </div>
               {view === "grid" ? (
                 <div className="folder-grid">
-                  {shownFolders.map((f) => (
-                    <div className="folder-card" key={f.id}>
-                      <button
-                        className="folder-open"
-                        onClick={() => {
-                          setFolderId(f.id);
-                          setQuery("");
-                        }}
-                      >
-                        <Folder size={48} strokeWidth={1.2} />
-                        <strong>{f.name}</strong>
-                        <small>
-                          {
-                            files.filter(
-                              (d) =>
-                                d.folder_id === f.id && d.status === "ready",
-                            ).length
-                          }{" "}
-                          file · {date(f.created_at)}
-                        </small>
-                      </button>
-                      {actions(f)}
-                    </div>
-                  ))}
+                  {shownFolders.map((f) => {
+                    const stats = getFolderStats(f.id);
+                    return (
+                      <div className="folder-card" key={f.id}>
+                        <button
+                          className="folder-open"
+                          title={`${f.name}\n• Subfolder: ${stats.directFolders} langsung (${stats.totalSubfolders} total di dalamnya)\n• Berkas file: ${stats.directFilesCount} langsung (${stats.totalFilesCount} total di semua subfolder)\n• Total ukuran: ${bytes(stats.totalSizeBytes)}`}
+                          onClick={() => {
+                            setFolderId(f.id);
+                            setQuery("");
+                          }}
+                        >
+                          <Folder size={48} strokeWidth={1.2} />
+                          <strong>{f.name}</strong>
+                          <div className="folder-meta-badges">
+                            <span className="folder-badge subfolders">
+                              <Folder size={13} strokeWidth={2} />
+                              <span>
+                                {stats.directFolders} subfolder
+                                {stats.totalSubfolders > stats.directFolders
+                                  ? ` (${stats.totalSubfolders} bertingkat)`
+                                  : ""}
+                              </span>
+                            </span>
+                            <span className="folder-badge files">
+                              <FileText size={13} strokeWidth={2} />
+                              <span>
+                                {stats.directFilesCount === 0 && stats.totalFilesCount > 0
+                                  ? `0 langsung (${stats.totalFilesCount} di subfolder)`
+                                  : stats.totalFilesCount > stats.directFilesCount
+                                  ? `${stats.directFilesCount} langsung (${stats.totalFilesCount} total)`
+                                  : `${stats.totalFilesCount} berkas file`}
+                              </span>
+                            </span>
+                          </div>
+                          <small className="folder-date">
+                            {stats.totalSizeBytes > 0 ? `${bytes(stats.totalSizeBytes)} · ` : ""}
+                            Dibuat: {date(f.created_at)}
+                          </small>
+                        </button>
+                        {actions(f)}
+                      </div>
+                    );
+                  })}
                   {shownFiles.map((f) => (
                     <div className="folder-card" key={f.id}>
                       <button
@@ -1084,34 +1506,66 @@ function App() {
               ) : (
                 <>
                   {!!shownFolders.length && (
-                    <div className="table-wrap">
+                    <div className="table-wrap" tabIndex={0} role="region" aria-label="Daftar dokumen">
                       <table>
                         <thead>
                           <tr>
                             <th>Folder</th>
+                            <th>Struktur Isi (Subfolder & File)</th>
+                            <th>Total Ukuran</th>
                             <th>Dibuat</th>
                             <th>Aksi</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {shownFolders.map((f) => (
-                            <tr key={f.id}>
-                              <td>
-                                <button
-                                  className="text-button"
-                                  onClick={() => {
-                                    setFolderId(f.id);
-                                    setQuery("");
-                                  }}
-                                >
-                                  <Folder size={20} />
-                                  {f.name}
-                                </button>
-                              </td>
-                              <td>{date(f.created_at)}</td>
-                              <td>{actions(f)}</td>
-                            </tr>
-                          ))}
+                          {shownFolders.map((f) => {
+                            const stats = getFolderStats(f.id);
+                            return (
+                              <tr key={f.id}>
+                                <td>
+                                  <button
+                                    className="text-button folder-title-btn"
+                                    title={`${f.name}\n• Subfolder: ${stats.directFolders} langsung (${stats.totalSubfolders} total di dalamnya)\n• Berkas file: ${stats.directFilesCount} langsung (${stats.totalFilesCount} total di semua subfolder)\n• Total ukuran: ${bytes(stats.totalSizeBytes)}`}
+                                    onClick={() => {
+                                      setFolderId(f.id);
+                                      setQuery("");
+                                    }}
+                                  >
+                                    <Folder size={20} />
+                                    <strong>{f.name}</strong>
+                                  </button>
+                                </td>
+                                <td>
+                                  <div className="folder-table-stats">
+                                    <span className="stat-pill folder-pill">
+                                      <Folder size={13} strokeWidth={2} />
+                                      <span>
+                                        {stats.directFolders} subfolder
+                                        {stats.totalSubfolders > stats.directFolders
+                                          ? ` (${stats.totalSubfolders} bertingkat)`
+                                          : ""}
+                                      </span>
+                                    </span>
+                                    <span className="stat-pill file-pill">
+                                      <FileText size={13} strokeWidth={2} />
+                                      <span>
+                                        {stats.directFilesCount === 0 && stats.totalFilesCount > 0
+                                          ? `0 langsung (${stats.totalFilesCount} di subfolder)`
+                                          : stats.totalFilesCount > stats.directFilesCount
+                                          ? `${stats.directFilesCount} langsung (${stats.totalFilesCount} total)`
+                                          : `${stats.totalFilesCount} berkas file`}
+                                      </span>
+                                    </span>
+                                  </div>
+                                </td>
+                                <td>
+                                  {stats.totalSizeBytes > 0 ? bytes(stats.totalSizeBytes) : "-"}
+                                </td>
+                                <td>{date(f.created_at)}</td>
+                                <td>{actions(f)}</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -1195,6 +1649,7 @@ function App() {
           TPMPS <span>Dokumen internal · Asia/Jakarta</span>
         </footer>
       </div>
+      {previewFile && <Suspense fallback={<div className="preview-opening" role="status">Menyiapkan pratinjau…</div>}><FileViewer key={previewFile.id} file={previewFile} close={() => setPreviewFile(null)} download={() => void openFile(previewFile, true)} busy={busy} /></Suspense>}
       {action && (
         <Modal
           title={
@@ -1204,50 +1659,18 @@ function App() {
               rename: "Ubah nama",
               move: "Pindahkan",
               delete: "Hapus dokumen",
-              preview: "Preview dokumen",
             }[action.kind]
           }
           close={() => setAction(null)}
         >
           {action.kind === "upload" ? (
-            <Upload spaceId={spaceId} folderId={folderId!} done={reload} />
-          ) : action.kind === "preview" ? (
-            <>
-              <p className="preview-name">{action.target?.name}</p>
-              {safePreview((action.target as Doc).mime_type) ? (
-                (action.target as Doc).mime_type === "application/pdf" ? (
-                  <iframe
-                    title={action.target!.name}
-                    src={action.url}
-                    sandbox=""
-                    className="preview-frame"
-                  />
-                ) : (
-                  <img
-                    className="preview-image"
-                    src={action.url}
-                    alt={action.target!.name}
-                  />
-                )
-              ) : (
-                <div className="empty">
-                  <FileText size={40} />
-                  <p>Preview tidak tersedia untuk jenis file ini.</p>
-                  <small>File HTML, SVG, dan script tidak dijalankan.</small>
-                </div>
-              )}
-              <p className="muted">
-                {bytes((action.target as Doc).size)} ·{" "}
-                {date(action.target!.created_at)}
-              </p>
-              <button
-                className="primary"
-                onClick={() => void openFile(action.target as Doc, true)}
-              >
-                <Download size={17} />
-                Download
-              </button>
-            </>
+            <Upload
+              spaceId={spaceId}
+              folderId={folderId!}
+              done={reload}
+              onClose={() => setAction(null)}
+              report={report}
+            />
           ) : (
             <form onSubmit={mutate}>
               {["folder", "rename"].includes(action.kind) && (

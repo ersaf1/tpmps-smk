@@ -38,6 +38,26 @@ export async function authorize(request: Request) {
     throw new HttpError(403, "Hanya superadmin aktif");
   return { client, profile };
 }
+/** Reader authorization keeps the caller's JWT and all database/storage RLS. */
+export async function authorizeReader(request: Request) {
+  const { url, key } = configuration();
+  const authorization = request.headers.get("authorization");
+  if (!authorization?.startsWith("Bearer ")) throw new HttpError(401, "Silakan masuk kembali.");
+  const client = createClient(url, key, {
+    db: { schema: "tpmps" },
+    global: { headers: { Authorization: authorization } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data, error } = await client.auth.getUser(authorization.slice(7));
+  if (error || !data.user) throw new HttpError(401, "Sesi tidak valid.");
+  const { data: profile, error: profileError } = await client.from("profiles")
+    .select("id, active, role").eq("id", data.user.id).single();
+  if (profileError || !profile?.active ||
+    !["superadmin", "ketua_tpmps", "kepala_unit", "kepala_sekolah"].includes(profile.role)) {
+    throw new HttpError(403, "Akun tidak memiliki akses aktif.");
+  }
+  return { client, profile };
+}
 export function adminClient() {
   const { url } = configuration();
   const secret =

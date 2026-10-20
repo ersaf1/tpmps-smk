@@ -38,7 +38,7 @@ export const Footer: React.FC = () => {
               </div>
             </div>
             <p className="footer-brand-desc">
-              Sistem Informasi Terpadu Sekolah untuk Administrasi Mutu
+              Sistem Informasi Terpadu Penjaminan Mutu Internal: SMK Negeri 2 Magelang
             </p>
           </div>
 

@@ -30,17 +30,21 @@ export const WorkflowSection: React.FC = () => {
       <div className="otto-section-container">
         {/* Section Header */}
         <div className="otto-section-meta">
-          <span className="section-index-num">04 / ALUR PENGGUNAAN</span>
+          <div className="section-index-badge">
+            <span className="section-index-num">04</span>
+            <span className="section-index-sep">/</span>
+            <span className="section-index-name">ALUR PENGGUNAAN</span>
+          </div>
           <div className="section-meta-line" />
         </div>
 
         <div className="otto-workflow-header">
           <h2 className="otto-section-title">
-            Dari dokumen kerja menjadi arsip sekolah.
+            Siklus administrasi dan pengarsipan mutu.
           </h2>
           <p className="otto-section-lede">
-            Siklus tertib administrasi yang memandu seluruh unit kerja dari
-            penyusunan berkas hingga penguncian arsip permanen.
+            Tahapan pengelolaan berkas mutu dari proses unggah pada periode aktif
+            hingga penguncian arsip permanen untuk evaluasi dan akreditasi.
           </p>
         </div>
 

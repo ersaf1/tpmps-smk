@@ -13,7 +13,11 @@
     "test:browser": "node scripts/browser-check.mjs",
     "bootstrap": "node --env-file=.env scripts/bootstrap.mjs",
     "db:migrate": "node --env-file=.env scripts/migrate.mjs",
-    "check:connection": "node --env-file=.env scripts/check-connection.mjs"
+    "check:connection": "node --env-file=.env scripts/check-connection.mjs",
+    "postinstall": "node scripts/copy-pdf-assets.mjs",
+    "setup:preview": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-preview.ps1",
+    "test:preview": "node scripts/preview-check.mjs",
+    "pretest:preview": "npm run build --workspace=@tpmps/api"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

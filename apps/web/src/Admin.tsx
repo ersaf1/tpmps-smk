@@ -218,7 +218,7 @@ export function Admin({
           Tambah {title.toLowerCase()}
         </button>
       </div>
-      <div className="table-wrap">
+      <div className="table-wrap" tabIndex={0} role="region" aria-label={`Daftar ${title.toLowerCase()}`}>
         <table>
           <thead>
             <tr>
@@ -242,7 +242,7 @@ export function Admin({
                   {section === "users"
                     ? roles[row.role as keyof typeof roles]
                     : section === "periods"
-                      ? `${row.starts_on} — ${row.ends_on}`
+                      ? `${row.starts_on} s.d. ${row.ends_on}`
                       : row.active
                         ? "Aktif"
                         : "Nonaktif"}

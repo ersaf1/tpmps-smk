@@ -16,14 +16,14 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ onNavigateLogin }) => {
 
           <div className="cta-meta-top">
             <span className="cta-meta-pill">
-              AKSES RUANG DOKUMEN MUTU
+              PORTAL PENJAMINAN MUTU SEKOLAH
             </span>
           </div>
 
-          <h2 className="cta-headline">Mulai dari dokumen yang tertata.</h2>
+          <h2 className="cta-headline">Akses instrumen dan dokumen mutu sekolah.</h2>
 
           <p className="cta-description">
-            Masuk ke SINTESA untuk mengakses ruang dokumen TPMPS sekolah.
+            Masuk ke portal SINTESA menggunakan akun dinas resmi untuk mengelola dokumen unit kerja Anda.
           </p>
 
           <div className="cta-action-row">
@@ -32,13 +32,13 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ onNavigateLogin }) => {
               className="otto-btn-primary cta-btn-large"
               onClick={onNavigateLogin}
             >
-              <span>Masuk Sistem</span>
+              <span>Masuk Portal TPMPS</span>
               <ArrowUpRight size={18} strokeWidth={2.4} />
             </button>
           </div>
 
           <div className="cta-bottom-note">
-            <span>Sistem Informasi Terpadu Sekolah untuk Administrasi Mutu</span>
+            <span>Sistem Informasi Terpadu Sekolah untuk Administrasi Mutu: SMK Negeri 2 Magelang</span>
           </div>
         </div>
       </div>

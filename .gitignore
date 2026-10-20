@@ -48,3 +48,5 @@ next-env.d.ts
 **/dist/
 /artifacts/
 /supabase/.temp/
+/.tools/
+/apps/web/public/pdfjs/

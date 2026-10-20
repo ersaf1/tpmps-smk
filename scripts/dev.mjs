@@ -1,3 +1,4 @@
+import "./copy-pdf-assets.mjs";
 import { spawn } from "node:child_process";
 const children = [
   "apps/web/node_modules/vite/bin/vite.js",

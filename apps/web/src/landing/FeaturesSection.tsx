@@ -6,16 +6,20 @@ export const FeaturesSection: React.FC = () => {
       <div className="otto-section-container">
         {/* Section Header */}
         <div className="otto-section-meta">
-          <span className="section-index-num">03 / FITUR SISTEM</span>
+          <div className="section-index-badge">
+            <span className="section-index-num">03</span>
+            <span className="section-index-sep">/</span>
+            <span className="section-index-name">FITUR SISTEM</span>
+          </div>
           <div className="section-meta-line" />
         </div>
 
         <div className="otto-features-header">
           <h2 className="otto-section-title">
-            Tertata untuk kebutuhan kerja TPMPS.
+            Instrumen dan struktur pengarsipan dokumen mutu.
           </h2>
           <p className="otto-section-lede">
-            Empat fondasi teknis yang dirancang khusus untuk alur penjaminan mutu
+            Fondasi teknis yang dirancang khusus untuk alur penjaminan mutu
             pendidikan kejuruan, memastikan dokumen teratur, aman, dan siap
             diaudit sewaktu-waktu.
           </p>
@@ -44,7 +48,7 @@ export const FeaturesSection: React.FC = () => {
               <div className="feature-directory-preview" aria-hidden="true">
                 <div className="dir-root-bar">
                   <span className="dir-dot" />
-                  <span className="dir-path">Periode 2026/2027 · Ruang Dokumen TPMPS</span>
+                  <span className="dir-path">Periode sekolah · Ruang dokumen TPMPS</span>
                 </div>
                 <div className="dir-tree-list">
                   <div className="dir-row">
@@ -96,7 +100,7 @@ export const FeaturesSection: React.FC = () => {
                 </div>
                 <div className="matrix-item">
                   <span className="matrix-role">Ketua TPMPS</span>
-                  <span className="matrix-desc">Pengesahan Dokumen MM & PM</span>
+                  <span className="matrix-desc">Pengelolaan dokumen MM & PM</span>
                 </div>
                 <div className="matrix-item">
                   <span className="matrix-role">Kepala Unit</span>
@@ -109,14 +113,14 @@ export const FeaturesSection: React.FC = () => {
               </div>
             </div>
 
-            {/* Feature 3: Upload hingga 50 MB per file */}
+            {/* Feature 3: Unggah hingga 50 MB per file */}
             <div className="feature-block">
               <div className="feature-meta-head">
                 <span className="feature-num-tag">FITUR 03</span>
                 <span className="feature-kicker">Kapasitas Maksimal Berkas</span>
               </div>
 
-              <h3 className="feature-title">Upload hingga 50 MB per file</h3>
+              <h3 className="feature-title">Unggah hingga 50 MB per file</h3>
               <p className="feature-desc">
                 Simpan beragam jenis dokumen pendukung termasuk laporan evaluasi,
                 instrumen akreditasi, portofolio kejuruan, dan bukti kegiatan
@@ -160,7 +164,7 @@ export const FeaturesSection: React.FC = () => {
                 <div className="lock-status-indicator">
                   <span className="lock-live-dot" />
                   <span className="lock-status-text">
-                    STATUS PERIODE LAMPAU : TERKUNCI (READ-ONLY)
+                    PERIODE SELESAI · ARSIP HANYA LIHAT
                   </span>
                 </div>
                 <p className="lock-status-note">

@@ -45,7 +45,11 @@ export const AboutSection: React.FC = () => {
       <div className="otto-section-container">
         {/* Section Header with Editorial Index */}
         <div className="otto-section-meta">
-          <span className="section-index-num">02 / TENTANG SINTESA</span>
+          <div className="section-index-badge">
+            <span className="section-index-num">02</span>
+            <span className="section-index-sep">/</span>
+            <span className="section-index-name">TENTANG SINTESA</span>
+          </div>
           <div className="section-meta-line" />
         </div>
 
@@ -53,23 +57,22 @@ export const AboutSection: React.FC = () => {
           {/* Left Column: Asymmetric Editorial Lead */}
           <div className="otto-about-lead">
             <h2 className="otto-section-title">
-              Satu ruang untuk dokumen mutu sekolah.
+              Tata kelola dokumen standar penjaminan mutu.
             </h2>
             <p className="otto-section-lede">
-              SINTESA mendukung pengelolaan dokumen Tim Penjaminan Mutu
-              Pendidikan Sekolah. Manual Mutu, Prosedur Mutu, Catatan Mutu, dan
-              Petunjuk Kerja tersusun dalam folder yang mudah ditelusuri oleh
-              pengguna sesuai kewenangannya.
+              SINTESA memfasilitasi administrasi dokumen Tim Penjaminan Mutu
+              Pendidikan Sekolah (TPMPS). Pengelompokan Manual Mutu, Prosedur Mutu, Catatan Mutu, dan
+              Petunjuk Kerja disusun secara terstruktur sesuai kewenangan unit kerja.
             </p>
 
             <div className="otto-about-statement">
               <div className="statement-line" />
               <div className="statement-body">
-                <span className="statement-label">STANDARISASI SISTEM MUTU SMK</span>
+                <span className="statement-label">STANDARISASI SISTEM SPMI SMK</span>
                 <p className="statement-text">
-                  Menyatukan seluruh dokumentasi mutu kejuruan dalam tata kelola
+                  Pengelolaan dokumentasi mutu kejuruan dalam tata kelola
                   arsip digital terpadu, mendukung persiapan akreditasi dan audit
-                  internal tanpa berkas tercecer di berbagai media terpisah.
+                  internal sekolah secara akuntabel.
                 </p>
               </div>
             </div>

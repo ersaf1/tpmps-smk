@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Navbar } from "./Navbar";
 import { Hero } from "./Hero";
 import { AboutSection } from "./AboutSection";
@@ -19,6 +19,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onToggleTheme,
   onNavigateLogin,
 }) => {
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const nodes = document.querySelectorAll<HTMLElement>(".otto-about-lead, .dossier-row, .feature-block, .chronicle-row, .otto-cta-panel");
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) if (entry.isIntersecting) {
+        (entry.target as HTMLElement).dataset.reveal = "visible";
+        observer.unobserve(entry.target);
+      }
+    }, { threshold: .08, rootMargin: "0px 0px -24px 0px" });
+    nodes.forEach(node => { node.dataset.reveal = "waiting"; observer.observe(node); });
+    return () => observer.disconnect();
+  }, []);
   return (
     <div className="otto-landing-root" data-theme={theme}>
       {/* Skip to Content Link for Keyboard Accessibility (R-32) */}
