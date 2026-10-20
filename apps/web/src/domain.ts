@@ -8,6 +8,7 @@ export const roles = {
 export type Role = keyof typeof roles;
 export interface Profile {
   id: string;
+  email?: string;
   full_name: string;
   role: Role;
   unit_id: string | null;

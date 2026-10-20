@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import {
   LayoutDashboard,
@@ -51,6 +51,8 @@ import {
   type Doc,
 } from "./domain";
 import { Admin } from "./Admin";
+import { SelectDropdown } from "./SelectDropdown";
+import { ChevronDown, Filter, Image } from "lucide-react";
 import { Modal } from "./Modal";
 const FileViewer = lazy(() => import("./FileViewer").then(module => ({ default: module.FileViewer })));
 import { Upload } from "./Upload";
@@ -110,7 +112,20 @@ function App() {
     [loginError, setLoginError] = useState(""),
     [loginBusy, setLoginBusy] = useState(false),
     [previewFile, setPreviewFile] = useState<Doc | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [moveDest, setMoveDest] = useState("");
+  const profileRef = useRef<HTMLDivElement>(null);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("sintesa-sidebar") === "collapsed");
+  useEffect(() => {
+    if (!profileOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", handleClick);
+    return () => window.removeEventListener("mousedown", handleClick);
+  }, [profileOpen]);
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
@@ -969,16 +984,76 @@ function App() {
           </div>
           <div className="topbar-account">
             {themeButton}
-            <button
-              className="profile-button"
-              onClick={() => navigate("profile")}
-            >
-              <span className="avatar">{profile.full_name.slice(0, 1)}</span>
-              <span>
-                {profile.full_name}
-                <small>{roles[profile.role]}</small>
-              </span>
-            </button>
+            <div className="profile-menu-container" ref={profileRef}>
+              <button
+                className="profile-button"
+                onClick={() => setProfileOpen((o) => !o)}
+                aria-expanded={profileOpen}
+                aria-haspopup="true"
+                aria-label="Menu akun pengguna"
+              >
+                <span className="avatar">
+                  {profile.full_name
+                    .split(" ")
+                    .map((w) => w[0])
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .join("") || "SMK"}
+                </span>
+                <span>
+                  {profile.full_name}
+                  <small>{roles[profile.role]}</small>
+                </span>
+                <ChevronDown
+                  size={14}
+                  className="profile-chevron-icon"
+                  style={{
+                    transform: profileOpen ? "rotate(180deg)" : "none",
+                  }}
+                />
+              </button>
+              {profileOpen && (
+                <div className="profile-dropdown-menu">
+                  <div className="profile-dropdown-header">
+                    <strong>{profile.full_name}</strong>
+                    <span>{session.user.email}</span>
+                    <span className="profile-role-badge">{roles[profile.role]}</span>
+                  </div>
+                  <div className="profile-dropdown-divider" />
+                  <button
+                    className="profile-dropdown-item"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      navigate("profile");
+                    }}
+                  >
+                    <User size={15} />
+                    <span>Profil & Informasi Hak Akses</span>
+                  </button>
+                  <button
+                    className="profile-dropdown-item"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      toggleTheme();
+                    }}
+                  >
+                    {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+                    <span>Ubah ke Tema {theme === "dark" ? "Terang" : "Gelap"}</span>
+                  </button>
+                  <div className="profile-dropdown-divider" />
+                  <button
+                    className="profile-dropdown-item is-danger"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      void db.auth.signOut();
+                    }}
+                  >
+                    <LogOut size={15} />
+                    <span>Keluar dari Akun</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
         <main key={page} className={`page-${page}`}>
@@ -998,19 +1073,21 @@ function App() {
                         : "Administrasi"}
             </span>
             <div className="period-picker">
-              <CalendarDays size={16} />
-              <select
-                aria-label="Pilih periode"
+              <SelectDropdown
+                ariaLabel="Pilih periode"
                 value={periodId}
-                onChange={(e) => setPeriodId(e.target.value)}
-              >
-                {!periods.length && <option value="">Belum ada periode</option>}
-                {periods.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setPeriodId}
+                leadingIcon={<CalendarDays size={15} />}
+                placeholder="Pilih periode mutu..."
+                buttonClassName="sintesa-period-btn"
+                options={periods.map((p) => ({
+                  value: p.id,
+                  label: p.name,
+                  badge: periodStatus(p, clock),
+                  description: `${p.starts_on} s/d ${p.ends_on}`,
+                }))}
+                width="auto"
+              />
               {period && (
                 <span className={`badge ${status === "Aktif" ? "active" : ""}`}>
                   {status}
@@ -1379,18 +1456,19 @@ function App() {
                   ))}
                 </div>
                 <div className="toolbar-actions">
-                  <label className="select-control">
-                    <ArrowUpDown size={15} />
-                    <select
-                      aria-label="Urutkan"
-                      value={sort}
-                      onChange={(e) => setSort(e.target.value)}
-                    >
-                      <option value="date">Terbaru</option>
-                      <option value="name">Nama A–Z</option>
-                      <option value="size">Ukuran</option>
-                    </select>
-                  </label>
+                  <SelectDropdown
+                    ariaLabel="Urutkan"
+                    value={sort}
+                    onChange={setSort}
+                    leadingIcon={<ArrowUpDown size={14} />}
+                    buttonClassName="sintesa-sort-btn"
+                    width="auto"
+                    options={[
+                      { value: "date", label: "Terbaru", icon: <CalendarDays size={14} /> },
+                      { value: "name", label: "Nama A–Z", icon: <ArrowUpDown size={14} /> },
+                      { value: "size", label: "Ukuran Berkas", icon: <HardDrive size={14} /> },
+                    ]}
+                  />
                   <div className="view-switch">
                     <button
                       aria-label="Tampilan grid"
@@ -1427,16 +1505,19 @@ function App() {
                 </div>
               </div>
               <div className="filter-row">
-                <select
-                  aria-label="Filter jenis file"
+                <SelectDropdown
+                  ariaLabel="Filter jenis file"
                   value={type}
-                  onChange={(e) => setType(e.target.value)}
-                >
-                  <option value="all">Semua jenis file</option>
-                  <option value="pdf">PDF</option>
-                  <option value="image">Gambar</option>
-                  <option value="other">Dokumen lainnya</option>
-                </select>
+                  onChange={setType}
+                  leadingIcon={<Filter size={14} />}
+                  width="100%"
+                  options={[
+                    { value: "all", label: "Semua jenis file", icon: <Files size={14} /> },
+                    { value: "pdf", label: "PDF Dokumen", icon: <FileText size={14} style={{ color: "#ef4444" }} /> },
+                    { value: "image", label: "Gambar & Foto", icon: <Image size={14} style={{ color: "#10b981" }} /> },
+                    { value: "other", label: "Dokumen lainnya", icon: <Folder size={14} style={{ color: "#fca601" }} /> },
+                  ]}
+                />
                 {query && (
                   <span className="muted">Hasil pencarian dalam ruang ini</span>
                 )}
@@ -1605,6 +1686,7 @@ function App() {
           {["users", "units", "periods"].includes(page) &&
             profile.role === "superadmin" && (
               <Admin
+                currentUserId={session.user.id}
                 now={clock}
                 key={page}
                 section={page}
@@ -1688,21 +1770,27 @@ function App() {
               {action.kind === "move" && (
                 <label>
                   Folder tujuan
-                  <select
+                  <SelectDropdown
                     name="destination"
+                    ariaLabel="Folder tujuan"
+                    value={moveDest}
+                    onChange={setMoveDest}
+                    leadingIcon={<Folder size={14} />}
                     required={!!action.target && "object_key" in action.target}
-                  >
-                    {action.target && !("object_key" in action.target) && (
-                      <option value="">Folder utama</option>
-                    )}
-                    {spaceFolders
-                      .filter((f) => f.id !== action.target?.id)
-                      .map((f) => (
-                        <option key={f.id} value={f.id}>
-                          {f.name}
-                        </option>
-                      ))}
-                  </select>
+                    placeholder="Pilih folder tujuan..."
+                    options={[
+                      ...(action.target && !("object_key" in action.target)
+                        ? [{ value: "", label: "Folder utama (Root)", icon: <Folder size={14} /> }]
+                        : []),
+                      ...spaceFolders
+                        .filter((f) => f.id !== action.target?.id)
+                        .map((f) => ({
+                          value: f.id,
+                          label: f.name,
+                          icon: <FolderOpen size={14} />,
+                        })),
+                    ]}
+                  />
                   <small>
                     Pemindahan hanya dalam ruang dan periode yang sama. Siklus
                     folder ditolak server.
