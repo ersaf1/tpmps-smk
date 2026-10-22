@@ -32,7 +32,7 @@ export function FileViewer({ file, close, download, busy }: {
   const [stage, setStage] = useState('Menghubungkan ke penyimpanan');
   const [fullLayout, setFullLayout] = useState(false);
   const kind = previewKind(file.name, file.mime_type);
-  const quickOffice = kind === 'office' && /^(docx|docm|dotx|dotm|pptx|pptm|ppsx|ppsm|potx|potm)$/.test(officeExtension(file.name, file.mime_type) || '');
+  const quickOffice = kind === 'office' && /^(docx|docm|dotx|dotm|pptx|pptm|ppsx|ppsm|potx|potm|ppt|pps|pot|odp)$/i.test(officeExtension(file.name, file.mime_type) || '');
   const converting = kind === 'office' && (!quickOffice || fullLayout);
   const pdf = source?.kind === 'pdf';
   const zoomable = pdf || kind === 'image';
@@ -161,7 +161,7 @@ export function FileViewer({ file, close, download, busy }: {
       <button className="icon-button" aria-label="Halaman berikutnya" disabled={page >= pages} onClick={() => jump(page + 1)}><ChevronRight size={18} /></button>
     </div>}
     <div className={`viewer-content${pdf ? ' viewer-pdf' : ''}`}>
-      {error ? <div className="viewer-state" role="alert"><FileText size={40} /><h2>Dokumen belum dapat dibuka</h2><p>{error}</p><div className="viewer-error-actions" style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' }}><button onClick={() => setRetry(retry + 1)}><RefreshCw size={17} />Coba lagi</button><button className="primary" disabled={busy} onClick={download}><Download size={18} />Unduh file asli</button></div></div>
+      {error ? <div className="viewer-state" role="alert"><FileText size={40} /><h2>Dokumen belum dapat dibuka</h2><p>{error}</p><div className="viewer-error-actions" style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' }}>{fullLayout && <button className="primary" onClick={() => { setFullLayout(false); setError(''); }}>Kembali ke tampilan cepat</button>}<button onClick={() => setRetry(retry + 1)}><RefreshCw size={17} />Coba lagi</button><button className="primary" disabled={busy} onClick={download}><Download size={18} />Unduh file asli</button></div></div>
         : <ReaderBoundary onError={setError}>{!source ? loading
         : source.kind === 'office-quick' ? <Suspense fallback={loading}><OfficeReader blob={source.blob!} onError={setError} /></Suspense>
         : pdf ? <Suspense fallback={loading}><PdfReader blob={source.blob} remote={source.remote} zoom={zoom} fit={fit} navigation={navigation} onPages={setPages} onPage={setPage} onError={setError}

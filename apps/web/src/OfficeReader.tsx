@@ -32,17 +32,37 @@ function paragraph(node: Element, rels: Map<string, string>, images: Record<stri
   for (const run of elements(node, 'r')) {
     const text = Array.from(run.getElementsByTagName('*')).map(child => child.localName === 't' ? child.textContent || ''
       : child.localName === 'br' ? '\n' : child.localName === 'tab' ? '\t' : '').join('');
-    if (text) runs.push({ text, bold: elements(run, 'b').some(child => attribute(child, 'val') !== '0'),
-      italic: elements(run, 'i').some(child => attribute(child, 'val') !== '0'), underline: elements(run, 'u').length > 0 });
+    if (text) {
+      const rPr = elements(run, 'rPr')[0];
+      const bold = elements(run, 'b').some(child => attribute(child, 'val') !== '0') ||
+        (rPr && ['1', 'true'].includes(attribute(rPr, 'b')));
+      const italic = elements(run, 'i').some(child => attribute(child, 'val') !== '0') ||
+        (rPr && ['1', 'true'].includes(attribute(rPr, 'i')));
+      const underline = elements(run, 'u').length > 0 ||
+        (rPr && attribute(rPr, 'u') !== '' && attribute(rPr, 'u') !== 'none');
+      runs.push({ text, bold, italic, underline });
+    }
   }
   for (const picture of elements(node, 'blip')) {
-    const path = rels.get(attribute(picture, 'embed'));
+    const embedId = attribute(picture, 'embed') || picture.getAttribute('r:embed') || '';
+    const path = rels.get(embedId);
     if (path && images[path]) runs.push({ image: images[path] });
   }
+  const pPr = elements(node, 'pPr')[0];
   const style = attribute(elements(node, 'pStyle')[0], 'val');
-  const alignment = attribute(elements(node, 'jc')[0], 'val');
-  return { kind: 'paragraph', runs, heading: /heading|title/i.test(style),
-    align: ['left', 'center', 'right', 'justify'].includes(alignment) ? alignment as Paragraph['align'] : 'left' };
+  const alignment = attribute(elements(node, 'jc')[0], 'val') || (pPr ? attribute(pPr, 'algn') : '');
+  const alignMap: Record<string, Paragraph['align']> = {
+    left: 'left', l: 'left',
+    center: 'center', ctr: 'center',
+    right: 'right', r: 'right',
+    justify: 'justify', just: 'justify'
+  };
+  return {
+    kind: 'paragraph',
+    runs,
+    heading: /heading|title/i.test(style),
+    align: alignMap[alignment] || 'left'
+  };
 }
 function blocks(node: Element, rels: Map<string, string>, images: Record<string, string>): Block[] {
   const result: Block[] = [];
@@ -63,20 +83,42 @@ function ParagraphView({ value }: { value: Paragraph }) {
 export default function OfficeReader({ blob, onError }: { blob: Blob; onError: (message: string) => void }) {
   const [pages, setPages] = useState<Page[]>([]);
   const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (pages.length <= 1) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'ArrowLeft') {
+        setIndex(prev => Math.max(0, prev - 1));
+      } else if (e.key === 'ArrowRight') {
+        setIndex(prev => Math.min(pages.length - 1, prev + 1));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pages.length]);
+
   useEffect(() => {
     let disposed = false;
     const urls: string[] = [];
     const worker = new Worker(new URL('./office.worker.ts', import.meta.url), { type: 'module' });
-    const timer = window.setTimeout(() => { worker.terminate(); if (!disposed) onError('Pembacaan dokumen terlalu lama. Gunakan tata letak lengkap.'); }, 20_000);
+    const timer = window.setTimeout(() => { worker.terminate(); if (!disposed) onError('Pembacaan dokumen terlalu lama. Gunakan tata letak lengkap.'); }, 30_000);
     setPages([]); setIndex(0);
     worker.onmessage = event => {
       clearTimeout(timer);
       if (disposed) return;
       try {
         if (event.data.error) throw new Error(event.data.error);
-        const sources: Record<string, string> = event.data.xml;
+
+        // Direct legacy PPT / pre-extracted pages
+        if (event.data.pptPages && Array.isArray(event.data.pptPages) && event.data.pptPages.length > 0) {
+          setPages(event.data.pptPages);
+          return;
+        }
+
+        const sources: Record<string, string> = event.data.xml || {};
         const images: Record<string, string> = {};
-        for (const [path, data] of Object.entries(event.data.images as Record<string, Uint8Array>)) {
+        for (const [path, data] of Object.entries((event.data.images || {}) as Record<string, Uint8Array>)) {
           const ext = path.split('.').pop()?.toLowerCase();
           const url = URL.createObjectURL(new Blob([new Uint8Array(data).buffer], { type: ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : `image/${ext}` }));
           images[path] = url; urls.push(url);
@@ -87,17 +129,68 @@ export default function OfficeReader({ blob, onError }: { blob: Blob; onError: (
           if (!body) throw new Error('Isi dokumen tidak ditemukan.');
           setPages([{ title: 'Isi dokumen', blocks: blocks(body, relationships('word/document.xml', sources), images) }]);
         } else {
-          const rels = relationships('ppt/presentation.xml', sources);
-          const paths = sources['ppt/presentation.xml'] ? elements(xml(sources['ppt/presentation.xml']), 'sldId')
-            .map(node => rels.get(Array.from(node.attributes).find(attr => attr.localName === 'id' && attr.prefix === 'r')?.value || '')).filter((path): path is string => !!path) : [];
-          if (!paths.length) throw new Error('Slide tidak ditemukan. Gunakan tata letak lengkap.');
-          setPages(paths.map((path, number) => {
-            const root = xml(sources[path] || ''); const rels = relationships(path, sources);
-            const content: Block[] = elements(root, 'p').map(node => paragraph(node, rels, images));
-            for (const picture of elements(root, 'pic')) {
-              const path = rels.get(attribute(elements(picture, 'blip')[0], 'embed'));
-              if (path && images[path]) content.push({ kind: 'paragraph', runs: [{ image: images[path] }] });
+          let paths: string[] = [];
+          if (sources['ppt/presentation.xml']) {
+            try {
+              const rels = relationships('ppt/presentation.xml', sources);
+              paths = elements(xml(sources['ppt/presentation.xml']), 'sldId')
+                .map(node => {
+                  const rId = node.getAttribute('r:id') ||
+                    node.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') ||
+                    Array.from(node.attributes).find(attr => attr.localName === 'id' && (attr.prefix === 'r' || attr.name === 'r:id'))?.value || '';
+                  return rels.get(rId);
+                })
+                .filter((p): p is string => !!p && !!sources[p]);
+            } catch {
+              paths = [];
             }
+          }
+          if (!paths.length) {
+            paths = Object.keys(sources)
+              .filter(k => /^ppt\/slides\/slide\d+\.xml$/i.test(k))
+              .sort((a, b) => {
+                const numA = parseInt(a.match(/\d+/)?.[0] || '0', 10);
+                const numB = parseInt(b.match(/\d+/)?.[0] || '0', 10);
+                return numA - numB;
+              });
+          }
+          if (!paths.length) throw new Error('Slide tidak ditemukan dalam dokumen ini.');
+          setPages(paths.map((path, number) => {
+            const root = xml(sources[path] || '');
+            const rels = relationships(path, sources);
+            const content: Block[] = [];
+
+            for (const p of elements(root, 'p')) {
+              const para = paragraph(p, rels, images);
+              if (para.runs.length > 0) content.push(para);
+            }
+
+            for (const tbl of elements(root, 'tbl')) {
+              const rows = Array.from(tbl.children)
+                .filter(row => row.localName === 'tr')
+                .map(row => Array.from(row.children)
+                  .filter(cell => cell.localName === 'tc')
+                  .map(cell => elements(cell, 'p').map(item => paragraph(item, rels, images)).filter(p => p.runs.length > 0)));
+              if (rows.length > 0) content.push({ kind: 'table', rows });
+            }
+
+            for (const picture of elements(root, 'pic')) {
+              const blip = elements(picture, 'blip')[0];
+              if (blip) {
+                const embedId = attribute(blip, 'embed') || blip.getAttribute('r:embed') || '';
+                const imgPath = rels.get(embedId);
+                if (imgPath && images[imgPath]) content.push({ kind: 'paragraph', runs: [{ image: images[imgPath] }] });
+              }
+            }
+
+            if (!content.length) {
+              content.push({
+                kind: 'paragraph',
+                runs: [{ text: '(Slide ini tidak berisi teks langsung)' }],
+                align: 'center'
+              });
+            }
+
             return { title: `Slide ${number + 1}`, blocks: content };
           }));
         }
@@ -116,8 +209,8 @@ export default function OfficeReader({ blob, onError }: { blob: Blob; onError: (
       <span>Slide {index + 1} dari {pages.length}</span>
       <button className="icon-button" aria-label="Slide berikutnya" disabled={index === pages.length - 1} onClick={() => setIndex(index + 1)}><ChevronRight size={18} /></button>
     </nav>}
-    <article className="office-paper" aria-label={current.title}>
-      {current.blocks.map((block, number) => block.kind === 'paragraph' ? <ParagraphView key={number} value={block} />
+    <article className="office-paper" aria-label={current?.title || 'Slide'}>
+      {current?.blocks.map((block, number) => block.kind === 'paragraph' ? <ParagraphView key={number} value={block} />
         : <div key={number} className="office-table-scroll"><table><tbody>{block.rows.map((row, r) => <tr key={r}>{row.map((cell, c) => <td key={c}>{cell.map((value, p) => <ParagraphView key={p} value={value} />)}</td>)}</tr>)}</tbody></table></div>)}
     </article>
   </div>;

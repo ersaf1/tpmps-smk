@@ -143,8 +143,8 @@ function App() {
     );
     return () => data.subscription.unsubscribe();
   }, []);
-  async function reload(forcedUserId?: string) {
-    setLoading(true);
+  async function reload(forcedUserId?: string, silent = false) {
+    if (!silent) setLoading(true);
     setError("");
     try {
       const { data: user } = await db.auth.getUser();
@@ -202,7 +202,7 @@ function App() {
           : "Gagal memuat data. Periksa koneksi dan migrasi database.",
       );
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
   useEffect(() => {
@@ -481,18 +481,29 @@ function App() {
           .select()
           .single();
       if (action.kind === "delete") {
+        const deletedId = target!.id;
         if (table === "files") {
           result = await db.storage
             .from("tpmps-documents")
             .remove([(target as Doc).object_key]);
-          if(!result.error&&!result.data?.some(object=>object.name===(target as Doc).object_key))throw new Error('File belum terhapus. Periksa izin dan status periode.');
-        } else
+          if (!result.error && !result.data?.some(object => object.name === (target as Doc).object_key)) {
+            throw new Error('File belum terhapus. Periksa izin dan status periode.');
+          }
+          setFiles(prev => prev.filter(f => f.id !== deletedId));
+        } else {
           result = await db
             .from("folders")
             .delete()
             .eq("id", target!.id)
             .select()
             .single();
+          if (result?.error) throw result.error;
+          setFolders(prev => prev.filter(f => f.id !== deletedId));
+        }
+        setAction(null);
+        report(table === "files" ? "Dokumen berhasil dihapus" : "Folder berhasil dihapus");
+        void reload(undefined, true);
+        return;
       }
       if (result?.error) throw result.error;
       setAction(null);
