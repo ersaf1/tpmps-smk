@@ -48,7 +48,7 @@ export const AboutSection: React.FC = () => {
           <div className="section-index-badge">
             <span className="section-index-num">02</span>
             <span className="section-index-sep">/</span>
-            <span className="section-index-name">TENTANG SINTESA</span>
+            <span className="section-index-name">TENTANG SIMPENLAH</span>
           </div>
           <div className="section-meta-line" />
         </div>
@@ -60,7 +60,7 @@ export const AboutSection: React.FC = () => {
               Tata kelola dokumen standar penjaminan mutu.
             </h2>
             <p className="otto-section-lede">
-              SINTESA memfasilitasi administrasi dokumen Tim Penjaminan Mutu
+              SIMPENLAH memfasilitasi administrasi dokumen Tim Penjaminan Mutu
               Pendidikan Sekolah (TPMPS). Pengelompokan Manual Mutu, Prosedur Mutu, Catatan Mutu, dan
               Petunjuk Kerja disusun secara terstruktur sesuai kewenangan unit kerja.
             </p>

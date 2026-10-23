@@ -72,7 +72,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className={`otto-nav-header ${scrolled ? "is-scrolled" : ""}`}>
       <div className="otto-nav-container">
-        {/* Left: School Logo & SINTESA Brand */}
+        {/* Left: School Logo & SIMPENLAH Brand */}
         <a
           href="#"
           className="otto-nav-brand"
@@ -80,7 +80,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}
-          aria-label="SINTESA Beranda"
+          aria-label="SIMPENLAH Beranda"
         >
           <img
             src="/school-logo.png"
@@ -90,7 +90,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             height="38"
           />
           <div className="otto-brand-text">
-            <span className="otto-brand-title">SINTESA</span>
+            <span className="otto-brand-title">SIMPENLAH</span>
             <span className="otto-brand-subtitle">TPMPS SMK</span>
           </div>
         </a>
@@ -157,7 +157,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="otto-mobile-drawer-inner">
             <div className="otto-mobile-header">
               <div className="otto-brand-text">
-                <span className="otto-brand-title">SINTESA</span>
+                <span className="otto-brand-title">SIMPENLAH</span>
                 <span className="otto-brand-subtitle">Sistem Informasi TPMPS SMK</span>
               </div>
               <button

@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import {
   LayoutDashboard,
+  MapPin,
   Folder,
   FolderOpen,
   Files,
@@ -40,6 +41,7 @@ import type { Session } from "@supabase/supabase-js";
 import { db, configured, allRows } from "./client";
 import {
   roles,
+  getRoleLabel,
   bytes,
   canWrite,
   periodStatus,
@@ -51,6 +53,8 @@ import {
   type Doc,
 } from "./domain";
 import { Admin } from "./Admin";
+import { DocumentDirectory } from "./DocumentDirectory";
+import { GuideModal, PageTipBanner } from "./GuideModal";
 import { SelectDropdown } from "./SelectDropdown";
 import { ChevronDown, Filter, Image } from "lucide-react";
 import { Modal } from "./Modal";
@@ -115,6 +119,8 @@ function App() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [moveDest, setMoveDest] = useState("");
   const profileRef = useRef<HTMLDivElement>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideTab, setGuideTab] = useState<string>("sidebar_guide");
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("sintesa-sidebar") === "collapsed");
   useEffect(() => {
     if (!profileOpen) return;
@@ -534,7 +540,7 @@ function App() {
   if (!session) {
     if (currentPath !== "/login" && !currentPath.startsWith("/login")) {
       return (
-        <Suspense fallback={<div className="loading-screen" role="status">Memuat SINTESA…</div>}><LandingPage
+        <Suspense fallback={<div className="loading-screen" role="status">Memuat SIMPENLAH…</div>}><LandingPage
           theme={theme as "dark" | "light"}
           onToggleTheme={toggleTheme}
           onNavigateLogin={() => {
@@ -551,7 +557,7 @@ function App() {
           <div className="brand">
             <img src="/school-logo.png" alt="Logo sekolah" />
             <span>
-              SINTESA<span className="brand-sub">SMK Negeri 2 Magelang</span>
+              SIMPENLAH<span className="brand-sub">SMK Negeri 2 Magelang</span>
             </span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -566,7 +572,7 @@ function App() {
               }}
             >
               <ArrowLeft size={16} />
-              Beranda SINTESA
+              Beranda SIMPENLAH
             </button>
             {themeButton}
           </div>
@@ -605,7 +611,7 @@ function App() {
             </div>
           </section>
           <section className="login-card">
-            <span className="eyebrow">AKSES SINTESA</span>
+            <span className="eyebrow">AKSES SIMPENLAH</span>
             <h2>Masuk ke Sistem TPMPS</h2>
             <p className="muted">Gunakan email dan kata sandi akun sekolah.</p>
             <form onSubmit={login}>
@@ -815,7 +821,7 @@ function App() {
         <div className="brand">
           <img src="/school-logo.png" alt="Logo sekolah" />
           <span>
-            SINTESA<span className="brand-sub">SMK Negeri 2 Magelang</span>
+            SIMPENLAH<span className="brand-sub">SMK Negeri 2 Magelang</span>
           </span>
           <button
             className="mobile-close"
@@ -848,6 +854,17 @@ function App() {
             >
               <Building2 />
               Dokumen seluruh unit
+            </button>
+          )}
+          {["superadmin", "ketua_tpmps", "kepala_sekolah"].includes(profile.role) && (
+            <button
+              aria-label="Direktori Dokumen"
+              title="Direktori Dokumen"
+              className={page === "directory" ? "selected" : ""}
+              onClick={() => navigate("directory")}
+            >
+              <MapPin size={18} />
+              Direktori & Letak Dokumen
             </button>
           )}
         </nav>
@@ -947,6 +964,40 @@ function App() {
             </nav>
           </>
         )}
+                <div className="sidebar-guide-block" style={{ margin: "14px 0 10px" }}>
+          <button
+            type="button"
+            className="sidebar-guide-trigger"
+            onClick={() => {
+              setGuideTab("sidebar_guide");
+              setGuideOpen(true);
+            }}
+            aria-label="Panduan Semua Menu Sidebar"
+            title="Penjelasan Semua Menu & Folder di Sidebar"
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 12px",
+              borderRadius: 10,
+              background: "linear-gradient(135deg, rgba(2, 132, 199, 0.25), rgba(16, 185, 129, 0.15))",
+              border: "1.5px solid rgba(56, 189, 248, 0.4)",
+              color: "var(--text, #ffffff)",
+              fontWeight: 600,
+              fontSize: "0.85rem",
+              cursor: "pointer",
+              textAlign: "left",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}
+          >
+            <BookOpen size={18} style={{ color: "#38bdf8", flexShrink: 0 }} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <span style={{ fontWeight: 700, color: "#38bdf8" }}>Panduan Menu Sidebar</span>
+              <span style={{ fontSize: "0.72rem", opacity: 0.8 }}>Penjelasan semua menu</span>
+            </div>
+          </button>
+        </div>
         <div className="storage">
           <HardDrive size={21} />
           <strong>Penyimpanan arsip</strong>
@@ -994,6 +1045,30 @@ function App() {
             )}
           </div>
           <div className="topbar-account">
+            <button
+              className="guide-button"
+              type="button"
+              onClick={() => { setGuideTab(page); setGuideOpen(true); }}
+              aria-label="Buka Buku Panduan Penggunaan Halaman Ini"
+              title="Buka Buku Panduan Penggunaan Halaman Ini"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 12px",
+                borderRadius: 8,
+                background: "rgba(56, 189, 248, 0.12)",
+                color: "#38bdf8",
+                border: "1px solid rgba(56, 189, 248, 0.3)",
+                fontSize: "0.82rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                marginRight: 6,
+              }}
+            >
+              <BookOpen size={16} />
+              <span>Buku Panduan</span>
+            </button>
             {themeButton}
             <div className="profile-menu-container" ref={profileRef}>
               <button
@@ -1013,7 +1088,7 @@ function App() {
                 </span>
                 <span>
                   {profile.full_name}
-                  <small>{roles[profile.role]}</small>
+                  <small>{getRoleLabel(profile)}</small>
                 </span>
                 <ChevronDown
                   size={14}
@@ -1028,7 +1103,7 @@ function App() {
                   <div className="profile-dropdown-header">
                     <strong>{profile.full_name}</strong>
                     <span>{session.user.email}</span>
-                    <span className="profile-role-badge">{roles[profile.role]}</span>
+                    <span className="profile-role-badge">{getRoleLabel(profile)}</span>
                   </div>
                   <div className="profile-dropdown-divider" />
                   <button
@@ -1070,12 +1145,14 @@ function App() {
         <main key={page} className={`page-${page}`}>
           <div className="context-row">
             <span>
-              SINTESA <ChevronRight size={13} />{" "}
+              SIMPENLAH <ChevronRight size={13} />{" "}
               {page === "dashboard"
                 ? "Ringkasan TPMPS"
                 : page === "files"
                   ? "Dokumen"
-                  : page === "spaces"
+                  : page === "directory"
+                    ? "Direktori & Letak Dokumen"
+                    : page === "spaces"
                     ? "Seluruh unit"
                     : page === "profile"
                       ? "Profil"
@@ -1106,6 +1183,7 @@ function App() {
               )}
             </div>
           </div>
+          <PageTipBanner page={page} onOpenGuide={(tab) => { setGuideTab(tab || page); setGuideOpen(true); }} />
           {status === "Selesai" && (
             <div className="archive-banner">
               <LockKeyhole size={17} />
@@ -1336,6 +1414,13 @@ function App() {
               </div>
               {fileTable(shownFiles.slice(0, 10))}
             </>
+          )}
+          {page === "directory" && (
+            <DocumentDirectory
+              currentProfile={profile}
+              units={units}
+              report={report}
+            />
           )}
           {page === "spaces" && (
             <>
@@ -1717,7 +1802,7 @@ function App() {
               <p className="muted">{session.user.email}</p>
               <dl>
                 <dt>Peran</dt>
-                <dd>{roles[profile.role]}</dd>
+                <dd>{getRoleLabel(profile)}</dd>
                 <dt>Unit</dt>
                 <dd>
                   {units.find((u) => u.id === profile.unit_id)?.name ||
@@ -1742,6 +1827,7 @@ function App() {
           TPMPS <span>Dokumen internal · Asia/Jakarta</span>
         </footer>
       </div>
+      <GuideModal currentPage={page} initialTab={guideTab} isOpen={guideOpen} onClose={() => setGuideOpen(false)} />
       {previewFile && <Suspense fallback={<div className="preview-opening" role="status">Menyiapkan pratinjau…</div>}><FileViewer key={previewFile.id} file={previewFile} close={() => setPreviewFile(null)} download={() => void openFile(previewFile, true)} busy={busy} /></Suspense>}
       {action && (
         <Modal

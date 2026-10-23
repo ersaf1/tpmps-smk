@@ -51,13 +51,35 @@ export async function authorizeReader(request: Request) {
   const { data, error } = await client.auth.getUser(authorization.slice(7));
   if (error || !data.user) throw new HttpError(401, "Sesi tidak valid.");
   const { data: profile, error: profileError } = await client.from("profiles")
-    .select("id, active, role").eq("id", data.user.id).single();
+    .select("id, active, role, full_name, unit_id").eq("id", data.user.id).single();
   if (profileError || !profile?.active ||
     !["superadmin", "ketua_tpmps", "kepala_unit", "kepala_sekolah"].includes(profile.role)) {
     throw new HttpError(403, "Akun tidak memiliki akses aktif.");
   }
   return { client, profile };
 }
+
+/** Auditor authorization allows superadmin and ketua_tpmps. */
+export async function authorizeAuditor(request: Request) {
+  const { url, key } = configuration();
+  const authorization = request.headers.get("authorization");
+  if (!authorization?.startsWith("Bearer ")) throw new HttpError(401, "Silakan masuk kembali.");
+  const client = createClient(url, key, {
+    db: { schema: "tpmps" },
+    global: { headers: { Authorization: authorization } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data, error } = await client.auth.getUser(authorization.slice(7));
+  if (error || !data.user) throw new HttpError(401, "Sesi tidak valid.");
+  const { data: profile, error: profileError } = await client.from("profiles")
+    .select("id, active, role, full_name, unit_id").eq("id", data.user.id).single();
+  if (profileError || !profile?.active ||
+    !["superadmin", "ketua_tpmps"].includes(profile.role)) {
+    throw new HttpError(403, "Hanya Ketua TPMPS atau Superadmin yang berwenang melakukan audit.");
+  }
+  return { client, profile };
+}
+
 export function hasAdminSecret(): boolean {
   return !!(
     process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY

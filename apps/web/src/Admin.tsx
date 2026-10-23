@@ -19,6 +19,7 @@ import {
 import { api, db } from "./client";
 import {
   roles,
+  getRoleLabel,
   periodStatus,
   type Profile,
   type Unit,
@@ -245,7 +246,7 @@ export function Admin({
                 </div>
                 {edit.id && (
                   <small className="muted" style={{ fontSize: 11, marginTop: 4 }}>
-                    Email login pengguna untuk masuk ke sistem SINTESA-TPMPS.
+                    Email login pengguna untuk masuk ke sistem SIMPENLAH-TPMPS.
                   </small>
                 )}
               </label>
@@ -650,7 +651,7 @@ export function Admin({
                         }}
                       >
                         {meta?.icon}
-                        {roles[row.role as keyof typeof roles]}
+                        {getRoleLabel(row as Profile)}
                       </span>
                     ) : section === "periods" ? (
                       `${row.starts_on} — ${row.ends_on}`

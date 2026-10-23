@@ -6,6 +6,7 @@ export const roles = {
   superadmin: "Superadmin",
 };
 export type Role = keyof typeof roles;
+
 export interface Profile {
   id: string;
   email?: string;
@@ -14,6 +15,21 @@ export interface Profile {
   unit_id: string | null;
   active: boolean;
 }
+
+/** Menampilkan label gelar peran terhormat; Ibu Vickky menampilkan notaben Superadmin (Ketua TPMPS) */
+export function getRoleLabel(profile: Profile | null | undefined): string {
+  if (!profile) return "";
+  if (profile.role === "superadmin") {
+    const isVickky =
+      profile.full_name?.toLowerCase().includes("vickky") ||
+      profile.email?.toLowerCase().includes("vickky") ||
+      profile.email?.toLowerCase().includes("tpmps.ketua");
+    if (isVickky) return "Superadmin (Ketua TPMPS)";
+    return "Superadmin";
+  }
+  return roles[profile.role] || profile.role;
+}
+
 export interface Period {
   id: string;
   name: string;
@@ -50,6 +66,42 @@ export interface Doc {
   created_at: string;
   status: string;
 }
+
+export type ApprovalStatus = "pending" | "approved" | "revisi";
+
+export interface DocumentItem {
+  id: string;
+  nomor_dokumen: string;
+  nama_dokumen: string;
+  unit_id: string | null;
+  unit: string;
+  letak_dokumen: string;
+  file_path: string | null;
+  file_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  status_approval: ApprovalStatus;
+  audit_id: string | null;
+  kelebihan?: string | null;
+  kekurangan?: string | null;
+  nama_auditor?: string | null;
+  tanggal_audit?: string | null;
+}
+
+export interface AuditRecord {
+  id: string;
+  document_id: string;
+  status_approval: ApprovalStatus;
+  kelebihan: string;
+  kekurangan: string;
+  nama_auditor: string;
+  auditor_id: string | null;
+  tanggal_audit: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export function periodStatus(period: Period, now = new Date()) {
   const today = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Jakarta",
@@ -63,6 +115,7 @@ export function periodStatus(period: Period, now = new Date()) {
       ? "Selesai"
       : "Aktif";
 }
+
 export function canWrite(
   profile: Profile,
   space: Space | undefined,
@@ -79,6 +132,7 @@ export function canWrite(
       (profile.role === "kepala_unit" && space.unit_id === profile.unit_id))
   );
 }
+
 export function bytes(n: number) {
   return n >= 1e6
     ? `${(n / 1e6).toFixed(1)} MB`
@@ -86,6 +140,7 @@ export function bytes(n: number) {
       ? `${(n / 1e3).toFixed(1)} KB`
       : `${n} B`;
 }
+
 export function safePreview(mime: string) {
   return [
     "application/pdf",

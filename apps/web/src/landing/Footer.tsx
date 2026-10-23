@@ -33,7 +33,7 @@ export const Footer: React.FC = () => {
                 height="40"
               />
               <div className="footer-brand-names">
-                <span className="footer-brand-title">SINTESA</span>
+                <span className="footer-brand-title">SIMPENLAH</span>
                 <span className="footer-brand-badge">Sistem Informasi TPMPS SMK</span>
               </div>
             </div>
@@ -50,7 +50,7 @@ export const Footer: React.FC = () => {
                 className="footer-nav-link"
                 onClick={(e) => handleLinkClick(e, "#tentang")}
               >
-                Tentang SINTESA
+                Tentang SIMPENLAH
               </a>
               <a
                 href="#fitur"
@@ -81,7 +81,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Hairline Row */}
         <div className="otto-footer-bottom">
           <div className="footer-bottom-left">
-            <span>© 2026 SINTESA. Seluruh hak cipta dilindungi.</span>
+            <span>© 2026 SIMPENLAH. Seluruh hak cipta dilindungi.</span>
             <span className="footer-dot-sep">·</span>
             <span>Sistem Informasi TPMPS SMK</span>
           </div>
